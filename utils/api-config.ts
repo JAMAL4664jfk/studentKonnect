@@ -141,6 +141,7 @@ export async function apiRequest<T = any>(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "apikey": supabaseKey,
+    "Authorization": `Bearer ${supabaseKey}`,
     ...options?.headers as Record<string, string>,
   };
 
