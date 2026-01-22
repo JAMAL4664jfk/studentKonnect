@@ -15,11 +15,9 @@ try {
  * Get the correct API base URL based on the platform and environment
  */
 export function getApiBaseUrl(): string {
-  // Check if Supabase URL is configured (preferred)
-  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-  if (supabaseUrl) {
-    return `${supabaseUrl}/functions/v1`;
-  }
+  // Use Supabase Edge Functions (hardcoded from lib/supabase.ts)
+  const supabaseUrl = "https://yrvirnjhzjuajmpnhefz.supabase.co";
+  return `${supabaseUrl}/functions/v1`;
 
   // Check if we're in development or production
   const isDevelopment = __DEV__;
@@ -138,16 +136,13 @@ export async function apiRequest<T = any>(
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}${endpoint}`;
 
-  // Add Supabase auth headers if using Supabase
-  const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  // Add Supabase auth headers (hardcoded from lib/supabase.ts)
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlydmlybmpoemp1YWptcG5oZWZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2ODcyMDIsImV4cCI6MjA3ODI2MzIwMn0.sJ8KzMvW9mBFLgur4ZWRwDxIGITpAahqaiOeObTtOZ0";
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    "apikey": supabaseKey,
     ...options?.headers as Record<string, string>,
   };
-
-  if (supabaseKey) {
-    headers["apikey"] = supabaseKey;
-  }
 
   try {
     const response = await fetch(url, {
