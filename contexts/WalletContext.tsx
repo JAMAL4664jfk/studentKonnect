@@ -45,7 +45,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       }
 
       const { data, error } = await supabase
-        .from("wallets")
+        .from("fiat_wallets")
         .select("id, balance")
         .eq("user_id", user.id)
         .maybeSingle();
@@ -58,7 +58,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       } else {
         // Create wallet if it doesn't exist
         const { data: newWallet, error: insertError } = await supabase
-          .from("wallets")
+          .from("fiat_wallets")
           .insert({ user_id: user.id, balance: 1000.0 })
           .select("id, balance")
           .single();
@@ -128,7 +128,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       // Update wallet balance
       const { error: updateError } = await supabase
-        .from("wallets")
+        .from("fiat_wallets")
         .update({ balance: newBalance })
         .eq("id", walletId);
 
@@ -199,7 +199,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       // Update wallet balance
       const { error: updateError } = await supabase
-        .from("wallets")
+        .from("fiat_wallets")
         .update({ balance: newBalance })
         .eq("id", walletId);
 
