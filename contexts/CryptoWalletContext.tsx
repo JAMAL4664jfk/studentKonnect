@@ -110,6 +110,9 @@ export const CryptoWalletProvider: React.FC<{ children: ReactNode }> = ({ childr
       
       const data = await apiRequest(API_ENDPOINTS.createWallet, {
         method: "POST",
+        body: JSON.stringify({
+          userId: "default-user"
+        }),
       });
       setAddress(data.address);
       setIsConnected(true);
