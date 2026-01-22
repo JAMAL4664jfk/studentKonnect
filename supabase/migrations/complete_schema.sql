@@ -86,7 +86,9 @@ CREATE POLICY "Service role can do everything on wallets"
 CREATE POLICY "Users can read their own wallets"
   ON public.wallets FOR SELECT
   TO authenticated
-  USING (auth.uid() = user_id);===========================================
+  USING (auth.uid() = user_id);
+
+-- ============================================
 -- 3. CHAT CONVERSATIONS
 -- ============================================
 CREATE TABLE IF NOT EXISTS public.conversations (
