@@ -137,7 +137,7 @@ export async function apiRequest<T = any>(
   const url = `${baseUrl}${endpoint}`;
 
   // Add Supabase auth headers (hardcoded from lib/supabase.ts)
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydGpqZWttZXhteXZra290aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTU4ODUsImV4cCI6MjA1MzEzMTg4NX0.ytzxsuI-LIsxPRGVO5m7tg_76A4dGmb";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydGpqZWttZXhteXZra290aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwOTkyODAsImV4cCI6MjA4NDY3NTI4MH0.__lyxX1wdkAkO7xUj5cBuc1x9ae_h-cggfVl_yXby6A";
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "apikey": supabaseKey,
