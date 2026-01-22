@@ -60,7 +60,7 @@ CREATE POLICY "Users can insert their own profile"
 -- ============================================
 CREATE TABLE IF NOT EXISTS public.wallets (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  user_id TEXT NOT NULL,
   wallet_address TEXT NOT NULL UNIQUE,
   encrypted_private_key TEXT NOT NULL,
   wallet_name TEXT DEFAULT 'My Wallet',
@@ -86,7 +86,7 @@ CREATE POLICY "Service role can do everything on wallets"
 CREATE POLICY "Users can read their own wallets"
   ON public.wallets FOR SELECT
   TO authenticated
-  USING (auth.uid() = user_id);
+  USING (auth.uid()::text = user_id);
 
 -- ============================================
 -- 3. CHAT CONVERSATIONS
