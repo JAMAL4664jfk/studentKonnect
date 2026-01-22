@@ -1,0 +1,13 @@
+{
+  "name": "studentkonnect-blockchain",
+  "version": "1.0.0",
+
+  "description": "Blockchain infrastructure for Student Konnect",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.ts",
+    "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
+    "node": "hardhat node",
+    "test": "hardhat test"
+  }
+}
