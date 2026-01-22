@@ -20,49 +20,65 @@ async function testConnection() {
     // Create Supabase client
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Test 1: Check if we can connect
-    console.log('Test 1: Basic connection...');
-    const { data, error } = await supabase.from('_test').select('*').limit(1);
-    
-    if (error && error.code !== 'PGRST116') { // PGRST116 = table doesn't exist (which is fine)
-      throw error;
-    }
-    console.log('✅ Connection successful!\n');
-
-    // Test 2: Check if wallets table exists
-    console.log('Test 2: Checking for wallets table...');
+    // Test 1: Check if wallets table exists
+    console.log('Test 1: Checking connection and wallets table...');
     const { data: wallets, error: walletsError } = await supabase
       .from('wallets')
       .select('*')
       .limit(1);
 
     if (walletsError) {
-      if (walletsError.code === 'PGRST116') {
+      if (walletsError.code === 'PGRST116' || walletsError.code === 'PGRST205') {
         console.log('⚠️  Wallets table does not exist yet');
         console.log('   Run the SQL migration to create it\n');
       } else {
         throw walletsError;
       }
     } else {
+      console.log('✅ Connection successful!');
       console.log('✅ Wallets table exists!');
       console.log(`   Found ${wallets?.length || 0} wallet(s)\n`);
     }
 
-    // Test 3: List all tables
-    console.log('Test 3: Listing all tables...');
-    const { data: tables, error: tablesError } = await supabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public');
+    // Test 2: Check profiles table
+    console.log('Test 2: Checking profiles table...');
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('*')
+      .limit(1);
 
-    if (!tablesError && tables) {
-      console.log('✅ Found tables:');
-      tables.forEach(t => console.log(`   - ${t.table_name}`));
+    if (profilesError) {
+      if (profilesError.code === 'PGRST116' || profilesError.code === 'PGRST205') {
+        console.log('⚠️  Profiles table does not exist yet\n');
+      } else {
+        console.log('⚠️  Profiles table error:', profilesError.message, '\n');
+      }
+    } else {
+      console.log('✅ Profiles table exists!');
+      console.log(`   Found ${profiles?.length || 0} profile(s)\n`);
     }
 
-    console.log('\n✅ All tests passed!');
+    // Test 3: Check messages table
+    console.log('Test 3: Checking messages table...');
+    const { data: messages, error: messagesError } = await supabase
+      .from('messages')
+      .select('*')
+      .limit(1);
+
+    if (messagesError) {
+      if (messagesError.code === 'PGRST116' || messagesError.code === 'PGRST205') {
+        console.log('⚠️  Messages table does not exist yet\n');
+      } else {
+        console.log('⚠️  Messages table error:', messagesError.message, '\n');
+      }
+    } else {
+      console.log('✅ Messages table exists!');
+      console.log(`   Found ${messages?.length || 0} message(s)\n`);
+    }
+
+    console.log('✅ Connection test completed!');
     console.log('\n📋 Next steps:');
-    console.log('1. Run the SQL migration to create wallets table (if not exists)');
+    console.log('1. If tables don\'t exist, run the SQL migration');
     console.log('2. Deploy Edge Functions');
     console.log('3. Test wallet creation in the app');
 
