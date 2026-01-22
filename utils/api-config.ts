@@ -15,6 +15,12 @@ try {
  * Get the correct API base URL based on the platform and environment
  */
 export function getApiBaseUrl(): string {
+  // Check if Supabase URL is configured (preferred)
+  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  if (supabaseUrl) {
+    return `${supabaseUrl}/functions/v1`;
+  }
+
   // Check if we're in development or production
   const isDevelopment = __DEV__;
 
@@ -105,21 +111,21 @@ export function getRpcUrl(): string {
  */
 export const API_ENDPOINTS = {
   // Wallet endpoints
-  createWallet: "/api/crypto/wallet/create",
-  getWallet: (address: string) => `/api/crypto/wallet/${address}`,
-  getBalance: (address: string) => `/api/crypto/wallet/${address}/balance`,
+  createWallet: "/create-wallet",
+  getWallet: (address: string) => `/get-wallet?address=${address}`,
+  getBalance: (address: string) => `/get-balance?address=${address}`,
   
   // Transaction endpoints
-  sendTransaction: "/api/crypto/transaction/send",
-  swapTransaction: "/api/crypto/transaction/swap",
-  getTransaction: (hash: string) => `/api/crypto/transaction/${hash}`,
+  sendTransaction: "/send-token",
+  swapTransaction: "/swap-token",
+  getTransaction: (hash: string) => `/get-transaction?hash=${hash}`,
   
   // Token endpoints
-  getTokens: "/api/crypto/tokens",
-  getTokenInfo: (address: string) => `/api/crypto/tokens/${address}/info`,
+  getTokens: "/get-tokens",
+  getTokenInfo: (address: string) => `/get-token-info?address=${address}`,
   
   // Swap endpoints
-  getSwapQuote: "/api/crypto/swap/quote",
+  getSwapQuote: "/get-swap-quote",
 };
 
 /**
@@ -132,13 +138,21 @@ export async function apiRequest<T = any>(
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}${endpoint}`;
 
+  // Add Supabase auth headers if using Supabase
+  const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...options?.headers as Record<string, string>,
+  };
+
+  if (supabaseKey) {
+    headers["apikey"] = supabaseKey;
+  }
+
   try {
     const response = await fetch(url, {
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
+      headers,
     });
 
     if (!response.ok) {
