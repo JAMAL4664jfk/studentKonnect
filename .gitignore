@@ -60,3 +60,11 @@ Thumbs.db
 *.tgz
 *.tar.gz
 .cache/
+
+# Hardhat blockchain files
+blockchain/cache/
+blockchain/artifacts/
+blockchain/deployments.json
+
+# Tunnel URL (generated at runtime)
+.tunnel-url.json

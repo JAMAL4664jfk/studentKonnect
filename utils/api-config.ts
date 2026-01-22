@@ -1,6 +1,16 @@
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 
+// Try to load tunnel URL if available
+let tunnelUrl: string | null = null;
+try {
+  const tunnelInfo = require("../.tunnel-url.json");
+  tunnelUrl = tunnelInfo.url;
+  console.log("🌐 Using ngrok tunnel:", tunnelUrl);
+} catch {
+  // No tunnel URL available, will use platform-specific URLs
+}
+
 /**
  * Get the correct API base URL based on the platform and environment
  */
@@ -11,6 +21,11 @@ export function getApiBaseUrl(): string {
   if (!isDevelopment) {
     // Production: Use your deployed API URL
     return process.env.EXPO_PUBLIC_API_URL || "https://your-api.com";
+  }
+
+  // Development: Check if ngrok tunnel is available (best for React Native)
+  if (tunnelUrl && Platform.OS !== "web") {
+    return tunnelUrl;
   }
 
   // Development: Platform-specific URLs
