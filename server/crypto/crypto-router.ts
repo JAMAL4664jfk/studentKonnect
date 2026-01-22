@@ -13,6 +13,8 @@ import {
   getDeployedTokens,
   reloadDeploymentInfo,
 } from "./blockchain-service";
+import { ensureBlockchainInitialized } from "./blockchain-init";
+import { getAutoFundingService } from "./auto-funding";
 
 const router = Router();
 
@@ -22,10 +24,17 @@ const router = Router();
  */
 router.post("/wallet/create", async (req, res) => {
   try {
+    // Ensure blockchain is initialized
+    await ensureBlockchainInitialized();
+
     // In production, get userId from authenticated session
     const userId = req.body.userId || "default-user";
 
     const wallet = await createWallet(userId);
+
+    // Auto-fund wallet in development mode
+    const autoFunding = getAutoFundingService();
+    await autoFunding.autoFundIfNeeded(wallet.address);
 
     res.json({
       success: true,
