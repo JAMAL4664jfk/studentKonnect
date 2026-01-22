@@ -1,5 +1,6 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const { withNativeWind } = require("nativewind/metro");
+const path = require("path");
 
 const config = getDefaultConfig(__dirname);
 
@@ -7,9 +8,9 @@ const config = getDefaultConfig(__dirname);
 config.resolver = {
   ...config.resolver,
   extraNodeModules: {
-    crypto: require.resolve("react-native-crypto"),
-    stream: require.resolve("readable-stream"),
-    buffer: require.resolve("buffer"),
+    crypto: path.resolve(__dirname, "node_modules/react-native-crypto"),
+    stream: path.resolve(__dirname, "node_modules/readable-stream"),
+    buffer: path.resolve(__dirname, "node_modules/buffer"),
   },
 };
 
