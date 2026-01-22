@@ -1,0 +1,30 @@
+graph TD
+    subgraph Frontend [React Native App]
+        A1[Wallet Screen] --> A2{WalletTabs}
+        A2 -- "Banking" --> A3[Banking UI]
+        A2 -- "Crypto" --> A4[Crypto UI]
+        A4 --> A5[CryptoWalletContext]
+        A5 --> A6[TokenList]
+        A5 --> A7[SwapInterface]
+        A5 --> A8[SendTokens]
+        A5 --> A9[BlockchainChart]
+    end
+
+    subgraph Backend [Node.js Server]
+        B1[API Router] --> B2[Wallet Service]
+        B1 --> B3[Blockchain Service]
+        B2 --> B4[Encrypted Key Store]
+        B3 --> C1
+    end
+
+    subgraph Blockchain [Hardhat Local Node]
+        C1[Ethers.js] --> C2{Smart Contracts}
+        C2 --> C3[StudentToken.sol]
+        C2 --> C4[TokenSwap.sol]
+    end
+
+    A5 --> B1
+
+    style Frontend fill:#f9f,stroke:#333,stroke-width:2px
+    style Backend fill:#ccf,stroke:#333,stroke-width:2px
+    style Blockchain fill:#cfc,stroke:#333,stroke-width:2px
