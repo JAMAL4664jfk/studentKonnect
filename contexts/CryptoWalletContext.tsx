@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { ethers } from "ethers";
 import Toast from "react-native-toast-message";
+import { getApiBaseUrl, getRpcUrl, API_ENDPOINTS, apiRequest } from "@/utils/api-config";
 
 export interface Token {
   symbol: string;
@@ -87,8 +88,10 @@ export const CryptoWalletProvider: React.FC<{ children: ReactNode }> = ({ childr
     // Initialize provider
     const initProvider = async () => {
       try {
-        // Connect to local Hardhat node or backend service
-        const rpcProvider = new ethers.JsonRpcProvider("http://localhost:8545");
+        // Connect to blockchain RPC (automatically handles platform differences)
+        const rpcUrl = getRpcUrl();
+        console.log("Connecting to RPC:", rpcUrl);
+        const rpcProvider = new ethers.JsonRpcProvider(rpcUrl);
         setProvider(rpcProvider);
       } catch (error) {
         console.error("Failed to initialize provider:", error);
@@ -102,20 +105,12 @@ export const CryptoWalletProvider: React.FC<{ children: ReactNode }> = ({ childr
     try {
       setIsLoading(true);
 
-      // In a real app, this would connect to MetaMask or generate a wallet via backend
-      // For now, we'll use the backend API to get or create a wallet
-      const response = await fetch("http://localhost:3000/api/crypto/wallet/create", {
+      // Create wallet via backend API (automatically handles platform differences)
+      console.log("Connecting to API:", getApiBaseUrl());
+      
+      const data = await apiRequest(API_ENDPOINTS.createWallet, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to create wallet");
-      }
-
-      const data = await response.json();
       setAddress(data.address);
       setIsConnected(true);
 
@@ -155,16 +150,13 @@ export const CryptoWalletProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   const loadTokenConfigs = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/crypto/tokens");
-      if (response.ok) {
-        const data = await response.json();
-        // Update TOKEN_CONFIGS with deployed addresses
-        TOKEN_CONFIGS.forEach((config, index) => {
-          if (data.tokens[config.symbol]) {
-            TOKEN_CONFIGS[index].address = data.tokens[config.symbol];
-          }
-        });
-      }
+      const data = await apiRequest(API_ENDPOINTS.getTokens);
+      // Update TOKEN_CONFIGS with deployed addresses
+      TOKEN_CONFIGS.forEach((config, index) => {
+        if (data.tokens[config.symbol]) {
+          TOKEN_CONFIGS[index].address = data.tokens[config.symbol];
+        }
+      });
     } catch (error) {
       console.error("Error loading token configs:", error);
     }
@@ -225,11 +217,8 @@ export const CryptoWalletProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     try {
       // Call backend API to send tokens
-      const response = await fetch("http://localhost:3000/api/crypto/transaction/send", {
+      const data = await apiRequest(API_ENDPOINTS.sendTransaction, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           from: address,
           to,
@@ -237,12 +226,6 @@ export const CryptoWalletProvider: React.FC<{ children: ReactNode }> = ({ childr
           amount,
         }),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to send transaction");
-      }
-
-      const data = await response.json();
 
       Toast.show({
         type: "success",
@@ -275,11 +258,8 @@ export const CryptoWalletProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     try {
       // Call backend API to swap tokens
-      const response = await fetch("http://localhost:3000/api/crypto/transaction/swap", {
+      const data = await apiRequest(API_ENDPOINTS.swapTransaction, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           from: address,
           tokenInAddress,
@@ -288,12 +268,6 @@ export const CryptoWalletProvider: React.FC<{ children: ReactNode }> = ({ childr
           minAmountOut,
         }),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to swap tokens");
-      }
-
-      const data = await response.json();
 
       Toast.show({
         type: "success",
