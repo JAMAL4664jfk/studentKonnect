@@ -16,7 +16,7 @@ try {
  */
 export function getApiBaseUrl(): string {
   // Use Supabase Edge Functions (hardcoded from lib/supabase.ts)
-  const supabaseUrl = "https://yrvirnjhzjuajmpnhefz.supabase.co";
+  const supabaseUrl = "https://ortjjekmexmyvkkotioo.supabase.co";
   return `${supabaseUrl}/functions/v1`;
 
   // Check if we're in development or production
@@ -137,7 +137,7 @@ export async function apiRequest<T = any>(
   const url = `${baseUrl}${endpoint}`;
 
   // Add Supabase auth headers (hardcoded from lib/supabase.ts)
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlydmlybmpoemp1YWptcG5oZWZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2ODcyMDIsImV4cCI6MjA3ODI2MzIwMn0.sJ8KzMvW9mBFLgur4ZWRwDxIGITpAahqaiOeObTtOZ0";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydGpqZWttZXhteXZra290aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTU4ODUsImV4cCI6MjA1MzEzMTg4NX0.ytzxsuI-LIsxPRGVO5m7tg_76A4dGmb";
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "apikey": supabaseKey,

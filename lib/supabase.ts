@@ -3,10 +3,9 @@ import { createClient } from "@supabase/supabase-js";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
-// Supabase configuration from web app
-const SUPABASE_URL = "https://yrvirnjhzjuajmpnhefz.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlydmlybmpoemp1YWptcG5oZWZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2ODcyMDIsImV4cCI6MjA3ODI2MzIwMn0.sJ8KzMvW9mBFLgur4ZWRwDxIGITpAahqaiOeObTtOZ0";
+// Supabase configuration - NEW DATABASE
+const SUPABASE_URL = "https://ortjjekmexmyvkkotioo.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydGpqZWttZXhteXZra290aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTU4ODUsImV4cCI6MjA1MzEzMTg4NX0.ytzxsuI-LIsxPRGVO5m7tg_76A4dGmb";
 
 /**
  * Custom storage adapter using expo-secure-store for secure session persistence
