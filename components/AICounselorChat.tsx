@@ -27,7 +27,7 @@ interface AICounselorChatProps {
 
 const getWelcomeMessage = (type: string): string => {
   const messages = {
-    mental: "Hello! I'm your AI Mental Health Counselor. I'm here to listen and provide support. How are you feeling today?",
+    mental: "Hello! I am your AI Mental Health Counselor. I'm here to listen and provide support. How are you feeling today?",
     financial: "Hi! I'm your AI Financial Counselor. I can help you with budgeting, savings, and financial planning. What would you like to discuss?",
     academic: "Welcome! I'm your AI Academic Counselor. I can assist with study strategies, time management, and academic goals. How can I help you today?",
     bereavement: "I'm here for you during this difficult time. I'm your AI Bereavement Counselor, providing support and understanding. Please share what's on your mind.",
