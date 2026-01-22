@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS public.wallets (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id TEXT NOT NULL,
-  address TEXT NOT NULL UNIQUE,
+  wallet_address TEXT NOT NULL UNIQUE,
   encrypted_private_key TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS public.wallets (
 -- Create index on user_id for faster lookups
 CREATE INDEX IF NOT EXISTS idx_wallets_user_id ON public.wallets(user_id);
 
--- Create index on address for faster lookups
-CREATE INDEX IF NOT EXISTS idx_wallets_address ON public.wallets(address);
+-- Create index on wallet_address for faster lookups
+CREATE INDEX IF NOT EXISTS idx_wallets_address ON public.wallets(wallet_address);
 
 -- Enable Row Level Security
 ALTER TABLE public.wallets ENABLE ROW LEVEL SECURITY;

@@ -56,7 +56,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         user_id: userId || "default-user",
-        address: walletData.address,
+        wallet_address: walletData.address,
         encrypted_private_key: walletData.encryptedPrivateKey,
         created_at: walletData.createdAt,
       }),

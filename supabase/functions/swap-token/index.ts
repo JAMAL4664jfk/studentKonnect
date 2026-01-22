@@ -20,7 +20,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     const walletResponse = await fetch(
-      `${supabaseUrl}/rest/v1/wallets?address=eq.${from}&select=encrypted_private_key`,
+      `${supabaseUrl}/rest/v1/wallets?wallet_address=eq.${from}&select=encrypted_private_key`,
       {
         headers: {
           "apikey": supabaseKey!,
