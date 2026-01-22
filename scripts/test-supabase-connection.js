@@ -9,7 +9,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 // Your new Supabase credentials
 const SUPABASE_URL = 'https://ortjjekmexmyvkkotioo.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydGpqZWttZXhteXZra290aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTU4ODUsImV4cCI6MjA1MzEzMTg4NX0.ytzxsuI-LIsxPRGVO5m7tg_76A4dGmb';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydGpqZWttZXhteXZra290aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwOTkyODAsImV4cCI6MjA4NDY3NTI4MH0.__lyxX1wdkAkO7xUj5cBuc1x9ae_h-cggfVl_yXby6A';
 
 async function testConnection() {
   console.log('🔌 Testing Supabase connection...\n');
