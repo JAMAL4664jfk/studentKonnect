@@ -13,6 +13,9 @@ import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useWallet } from "@/contexts/WalletContext";
+import { CryptoWalletProvider } from "@/contexts/CryptoWalletContext";
+import { WalletTabs } from "@/components/wallet/WalletTabs";
+import { CryptoWalletTab } from "@/components/crypto/CryptoWalletTab";
 import { supabase } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
 import { generateTransactionStatement, shareTransactionStatement } from "@/lib/pdf-generator";
@@ -57,7 +60,7 @@ const CATEGORY_ICONS: Record<TransactionCategory, any> = {
   reward: "heart.fill",
 };
 
-export default function TransactionsScreen() {
+function BankingTransactions() {
   const colors = useColors();
   const router = useRouter();
   const { walletId } = useWallet();
@@ -102,38 +105,6 @@ export default function TransactionsScreen() {
             category: "transport",
             created_at: new Date(Date.now() - 172800000).toISOString(),
           },
-          {
-            id: "4",
-            amount: 200.0,
-            type: "debit",
-            description: "Textbooks",
-            category: "education",
-            created_at: new Date(Date.now() - 259200000).toISOString(),
-          },
-          {
-            id: "5",
-            amount: 1000.0,
-            type: "credit",
-            description: "Monthly Allowance",
-            category: "deposit",
-            created_at: new Date(Date.now() - 604800000).toISOString(),
-          },
-          {
-            id: "6",
-            amount: 300.0,
-            type: "debit",
-            description: "Accommodation Payment",
-            category: "accommodation",
-            created_at: new Date(Date.now() - 864000000).toISOString(),
-          },
-          {
-            id: "7",
-            amount: 50.0,
-            type: "credit",
-            description: "Referral Reward",
-            category: "reward",
-            created_at: new Date(Date.now() - 1209600000).toISOString(),
-          },
         ];
         setTransactions(mockTransactions);
         setFilteredTransactions(mockTransactions);
@@ -165,85 +136,7 @@ export default function TransactionsScreen() {
 
   useEffect(() => {
     fetchTransactions();
-    loadUserProfile();
   }, [walletId]);
-
-  const loadUserProfile = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserEmail(user.email || "scholar@student.ac.za");
-        
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', user.id)
-          .single();
-        
-        if (profile) {
-          setUserName(profile.full_name || "Student Account");
-        }
-      }
-    } catch (error) {
-      console.error('Error loading user profile:', error);
-    }
-  };
-
-  const handleDownloadStatement = async () => {
-    if (filteredTransactions.length === 0) {
-      Toast.show({
-        type: 'info',
-        text1: 'No Transactions',
-        text2: 'There are no transactions to export',
-      });
-      return;
-    }
-
-    setGeneratingPDF(true);
-
-    try {
-      // Convert transactions to PDF format
-      const pdfTransactions = filteredTransactions.map(t => ({
-        id: t.id,
-        type: t.type === 'credit' ? 'income' as const : 'expense' as const,
-        amount: t.amount,
-        description: t.description,
-        category: t.category,
-        date: t.created_at,
-      }));
-
-      // Generate PDF
-      const pdfUri = await generateTransactionStatement({
-        transactions: pdfTransactions,
-        userName,
-        userEmail,
-      });
-
-      if (!pdfUri) {
-        throw new Error('Failed to generate PDF');
-      }
-
-      // Share PDF
-      const shared = await shareTransactionStatement(pdfUri);
-
-      if (shared) {
-        Toast.show({
-          type: 'success',
-          text1: 'Statement Generated',
-          text2: 'Your transaction statement has been created',
-        });
-      }
-    } catch (error: any) {
-      console.error('Error generating statement:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Generation Failed',
-        text2: error.message || 'Failed to generate statement',
-      });
-    } finally {
-      setGeneratingPDF(false);
-    }
-  };
 
   useEffect(() => {
     // Apply filter
@@ -279,11 +172,6 @@ export default function TransactionsScreen() {
     });
   };
 
-  const openTransactionDetail = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
-    setDetailModalVisible(true);
-  };
-
   const renderTransactionItem = ({ item }: { item: Transaction }) => {
     const isCredit = item.type === "credit";
     const categoryColor = CATEGORY_COLORS[item.category];
@@ -291,20 +179,17 @@ export default function TransactionsScreen() {
 
     return (
       <TouchableOpacity
-        onPress={() => openTransactionDetail(item)}
+        onPress={() => {
+          setSelectedTransaction(item);
+          setDetailModalVisible(true);
+        }}
         className="bg-surface rounded-2xl p-4 mb-3 active:opacity-70"
         style={{
           borderWidth: 1,
           borderColor: colors.border,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 2,
         }}
       >
         <View className="flex-row items-center gap-3">
-          {/* Icon */}
           <View
             className="w-12 h-12 rounded-full items-center justify-center"
             style={{ backgroundColor: categoryColor + "20" }}
@@ -312,7 +197,6 @@ export default function TransactionsScreen() {
             <IconSymbol name={categoryIcon} size={24} color={categoryColor} />
           </View>
 
-          {/* Transaction Info */}
           <View className="flex-1">
             <Text className="text-base font-semibold text-foreground mb-1">
               {item.description}
@@ -328,267 +212,124 @@ export default function TransactionsScreen() {
             </View>
           </View>
 
-          {/* Amount */}
-          <View className="items-end">
-            <Text
-              className={`text-lg font-bold ${
-                isCredit ? "text-success" : "text-foreground"
-              }`}
-            >
-              {isCredit ? "+" : "-"}R{Math.abs(item.amount).toFixed(2)}
-            </Text>
-          </View>
+          <Text
+            className={`text-lg font-bold ${
+              isCredit ? "text-success" : "text-foreground"
+            }`}
+          >
+            {isCredit ? "+" : "-"}R{Math.abs(item.amount).toFixed(2)}
+          </Text>
         </View>
       </TouchableOpacity>
     );
   };
 
-  const renderFilterButton = (type: FilterType, label: string) => (
-    <TouchableOpacity
-      onPress={() => setFilterType(type)}
-      className={`px-4 py-2 rounded-full ${
-        filterType === type ? "bg-primary" : "bg-surface"
-      }`}
-      style={{
-        borderWidth: 1,
-        borderColor: filterType === type ? "transparent" : colors.border,
-      }}
-    >
-      <Text
-        className={`text-sm font-medium ${
-          filterType === type ? "text-white" : "text-foreground"
-        }`}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const totalCredit = filteredTransactions
-    .filter((t) => t.type === "credit")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalDebit = filteredTransactions
-    .filter((t) => t.type === "debit")
-    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
-    <ScreenContainer className="p-4" edges={["top", "left", "right"]}>
-      <View className="flex-1 gap-4">
-        {/* Header */}
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1">
-            <Text className="text-3xl font-bold text-foreground">
-              Transactions
-            </Text>
-            <Text className="text-sm text-muted">
-              {filteredTransactions.length} transaction
-              {filteredTransactions.length !== 1 ? "s" : ""}
-            </Text>
-          </View>
-          <View className="flex-row gap-2">
-            <TouchableOpacity
-              onPress={handleDownloadStatement}
-              disabled={generatingPDF}
-              className="w-10 h-10 rounded-full bg-primary items-center justify-center active:opacity-70"
-              style={{ opacity: generatingPDF ? 0.5 : 1 }}
-            >
-              {generatingPDF ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <IconSymbol name="arrow.down.circle.fill" size={20} color="white" />
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-surface items-center justify-center active:opacity-70"
-            >
-              <IconSymbol name="arrow.left" size={20} color={colors.foreground} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Summary Cards */}
-        <View className="flex-row gap-3">
-          <View
-            className="flex-1 bg-success rounded-2xl p-4"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 2,
-            }}
+    <View className="flex-1">
+      {/* Filter Buttons */}
+      <View className="flex-row gap-2 p-4 bg-surface border-b border-border">
+        <TouchableOpacity
+          onPress={() => setFilterType("all")}
+          className={`flex-1 rounded-xl p-3 ${
+            filterType === "all" ? "bg-primary" : "bg-background border border-border"
+          } active:opacity-70`}
+        >
+          <Text
+            className={`text-center font-semibold ${
+              filterType === "all" ? "text-primary-foreground" : "text-foreground"
+            }`}
           >
-            <Text className="text-white text-xs opacity-90 mb-1">Income</Text>
-            <Text className="text-white text-2xl font-bold">
-              R{totalCredit.toFixed(2)}
-            </Text>
-          </View>
-          <View
-            className="flex-1 bg-error rounded-2xl p-4"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 2,
-            }}
+            All
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => setFilterType("credit")}
+          className={`flex-1 rounded-xl p-3 ${
+            filterType === "credit" ? "bg-success" : "bg-background border border-border"
+          } active:opacity-70`}
+        >
+          <Text
+            className={`text-center font-semibold ${
+              filterType === "credit" ? "text-white" : "text-foreground"
+            }`}
           >
-            <Text className="text-white text-xs opacity-90 mb-1">Expenses</Text>
-            <Text className="text-white text-2xl font-bold">
-              R{totalDebit.toFixed(2)}
-            </Text>
-          </View>
-        </View>
+            Income
+          </Text>
+        </TouchableOpacity>
 
-        {/* Filters */}
-        <View className="flex-row gap-2">
-          {renderFilterButton("all", "All")}
-          {renderFilterButton("credit", "Income")}
-          {renderFilterButton("debit", "Expenses")}
-        </View>
-
-        {/* Transaction List */}
-        <FlatList
-          data={filteredTransactions}
-          renderItem={renderTransactionItem}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          ListEmptyComponent={
-            <View className="items-center justify-center py-12">
-              <IconSymbol
-                name="wallet.fill"
-                size={48}
-                color={colors.muted}
-              />
-              <Text className="text-muted text-base mt-4">
-                No transactions yet
-              </Text>
-            </View>
-          }
-        />
+        <TouchableOpacity
+          onPress={() => setFilterType("debit")}
+          className={`flex-1 rounded-xl p-3 ${
+            filterType === "debit" ? "bg-destructive" : "bg-background border border-border"
+          } active:opacity-70`}
+        >
+          <Text
+            className={`text-center font-semibold ${
+              filterType === "debit" ? "text-white" : "text-foreground"
+            }`}
+          >
+            Expenses
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Transaction Detail Modal */}
-      <Modal
-        visible={detailModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setDetailModalVisible(false)}
-      >
-        <View
-          className="flex-1 justify-end"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <View
-            className="bg-background rounded-t-3xl p-6"
-            style={{
-              maxHeight: "80%",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: -4 },
-              shadowOpacity: 0.2,
-              shadowRadius: 8,
-              elevation: 8,
-            }}
-          >
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {selectedTransaction && (
-                <View className="gap-6">
-                  {/* Header */}
-                  <View className="items-center gap-3">
-                    <View
-                      className="w-16 h-16 rounded-full items-center justify-center"
-                      style={{
-                        backgroundColor:
-                          CATEGORY_COLORS[selectedTransaction.category] + "20",
-                      }}
-                    >
-                      <IconSymbol
-                        name={CATEGORY_ICONS[selectedTransaction.category]}
-                        size={32}
-                        color={CATEGORY_COLORS[selectedTransaction.category]}
-                      />
-                    </View>
-                    <Text
-                      className={`text-4xl font-bold ${
-                        selectedTransaction.type === "credit"
-                          ? "text-success"
-                          : "text-foreground"
-                      }`}
-                    >
-                      {selectedTransaction.type === "credit" ? "+" : "-"}R
-                      {Math.abs(selectedTransaction.amount).toFixed(2)}
-                    </Text>
-                    <Text className="text-lg font-semibold text-foreground text-center">
-                      {selectedTransaction.description}
-                    </Text>
-                  </View>
+      {/* Transactions List */}
+      <FlatList
+        data={filteredTransactions}
+        renderItem={renderTransactionItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{ padding: 16 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListEmptyComponent={
+          <View className="items-center justify-center py-12">
+            <IconSymbol name="doc.text" size={48} color={colors.muted} />
+            <Text className="text-muted mt-4 text-center">
+              No transactions found
+            </Text>
+          </View>
+        }
+      />
+    </View>
+  );
+}
 
-                  {/* Details */}
-                  <View className="gap-4">
-                    <View className="flex-row justify-between py-3 border-b border-border">
-                      <Text className="text-muted">Type</Text>
-                      <Text className="text-foreground font-medium capitalize">
-                        {selectedTransaction.type}
-                      </Text>
-                    </View>
-                    <View className="flex-row justify-between py-3 border-b border-border">
-                      <Text className="text-muted">Category</Text>
-                      <Text className="text-foreground font-medium capitalize">
-                        {selectedTransaction.category}
-                      </Text>
-                    </View>
-                    <View className="flex-row justify-between py-3 border-b border-border">
-                      <Text className="text-muted">Date</Text>
-                      <Text className="text-foreground font-medium">
-                        {new Date(
-                          selectedTransaction.created_at
-                        ).toLocaleDateString("en-ZA", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })}
-                      </Text>
-                    </View>
-                    <View className="flex-row justify-between py-3 border-b border-border">
-                      <Text className="text-muted">Time</Text>
-                      <Text className="text-foreground font-medium">
-                        {new Date(
-                          selectedTransaction.created_at
-                        ).toLocaleTimeString("en-ZA", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </Text>
-                    </View>
-                    <View className="flex-row justify-between py-3">
-                      <Text className="text-muted">Transaction ID</Text>
-                      <Text className="text-foreground font-medium font-mono text-xs">
-                        {selectedTransaction.id.substring(0, 8).toUpperCase()}
-                      </Text>
-                    </View>
-                  </View>
+export default function TransactionsWithTabsScreen() {
+  const colors = useColors();
+  const router = useRouter();
 
-                  {/* Close Button */}
-                  <TouchableOpacity
-                    onPress={() => setDetailModalVisible(false)}
-                    className="bg-primary rounded-xl py-4 items-center active:opacity-80 mt-4"
-                  >
-                    <Text className="text-white text-base font-semibold">
-                      Close
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </ScrollView>
+  return (
+    <CryptoWalletProvider>
+      <ScreenContainer className="flex-1" edges={["top", "left", "right"]}>
+        {/* Header */}
+        <View className="flex-row items-center justify-between p-4 bg-surface border-b border-border">
+          <View className="flex-row items-center gap-3">
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="active:opacity-70"
+            >
+              <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
+            </TouchableOpacity>
+            <Text className="text-xl font-bold text-foreground">Wallet</Text>
           </View>
         </View>
-      </Modal>
-    </ScreenContainer>
+
+        {/* Tabbed Content */}
+        <WalletTabs
+          bankingContent={<BankingTransactions />}
+          cryptoContent={<CryptoWalletTab />}
+        />
+      </ScreenContainer>
+    </CryptoWalletProvider>
   );
 }
