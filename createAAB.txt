@@ -1,0 +1,18 @@
+{
+  "build": {
+    "preview": {
+      "credentialsSource": "local",
+      "distribution": "internal",
+      "android": {
+        "buildType": "app-bundle"
+      }
+    },
+    "production": {
+      "credentialsSource": "local",
+      "distribution": "store",
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  }
+}
