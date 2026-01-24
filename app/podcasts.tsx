@@ -727,7 +727,7 @@ export default function PodcastsScreen() {
     return (
       <TouchableOpacity
         className="bg-surface rounded-2xl p-4 mb-4 border border-border"
-        onPress={() => playPodcast(item)}
+        onPress={() => router.push(`/podcast-episode?id=${item.id}` as any)}
         activeOpacity={0.7}
       >
         <View className="flex-row">
@@ -763,16 +763,21 @@ export default function PodcastsScreen() {
                 <Text className="text-xs text-muted">Ep. {item.episode_number}</Text>
               )}
             </View>
-            <TouchableOpacity
-              onPress={(e) => {
-                e.stopPropagation();
-                handleEpisodePress(item);
-              }}
-              className="flex-row items-center gap-1"
-            >
-              <IconSymbol name="info.circle" size={14} color={colors.muted} />
-              <Text className="text-xs text-muted">View ratings & comments</Text>
-            </TouchableOpacity>
+            {/* Engagement Stats */}
+            <View className="flex-row items-center gap-3">
+              <View className="flex-row items-center gap-1">
+                <IconSymbol name="eye.fill" size={14} color={colors.muted} />
+                <Text className="text-xs text-muted">{item.views_count || 0}</Text>
+              </View>
+              <View className="flex-row items-center gap-1">
+                <IconSymbol name="heart.fill" size={14} color={colors.muted} />
+                <Text className="text-xs text-muted">{item.likes_count || 0}</Text>
+              </View>
+              <View className="flex-row items-center gap-1">
+                <IconSymbol name="bubble.left.fill" size={14} color={colors.muted} />
+                <Text className="text-xs text-muted">{item.comments_count || 0}</Text>
+              </View>
+            </View>
           </View>
           <TouchableOpacity
             onPress={() => playPodcast(item)}
