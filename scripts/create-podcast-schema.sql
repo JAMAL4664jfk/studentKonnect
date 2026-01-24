@@ -3,7 +3,22 @@
 -- comments, likes, favorites, and reports
 
 -- ============================================================================
--- 1. PODCAST EPISODES TABLE (Enhanced)
+-- 1. PODCAST SERIES TABLE (Must be created first for foreign key)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS podcast_series (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT,
+  category TEXT NOT NULL,
+  thumbnail_url TEXT,
+  user_id UUID NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================================================
+-- 2. PODCAST EPISODES TABLE (Enhanced)
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS podcasts (
@@ -42,21 +57,6 @@ CREATE TABLE IF NOT EXISTS podcasts (
   favorites_count INTEGER DEFAULT 0,
   
   -- Timestamps
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- ============================================================================
--- 2. PODCAST SERIES TABLE
--- ============================================================================
-
-CREATE TABLE IF NOT EXISTS podcast_series (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  description TEXT,
-  category TEXT NOT NULL,
-  thumbnail_url TEXT,
-  user_id UUID NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
