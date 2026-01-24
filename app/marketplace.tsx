@@ -8,6 +8,7 @@ import {
   RefreshControl,
   ScrollView,
   Modal,
+  Dimensions,
 } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -16,6 +17,9 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { supabase } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
+
+const { width } = Dimensions.get("window");
+const CARD_WIDTH = (width - 48) / 2; // 2 columns with padding
 
 type MarketplaceItem = {
   id: number;
@@ -36,17 +40,17 @@ type MarketplaceItem = {
 };
 
 const CATEGORIES = [
-  "All",
-  "books",
-  "electronics",
-  "furniture",
-  "clothing",
-  "sports",
-  "services",
-  "other",
+  { key: "All", label: "All", icon: "square.grid.2x2" },
+  { key: "books", label: "Textbooks", icon: "book.fill" },
+  { key: "electronics", label: "Electronics", icon: "laptopcomputer" },
+  { key: "furniture", label: "Furniture", icon: "lamp.table.fill" },
+  { key: "clothing", label: "Clothing", icon: "tshirt.fill" },
+  { key: "sports", label: "Sports", icon: "sportscourt.fill" },
+  { key: "services", label: "Services", icon: "briefcase.fill" },
+  { key: "other", label: "Other", icon: "ellipsis.circle.fill" },
 ];
 
-const CONDITIONS = ["new", "like-new", "good", "fair", "poor"];
+type FilterTab = "all" | "popular" | "recent" | "featured";
 
 // Helper function to parse JSON strings
 const parseJSON = (jsonString: string | null): any => {
@@ -63,7 +67,6 @@ const getImageUrl = (images: string): string => {
   const imageArray = parseJSON(images);
   if (imageArray.length === 0) return "";
   const firstImage = imageArray[0];
-  // If it's a local path, return empty (will show placeholder)
   if (firstImage.startsWith("/assets")) {
     return "";
   }
@@ -71,19 +74,20 @@ const getImageUrl = (images: string): string => {
 };
 
 // Helper function to get condition badge color
-const getConditionColor = (condition: string, colors: any) => {
+const getConditionColor = (condition: string) => {
   switch (condition) {
     case "new":
+      return { bg: "#10b98120", text: "#10b981" };
     case "like-new":
-      return colors.primary;
+      return { bg: "#3b82f620", text: "#3b82f6" };
     case "good":
-      return "#10b981";
+      return { bg: "#10b98120", text: "#10b981" };
     case "fair":
-      return "#f59e0b";
+      return { bg: "#f59e0b20", text: "#f59e0b" };
     case "poor":
-      return "#ef4444";
+      return { bg: "#ef444420", text: "#ef4444" };
     default:
-      return colors.mutedForeground;
+      return { bg: "#6b728020", text: "#6b7280" };
   }
 };
 
@@ -92,7 +96,9 @@ export default function MarketplaceScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedFilter, setSelectedFilter] = useState<FilterTab>("all");
   const [items, setItems] = useState<MarketplaceItem[]>([]);
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MarketplaceItem | null>(null);
@@ -139,9 +145,26 @@ export default function MarketplaceScreen() {
         .from("marketplaceItems")
         .update({ views: item.views + 1 })
         .eq("id", itemId);
+
+      // Update local state
+      setItems((prev) =>
+        prev.map((i) => (i.id === itemId ? { ...i, views: i.views + 1 } : i))
+      );
     } catch (error) {
       console.error("Error incrementing views:", error);
     }
+  };
+
+  const toggleFavorite = (id: number) => {
+    setFavorites((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
   };
 
   const onRefresh = async () => {
@@ -149,21 +172,40 @@ export default function MarketplaceScreen() {
     await fetchItems();
   };
 
-  const filteredItems = items.filter((item) => {
-    const matchesSearch =
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "All" || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const getFilteredItems = () => {
+    let filtered = items.filter((item) => {
+      const matchesSearch =
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "All" || item.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
 
-  const featuredItems = filteredItems.filter((item) => item.isFeatured);
-  const regularItems = filteredItems.filter((item) => !item.isFeatured);
+    // Apply filter tab
+    switch (selectedFilter) {
+      case "popular":
+        filtered = filtered.sort((a, b) => b.views - a.views);
+        break;
+      case "recent":
+        filtered = filtered.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        break;
+      case "featured":
+        filtered = filtered.filter((item) => item.isFeatured);
+        break;
+    }
+
+    return filtered;
+  };
+
+  const filteredItems = getFilteredItems();
 
   const renderItem = ({ item }: { item: MarketplaceItem }) => {
     const imageUrl = getImageUrl(item.images);
-    const conditionColor = getConditionColor(item.condition, colors);
+    const conditionColors = getConditionColor(item.condition);
+    const isFavorite = favorites.has(item.id);
 
     return (
       <TouchableOpacity
@@ -172,94 +214,131 @@ export default function MarketplaceScreen() {
           setShowDetailModal(true);
           incrementViews(item.id);
         }}
-        className="bg-surface rounded-2xl p-4 mb-4 border border-border active:opacity-70"
+        className="mb-4 rounded-2xl overflow-hidden bg-surface"
         style={{
+          width: CARD_WIDTH,
           shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
+          shadowOffset: { width: 0, height: 3 },
           shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 2,
+          shadowRadius: 6,
+          elevation: 3,
         }}
       >
-        {item.isFeatured && (
-          <View className="absolute top-2 right-2 z-10 bg-primary px-3 py-1 rounded-full flex-row items-center gap-1">
-            <IconSymbol name="star.fill" size={12} color="#fff" />
-            <Text className="text-xs font-semibold text-primary-foreground">Featured</Text>
-          </View>
-        )}
-
-        {imageUrl ? (
-          <Image
-            source={{ uri: imageUrl }}
-            className="w-full h-48 rounded-xl mb-3"
-            contentFit="cover"
-            transition={200}
-            cachePolicy="memory-disk"
-          />
-        ) : (
-          <View className="w-full h-48 rounded-xl mb-3 bg-muted items-center justify-center">
-            <IconSymbol name="photo" size={48} color={colors.mutedForeground} />
-            <Text className="text-sm text-muted-foreground mt-2">No image</Text>
-          </View>
-        )}
-
-        <View className="flex-row items-start justify-between mb-2">
-          <View className="flex-1">
-            <Text className="text-lg font-semibold text-foreground mb-1" numberOfLines={2}>
-              {item.title}
-            </Text>
-            <View className="flex-row items-center gap-2 mb-2">
-              <View
-                className="px-2 py-1 rounded-md"
-                style={{ backgroundColor: `${conditionColor}20` }}
-              >
-                <Text
-                  className="text-xs font-medium capitalize"
-                  style={{ color: conditionColor }}
-                >
-                  {item.condition.replace("-", " ")}
-                </Text>
-              </View>
-              <View className="px-2 py-1 bg-primary/10 rounded-md">
-                <Text className="text-xs font-medium text-primary capitalize">
-                  {item.category}
-                </Text>
-              </View>
+        {/* Image Section */}
+        <View className="relative">
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={{ width: CARD_WIDTH, height: CARD_WIDTH * 0.85 }}
+              contentFit="cover"
+              transition={200}
+              cachePolicy="memory-disk"
+            />
+          ) : (
+            <View
+              style={{ width: CARD_WIDTH, height: CARD_WIDTH * 0.85 }}
+              className="bg-muted items-center justify-center"
+            >
+              <IconSymbol name="photo" size={40} color={colors.mutedForeground} />
             </View>
-            {item.location && (
-              <View className="flex-row items-center gap-1 mb-2">
-                <IconSymbol name="mappin.circle" size={14} color={colors.mutedForeground} />
-                <Text className="text-xs text-muted-foreground">{item.location}</Text>
-              </View>
-            )}
+          )}
+
+          {/* Category Badge */}
+          <View className="absolute top-2 left-2 bg-primary px-2.5 py-1 rounded-lg">
+            <Text className="text-xs font-bold text-primary-foreground capitalize">
+              {item.category}
+            </Text>
           </View>
+
+          {/* Favorite Button */}
+          <TouchableOpacity
+            onPress={(e) => {
+              e.stopPropagation();
+              toggleFavorite(item.id);
+            }}
+            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-surface/90 items-center justify-center"
+          >
+            <IconSymbol
+              name={isFavorite ? "heart.fill" : "heart"}
+              size={16}
+              color={isFavorite ? "#ef4444" : colors.foreground}
+            />
+          </TouchableOpacity>
+
+          {/* Featured Badge */}
+          {item.isFeatured && (
+            <View className="absolute bottom-2 left-2 bg-yellow-500 px-2 py-1 rounded-md flex-row items-center gap-1">
+              <IconSymbol name="star.fill" size={10} color="#fff" />
+              <Text className="text-xs font-bold text-white">Featured</Text>
+            </View>
+          )}
         </View>
 
-        <Text className="text-sm text-muted-foreground mb-3" numberOfLines={2}>
-          {item.description}
-        </Text>
+        {/* Content Section */}
+        <View className="p-3">
+          {/* Title */}
+          <Text className="text-sm font-bold text-foreground mb-1" numberOfLines={2}>
+            {item.title}
+          </Text>
 
-        <View className="flex-row items-center justify-between pt-3 border-t border-border">
-          <View>
-            <Text className="text-2xl font-bold text-primary">
-              {item.currency} {parseFloat(item.price).toLocaleString()}
+          {/* Location */}
+          {item.location && (
+            <View className="flex-row items-center gap-1 mb-2">
+              <IconSymbol name="mappin.circle" size={12} color={colors.mutedForeground} />
+              <Text className="text-xs text-muted-foreground" numberOfLines={1}>
+                {item.location}
+              </Text>
+            </View>
+          )}
+
+          {/* Condition Badge */}
+          <View
+            className="self-start px-2 py-1 rounded-md mb-2"
+            style={{ backgroundColor: conditionColors.bg }}
+          >
+            <Text
+              className="text-xs font-semibold capitalize"
+              style={{ color: conditionColors.text }}
+            >
+              {item.condition.replace("-", " ")}
             </Text>
           </View>
-          <View className="flex-row items-center gap-4">
-            <View className="flex-row items-center gap-1">
-              <IconSymbol name="eye" size={16} color={colors.mutedForeground} />
-              <Text className="text-xs text-muted-foreground">{item.views}</Text>
+
+          {/* Price and Stats */}
+          <View className="flex-row items-center justify-between">
+            <Text className="text-lg font-bold text-primary">
+              {item.currency}{parseFloat(item.price).toLocaleString()}
+            </Text>
+            <View className="flex-row items-center gap-2">
+              <View className="flex-row items-center gap-1">
+                <IconSymbol name="eye" size={12} color={colors.mutedForeground} />
+                <Text className="text-xs text-muted-foreground">{item.views}</Text>
+              </View>
             </View>
-            <TouchableOpacity
-              className="bg-primary px-4 py-2 rounded-lg active:opacity-70"
-              onPress={() => {
-                setSelectedItem(item);
-                setShowDetailModal(true);
-                incrementViews(item.id);
-              }}
-            >
-              <Text className="text-primary-foreground font-semibold">View</Text>
-            </TouchableOpacity>
+          </View>
+
+          {/* Student Badge */}
+          <View className="flex-row items-center gap-1 mt-2 pt-2 border-t border-border">
+            <View className="w-5 h-5 rounded-full bg-primary items-center justify-center">
+              <Text className="text-xs font-bold text-primary-foreground">S</Text>
+            </View>
+            <Text className="text-xs text-muted-foreground">Student</Text>
+            <View className="ml-auto">
+              <TouchableOpacity
+                className="bg-primary/10 px-2 py-1 rounded-md flex-row items-center gap-1"
+                onPress={(e) => {
+                  e.stopPropagation();
+                  Toast.show({
+                    type: "info",
+                    text1: "Chat Feature",
+                    text2: "Chat functionality coming soon!",
+                  });
+                }}
+              >
+                <IconSymbol name="message.fill" size={12} color={colors.primary} />
+                <Text className="text-xs font-semibold text-primary">Chat</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -270,7 +349,8 @@ export default function MarketplaceScreen() {
     if (!selectedItem) return null;
 
     const imagesArray = parseJSON(selectedItem.images);
-    const conditionColor = getConditionColor(selectedItem.condition, colors);
+    const conditionColors = getConditionColor(selectedItem.condition);
+    const isFavorite = favorites.has(selectedItem.id);
 
     return (
       <Modal
@@ -281,64 +361,79 @@ export default function MarketplaceScreen() {
       >
         <ScreenContainer>
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+            {/* Header */}
             <View className="flex-row items-center justify-between mb-4 pt-2">
-              <Text className="text-2xl font-bold text-foreground">Item Details</Text>
               <TouchableOpacity
                 onPress={() => setShowDetailModal(false)}
-                className="w-10 h-10 rounded-full bg-surface items-center justify-center active:opacity-70"
+                className="w-10 h-10 rounded-full bg-surface items-center justify-center"
               >
-                <IconSymbol name="xmark" size={20} color={colors.foreground} />
+                <IconSymbol name="chevron.left" size={20} color={colors.foreground} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => toggleFavorite(selectedItem.id)}
+                className="w-10 h-10 rounded-full bg-surface items-center justify-center"
+              >
+                <IconSymbol
+                  name={isFavorite ? "heart.fill" : "heart"}
+                  size={22}
+                  color={isFavorite ? "#ef4444" : colors.foreground}
+                />
               </TouchableOpacity>
             </View>
 
+            {/* Images Carousel */}
             {imagesArray.length > 0 && !imagesArray[0].startsWith("/assets") && (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
                 {imagesArray.map((img: string, index: number) => (
                   <Image
                     key={index}
                     source={{ uri: img }}
-                    className="w-80 h-56 rounded-xl mr-3"
+                    className="w-80 h-64 rounded-2xl mr-3"
                     contentFit="cover"
                   />
                 ))}
               </ScrollView>
             )}
 
-            {selectedItem.isFeatured && (
-              <View className="bg-primary/10 px-4 py-3 rounded-xl mb-4 flex-row items-center gap-2">
-                <IconSymbol name="star.fill" size={20} color={colors.primary} />
-                <Text className="text-sm font-medium text-primary">Featured Item</Text>
-              </View>
-            )}
-
-            <Text className="text-2xl font-bold text-foreground mb-2">
+            {/* Title */}
+            <Text className="text-3xl font-bold text-foreground mb-3">
               {selectedItem.title}
             </Text>
 
+            {/* Badges Row */}
             <View className="flex-row items-center gap-2 mb-4">
               <View
                 className="px-3 py-1.5 rounded-lg"
-                style={{ backgroundColor: `${conditionColor}20` }}
+                style={{ backgroundColor: conditionColors.bg }}
               >
                 <Text
-                  className="text-sm font-semibold capitalize"
-                  style={{ color: conditionColor }}
+                  className="text-sm font-bold capitalize"
+                  style={{ color: conditionColors.text }}
                 >
                   {selectedItem.condition.replace("-", " ")}
                 </Text>
               </View>
-              <View className="px-3 py-1.5 bg-primary/10 rounded-lg">
-                <Text className="text-sm font-semibold text-primary capitalize">
+              <View className="px-3 py-1.5 bg-primary/20 rounded-lg">
+                <Text className="text-sm font-bold text-primary capitalize">
                   {selectedItem.category}
                 </Text>
               </View>
+              {selectedItem.isFeatured && (
+                <View className="px-3 py-1.5 bg-yellow-500/20 rounded-lg flex-row items-center gap-1">
+                  <IconSymbol name="star.fill" size={14} color="#eab308" />
+                  <Text className="text-sm font-bold" style={{ color: "#eab308" }}>
+                    Featured
+                  </Text>
+                </View>
+              )}
             </View>
 
-            <View className="bg-surface rounded-xl p-4 mb-4">
-              <Text className="text-3xl font-bold text-primary mb-1">
+            {/* Price Card */}
+            <View className="bg-primary/10 rounded-2xl p-5 mb-6">
+              <Text className="text-4xl font-bold text-primary mb-2">
                 {selectedItem.currency} {parseFloat(selectedItem.price).toLocaleString()}
               </Text>
-              <View className="flex-row items-center gap-3 mt-2">
+              <View className="flex-row items-center gap-4 mt-2">
                 <View className="flex-row items-center gap-1">
                   <IconSymbol name="eye" size={16} color={colors.mutedForeground} />
                   <Text className="text-sm text-muted-foreground">{selectedItem.views} views</Text>
@@ -355,28 +450,33 @@ export default function MarketplaceScreen() {
               </View>
             </View>
 
-            <View className="mb-4">
-              <Text className="text-lg font-semibold text-foreground mb-3">Description</Text>
-              <Text className="text-base text-muted-foreground leading-6">
+            {/* Description */}
+            <View className="mb-6">
+              <Text className="text-xl font-bold text-foreground mb-3">Description</Text>
+              <Text className="text-base text-muted-foreground leading-7">
                 {selectedItem.description}
               </Text>
             </View>
 
-            <View className="mb-4">
-              <Text className="text-lg font-semibold text-foreground mb-3">Posted</Text>
-              <View className="bg-surface rounded-xl p-4">
-                <Text className="text-sm text-muted-foreground">
-                  {new Date(selectedItem.createdAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </Text>
+            {/* Seller Info */}
+            <View className="mb-6">
+              <Text className="text-xl font-bold text-foreground mb-3">Seller Information</Text>
+              <View className="bg-surface rounded-2xl p-4 flex-row items-center gap-3">
+                <View className="w-12 h-12 rounded-full bg-primary items-center justify-center">
+                  <Text className="text-xl font-bold text-primary-foreground">S</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-semibold text-foreground">Student</Text>
+                  <Text className="text-sm text-muted-foreground">
+                    Posted {new Date(selectedItem.createdAt).toLocaleDateString()}
+                  </Text>
+                </View>
               </View>
             </View>
 
+            {/* Action Buttons */}
             <TouchableOpacity
-              className="bg-primary py-4 rounded-xl items-center active:opacity-70 mb-4"
+              className="bg-primary py-4 rounded-2xl items-center active:opacity-80 mb-3 flex-row justify-center gap-2"
               onPress={() => {
                 Toast.show({
                   type: "info",
@@ -385,13 +485,12 @@ export default function MarketplaceScreen() {
                 });
               }}
             >
-              <Text className="text-primary-foreground font-semibold text-lg">
-                Contact Seller
-              </Text>
+              <IconSymbol name="message.fill" size={20} color="#fff" />
+              <Text className="text-primary-foreground font-bold text-lg">Contact Seller</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="bg-surface py-4 rounded-xl items-center active:opacity-70 mb-8 flex-row justify-center gap-2"
+              className="bg-surface py-4 rounded-2xl items-center active:opacity-80 mb-8 flex-row justify-center gap-2"
               onPress={() => {
                 Toast.show({
                   type: "info",
@@ -401,7 +500,7 @@ export default function MarketplaceScreen() {
               }}
             >
               <IconSymbol name="square.and.arrow.up" size={20} color={colors.foreground} />
-              <Text className="text-foreground font-semibold text-lg">Share Item</Text>
+              <Text className="text-foreground font-bold text-lg">Share Item</Text>
             </TouchableOpacity>
           </ScrollView>
         </ScreenContainer>
@@ -413,26 +512,36 @@ export default function MarketplaceScreen() {
     <ScreenContainer>
       <View className="flex-1">
         {/* Header */}
-        <View className="flex-row items-center justify-between mb-6">
-          <View>
-            <Text className="text-3xl font-bold text-foreground">Marketplace</Text>
-            <Text className="text-sm text-muted-foreground mt-1">
-              Buy and sell with students
-            </Text>
+        <View className="mb-6 pt-2">
+          <View className="flex-row items-center justify-between mb-2">
+            <View className="flex-1">
+              <Text className="text-4xl font-bold text-primary mb-1">Student Marketplace</Text>
+              <Text className="text-sm text-muted-foreground">
+                Buy, sell & trade with fellow students
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="w-10 h-10 rounded-full bg-surface items-center justify-center ml-3"
+            >
+              <IconSymbol name="xmark" size={20} color={colors.foreground} />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="w-10 h-10 rounded-full bg-surface items-center justify-center active:opacity-70"
-          >
-            <IconSymbol name="xmark" size={20} color={colors.foreground} />
-          </TouchableOpacity>
         </View>
 
         {/* Search Bar */}
-        <View className="bg-surface rounded-xl px-4 py-3 flex-row items-center gap-3 mb-4">
-          <IconSymbol name="magnifyingglass" size={20} color={colors.mutedForeground} />
+        <View
+          className="bg-surface rounded-2xl px-4 py-3.5 flex-row items-center gap-3 mb-4"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 4,
+          }}
+        >
+          <IconSymbol name="magnifyingglass" size={22} color={colors.mutedForeground} />
           <TextInput
-            placeholder="Search items..."
+            placeholder="Search for items..."
             placeholderTextColor={colors.mutedForeground}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -443,7 +552,100 @@ export default function MarketplaceScreen() {
               <IconSymbol name="xmark.circle.fill" size={20} color={colors.mutedForeground} />
             </TouchableOpacity>
           )}
+          <TouchableOpacity
+            className="bg-primary px-3 py-2 rounded-xl flex-row items-center gap-1"
+            onPress={() => {
+              Toast.show({
+                type: "info",
+                text1: "Coming Soon",
+                text2: "Post listing feature coming soon!",
+              });
+            }}
+          >
+            <IconSymbol name="plus" size={16} color="#fff" />
+            <Text className="text-primary-foreground font-semibold text-sm">Post</Text>
+          </TouchableOpacity>
         </View>
+
+        {/* Filter Tabs */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="mb-4"
+          contentContainerStyle={{ gap: 8 }}
+        >
+          <TouchableOpacity
+            onPress={() => setSelectedFilter("all")}
+            className={`px-4 py-2 rounded-xl ${
+              selectedFilter === "all" ? "bg-primary" : "bg-surface"
+            }`}
+          >
+            <Text
+              className={`font-semibold ${
+                selectedFilter === "all" ? "text-primary-foreground" : "text-foreground"
+              }`}
+            >
+              All
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSelectedFilter("popular")}
+            className={`px-4 py-2 rounded-xl flex-row items-center gap-1.5 ${
+              selectedFilter === "popular" ? "bg-primary" : "bg-surface"
+            }`}
+          >
+            <IconSymbol
+              name="chart.bar.fill"
+              size={14}
+              color={selectedFilter === "popular" ? "#fff" : colors.foreground}
+            />
+            <Text
+              className={`font-semibold ${
+                selectedFilter === "popular" ? "text-primary-foreground" : "text-foreground"
+              }`}
+            >
+              Popular
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSelectedFilter("recent")}
+            className={`px-4 py-2 rounded-xl flex-row items-center gap-1.5 ${
+              selectedFilter === "recent" ? "bg-primary" : "bg-surface"
+            }`}
+          >
+            <IconSymbol
+              name="clock.fill"
+              size={14}
+              color={selectedFilter === "recent" ? "#fff" : colors.foreground}
+            />
+            <Text
+              className={`font-semibold ${
+                selectedFilter === "recent" ? "text-primary-foreground" : "text-foreground"
+              }`}
+            >
+              Recent
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSelectedFilter("featured")}
+            className={`px-4 py-2 rounded-xl flex-row items-center gap-1.5 ${
+              selectedFilter === "featured" ? "bg-primary" : "bg-surface"
+            }`}
+          >
+            <IconSymbol
+              name="star.fill"
+              size={14}
+              color={selectedFilter === "featured" ? "#fff" : colors.foreground}
+            />
+            <Text
+              className={`font-semibold ${
+                selectedFilter === "featured" ? "text-primary-foreground" : "text-foreground"
+              }`}
+            >
+              Featured
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
 
         {/* Category Filter */}
         <ScrollView
@@ -452,20 +654,27 @@ export default function MarketplaceScreen() {
           className="mb-4"
           contentContainerStyle={{ gap: 8 }}
         >
-          {CATEGORIES.map((category) => (
+          {CATEGORIES.map((cat) => (
             <TouchableOpacity
-              key={category}
-              onPress={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-xl ${
-                selectedCategory === category ? "bg-primary" : "bg-surface"
+              key={cat.key}
+              onPress={() => setSelectedCategory(cat.key)}
+              className={`px-4 py-2.5 rounded-xl flex-row items-center gap-2 ${
+                selectedCategory === cat.key
+                  ? "bg-primary/20 border-2 border-primary"
+                  : "bg-surface"
               }`}
             >
+              <IconSymbol
+                name={cat.icon}
+                size={16}
+                color={selectedCategory === cat.key ? colors.primary : colors.foreground}
+              />
               <Text
-                className={`font-medium capitalize ${
-                  selectedCategory === category ? "text-primary-foreground" : "text-foreground"
+                className={`font-medium ${
+                  selectedCategory === cat.key ? "text-primary" : "text-foreground"
                 }`}
               >
-                {category}
+                {cat.label}
               </Text>
             </TouchableOpacity>
           ))}
@@ -473,20 +682,12 @@ export default function MarketplaceScreen() {
 
         {/* Stats */}
         <View className="flex-row items-center gap-2 mb-4">
-          <Text className="text-sm text-muted-foreground">
-            {filteredItems.length} {filteredItems.length === 1 ? "item" : "items"} available
+          <Text className="text-sm font-medium text-foreground">
+            {filteredItems.length} {filteredItems.length === 1 ? "item" : "items"}
           </Text>
-          {featuredItems.length > 0 && (
-            <>
-              <Text className="text-muted-foreground">•</Text>
-              <Text className="text-sm text-primary font-medium">
-                {featuredItems.length} featured
-              </Text>
-            </>
-          )}
         </View>
 
-        {/* Listings */}
+        {/* Grid Listings */}
         {loading ? (
           <View className="flex-1 items-center justify-center">
             <Text className="text-muted-foreground">Loading items...</Text>
@@ -502,6 +703,8 @@ export default function MarketplaceScreen() {
             data={filteredItems}
             renderItem={renderItem}
             keyExtractor={(item) => item.id.toString()}
+            numColumns={2}
+            columnWrapperStyle={{ gap: 16 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
@@ -510,15 +713,7 @@ export default function MarketplaceScreen() {
                 tintColor={colors.primary}
               />
             }
-            ListHeaderComponent={
-              featuredItems.length > 0 ? (
-                <View className="mb-4">
-                  <Text className="text-lg font-semibold text-foreground mb-3">
-                    ⭐ Featured Items
-                  </Text>
-                </View>
-              ) : null
-            }
+            contentContainerStyle={{ paddingBottom: 20 }}
           />
         )}
 
