@@ -2,16 +2,8 @@
 -- Run this after the initial podcast schema and seed data
 
 -- Insert more diverse podcast episodes
--- First, create a default user if it doesn't exist (for demo purposes)
-INSERT INTO profiles (id, email, full_name, institution, created_at)
-VALUES (
-  '00000000-0000-0000-0000-000000000001',
-  'podcast.admin@studentkonnect.co.za',
-  'StudentKonnect Podcasts',
-  'StudentKonnect',
-  NOW()
-)
-ON CONFLICT (id) DO NOTHING;
+-- Note: Using a default user_id for demo purposes
+-- Make sure this user exists in your profiles table, or replace with your actual user ID
 
 -- Insert podcast episodes
 INSERT INTO podcasts (
