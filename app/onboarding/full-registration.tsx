@@ -19,54 +19,9 @@ import Toast from "react-native-toast-message";
 import { Picker } from "@react-native-picker/picker";
 import * as LocalAuthentication from "expo-local-authentication";
 import { supabase } from "@/lib/supabase";
+import { SA_UNIVERSITIES, SA_TVET_COLLEGES, SA_PRIVATE_COLLEGES } from "@/constants/sa-institutions";
 
 type InstitutionType = "university" | "tvet_college" | "college" | "staff" | "parent";
-
-const universities = [
-  "University of Cape Town",
-  "University of the Witwatersrand",
-  "Stellenbosch University",
-  "University of Pretoria",
-  "University of Johannesburg",
-  "University of KwaZulu-Natal",
-  "Rhodes University",
-  "University of the Western Cape",
-  "University of South Africa (UNISA)",
-  "North-West University",
-  "Nelson Mandela University",
-  "University of the Free State",
-  "Cape Peninsula University of Technology",
-  "Durban University of Technology",
-  "Tshwane University of Technology",
-];
-
-const tvetColleges = [
-  "Boland College",
-  "Buffalo City College",
-  "Capricorn College",
-  "Central Johannesburg College",
-  "Coastal KZN College",
-  "College of Cape Town",
-  "Eastcape Midlands College",
-  "Ekurhuleni East College",
-  "Ekurhuleni West College",
-  "Elangeni College",
-  "False Bay College",
-  "Goldfields College",
-];
-
-const colleges = [
-  "Boston City Campus",
-  "Damelin College",
-  "Rosebank College",
-  "Varsity College",
-  "CTI Education Group",
-  "Pearson Institute of Higher Education",
-  "AFDA Film School",
-  "AAA School of Advertising",
-  "Vega School",
-  "IMM Graduate School",
-];
 
 const yearOptions = ["1st Year", "2nd Year", "3rd Year", "4th Year", "5th Year", "Postgraduate"];
 
@@ -85,7 +40,9 @@ export default function FullRegistrationScreen() {
   const [yearOfStudy, setYearOfStudy] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricType, setBiometricType] = useState<string>("");
@@ -94,11 +51,11 @@ export default function FullRegistrationScreen() {
 
   const institutions =
     institutionType === "university"
-      ? universities
+      ? SA_UNIVERSITIES
       : institutionType === "tvet_college"
-      ? tvetColleges
+      ? SA_TVET_COLLEGES
       : institutionType === "college"
-      ? colleges
+      ? SA_PRIVATE_COLLEGES
       : [];
 
   useEffect(() => {
@@ -178,6 +135,20 @@ export default function FullRegistrationScreen() {
 
     if (!email) {
       newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Invalid email format";
     }
@@ -529,6 +500,39 @@ export default function FullRegistrationScreen() {
                 <Text className="text-xs text-muted-foreground mt-1">
                   Must be 8+ characters with 1 number and 1 special character
                 </Text>
+              </View>
+
+              {/* Confirm Password */}
+              <View className="mb-4">
+                <Text className="text-sm font-semibold text-foreground mb-2">Confirm Password</Text>
+                <View
+                  className={`bg-surface border-2 rounded-xl px-4 py-3 flex-row items-center ${
+                    errors.confirmPassword ? "border-red-500" : "border-border"
+                  }`}
+                >
+                  <IconSymbol name="lock.fill" size={20} color={colors.mutedForeground} />
+                  <TextInput
+                    placeholder="••••••••"
+                    placeholderTextColor={colors.mutedForeground}
+                    value={confirmPassword}
+                    onChangeText={(text) => {
+                      setConfirmPassword(text);
+                      if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: "" });
+                    }}
+                    secureTextEntry={!showConfirmPassword}
+                    className="flex-1 ml-3 text-base text-foreground"
+                  />
+                  <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    <IconSymbol
+                      name={showConfirmPassword ? "eye.slash.fill" : "eye.fill"}
+                      size={20}
+                      color={colors.mutedForeground}
+                    />
+                  </TouchableOpacity>
+                </View>
+                {errors.confirmPassword && (
+                  <Text className="text-xs text-red-500 mt-1">{errors.confirmPassword}</Text>
+                )}
               </View>
 
               {/* Biometric Security */}
