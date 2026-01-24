@@ -110,6 +110,28 @@ export default function MarketplaceScreen() {
 
   const fetchItems = async () => {
     try {
+      console.log("[MARKETPLACE] Starting fetch...");
+      
+      // Test connection first
+      const { data: testData, error: testError } = await supabase
+        .from("marketplaceItems")
+        .select("count")
+        .limit(1);
+      
+      if (testError) {
+        console.error("[MARKETPLACE] Connection test failed:", testError);
+        Toast.show({
+          type: "error",
+          text1: "Connection Error",
+          text2: `Database connection failed: ${testError.message}`,
+        });
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+      
+      console.log("[MARKETPLACE] Connection test passed");
+
       const { data, error } = await supabase
         .from("marketplaceItems")
         .select("*")
@@ -117,18 +139,38 @@ export default function MarketplaceScreen() {
         .order("createdAt", { ascending: false });
 
       if (error) {
-        console.error("Supabase error:", error);
+        console.error("[MARKETPLACE] Supabase error:", JSON.stringify(error));
+        Toast.show({
+          type: "error",
+          text1: "Database Error",
+          text2: error.message || "Failed to fetch data",
+        });
         throw error;
       }
 
-      console.log("Fetched marketplace items:", data?.length);
+      console.log("[MARKETPLACE] Fetched:", data?.length, "items");
+      
+      if (!data || data.length === 0) {
+        Toast.show({
+          type: "info",
+          text1: "No Items",
+          text2: "No marketplace items available",
+        });
+      } else {
+        Toast.show({
+          type: "success",
+          text1: "Loaded",
+          text2: `Found ${data.length} items`,
+        });
+      }
+      
       setItems(data || []);
     } catch (error: any) {
-      console.error("Fetch error:", error);
+      console.error("[MARKETPLACE] Fetch error:", error);
       Toast.show({
         type: "error",
-        text1: "Error",
-        text2: "Failed to load marketplace items",
+        text1: "Error Loading Data",
+        text2: error.message || "Please check your internet connection",
       });
     } finally {
       setLoading(false);
