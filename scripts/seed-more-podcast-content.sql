@@ -2,6 +2,18 @@
 -- Run this after the initial podcast schema and seed data
 
 -- Insert more diverse podcast episodes
+-- First, create a default user if it doesn't exist (for demo purposes)
+INSERT INTO profiles (id, email, full_name, institution, created_at)
+VALUES (
+  '00000000-0000-0000-0000-000000000001',
+  'podcast.admin@studentkonnect.co.za',
+  'StudentKonnect Podcasts',
+  'StudentKonnect',
+  NOW()
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Insert podcast episodes
 INSERT INTO podcasts (
   title,
   description,
@@ -17,7 +29,8 @@ INSERT INTO podcasts (
   views_count,
   likes_count,
   comments_count,
-  favorites_count
+  favorites_count,
+  user_id
 ) VALUES
 -- Campus Life Episodes
 (
@@ -35,7 +48,8 @@ INSERT INTO podcasts (
   4200,
   892,
   156,
-  234
+  234,
+  '00000000-0000-0000-0000-000000000001'
 ),
 (
   'Balancing Part-Time Work and Studies',
@@ -52,7 +66,8 @@ INSERT INTO podcasts (
   3100,
   654,
   98,
-  178
+  178,
+  '00000000-0000-0000-0000-000000000001'
 ),
 (
   'Campus Safety Tips Every Student Should Know',
@@ -69,7 +84,8 @@ INSERT INTO podcasts (
   2800,
   567,
   89,
-  145
+  145,
+  '00000000-0000-0000-0000-000000000001'
 ),
 
 -- Career Development Episodes
@@ -88,7 +104,8 @@ INSERT INTO podcasts (
   5100,
   1023,
   187,
-  312
+  312,
+  '00000000-0000-0000-0000-000000000001'
 ),
 (
   'Networking 101: Making Connections That Matter',
@@ -105,7 +122,8 @@ INSERT INTO podcasts (
   3800,
   789,
   134,
-  201
+  201,
+  '00000000-0000-0000-0000-000000000001'
 ),
 (
   'From Graduate to Professional: Your First 90 Days',
@@ -122,7 +140,8 @@ INSERT INTO podcasts (
   2900,
   612,
   102,
-  167
+  167,
+  '00000000-0000-0000-0000-000000000001'
 ),
 
 -- Technology Episodes
@@ -141,7 +160,8 @@ INSERT INTO podcasts (
   6200,
   1234,
   203,
-  389
+  389,
+  '00000000-0000-0000-0000-000000000001'
 ),
 (
   'Web Development Roadmap 2026',
@@ -158,7 +178,8 @@ INSERT INTO podcasts (
   4100,
   876,
   145,
-  267
+  267,
+  '00000000-0000-0000-0000-000000000001'
 ),
 (
   'Mobile App Development with React Native',
@@ -175,7 +196,8 @@ INSERT INTO podcasts (
   5400,
   1098,
   178,
-  334
+  334,
+  '00000000-0000-0000-0000-000000000001'
 ),
 
 -- Mental Health & Wellness Episodes
@@ -194,7 +216,8 @@ INSERT INTO podcasts (
   3600,
   723,
   112,
-  189
+  189,
+  '00000000-0000-0000-0000-000000000001'
 ),
 (
   'Building Resilience in Challenging Times',
@@ -211,7 +234,8 @@ INSERT INTO podcasts (
   3200,
   678,
   95,
-  156
+  156,
+  '00000000-0000-0000-0000-000000000001'
 ),
 (
   'Sleep, Nutrition, and Academic Performance',
@@ -228,7 +252,8 @@ INSERT INTO podcasts (
   2700,
   589,
   87,
-  134
+  134,
+  '00000000-0000-0000-0000-000000000001'
 ),
 
 -- Education & Study Tips Episodes
@@ -247,7 +272,8 @@ INSERT INTO podcasts (
   7100,
   1456,
   234,
-  445
+  445,
+  '00000000-0000-0000-0000-000000000001'
 ),
 (
   'Note-Taking Methods That Actually Work',
@@ -264,7 +290,8 @@ INSERT INTO podcasts (
   4300,
   891,
   156,
-  278
+  278,
+  '00000000-0000-0000-0000-000000000001'
 ),
 (
   'Understanding NSFAS: Everything You Need to Know',
@@ -281,7 +308,8 @@ INSERT INTO podcasts (
   5800,
   1167,
   189,
-  312
+  312,
+  '00000000-0000-0000-0000-000000000001'
 ),
 
 -- Entrepreneurship Episodes
@@ -300,7 +328,8 @@ INSERT INTO podcasts (
   4900,
   1012,
   167,
-  289
+  289,
+  '00000000-0000-0000-0000-000000000001'
 ),
 (
   'Digital Marketing Basics for Beginners',
@@ -317,7 +346,8 @@ INSERT INTO podcasts (
   3700,
   756,
   123,
-  198
+  198,
+  '00000000-0000-0000-0000-000000000001'
 ),
 
 -- Finance & Money Management Episodes
@@ -336,7 +366,8 @@ INSERT INTO podcasts (
   3900,
   812,
   134,
-  223
+  223,
+  '00000000-0000-0000-0000-000000000001'
 ),
 (
   'Understanding Credit and Building Your Credit Score',
@@ -353,7 +384,8 @@ INSERT INTO podcasts (
   3300,
   689,
   98,
-  167
+  167,
+  '00000000-0000-0000-0000-000000000001'
 );
 
 -- Get the IDs of the newly inserted episodes for adding comments
