@@ -596,13 +596,7 @@ export default function MarketplaceScreen() {
           )}
           <TouchableOpacity
             className="bg-primary px-3 py-2 rounded-xl flex-row items-center gap-1"
-            onPress={() => {
-              Toast.show({
-                type: "info",
-                text1: "Coming Soon",
-                text2: "Post listing feature coming soon!",
-              });
-            }}
+            onPress={() => router.push("/create-marketplace")}
           >
             <IconSymbol name="plus" size={16} color="#fff" />
             <Text className="text-primary-foreground font-semibold text-sm">Post</Text>

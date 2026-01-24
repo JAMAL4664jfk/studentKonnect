@@ -591,13 +591,7 @@ export default function AccommodationScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             className="ml-auto bg-primary px-4 py-2 rounded-xl flex-row items-center gap-2"
-            onPress={() => {
-              Toast.show({
-                type: "info",
-                text1: "Coming Soon",
-                text2: "List your accommodation feature coming soon!",
-              });
-            }}
+            onPress={() => router.push("/create-accommodation")}
           >
             <IconSymbol name="plus.circle.fill" size={18} color="#fff" />
             <Text className="text-primary-foreground font-semibold">List</Text>
