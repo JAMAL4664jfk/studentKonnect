@@ -3,12 +3,15 @@ import { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, RefreshControl } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useWallet } from "@/contexts/WalletContext";
 import { MoreOptionsModal } from "@/components/MoreOptionsModal";
 import { TrustedBanner } from "@/components/TrustedBanner";
+import { BRAND_COLORS } from "@/constants/brand-colors";
+import { FEATURE_DESCRIPTIONS } from "@/constants/feature-descriptions";
 
 type QuickAction = {
   id: string;
@@ -83,20 +86,28 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <View className="gap-6 pb-6">
-          {/* Header */}
-          <View className="flex-row items-center justify-between">
-            <View>
-              <Text className="text-2xl font-bold text-foreground">Welcome Back</Text>
-              <Text className="text-sm text-muted">Student Konnect</Text>
-            </View>
+          {/* Header with Gradient */}
+          <LinearGradient
+            colors={BRAND_COLORS.gradients.hero}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="rounded-3xl p-6 -mx-4 -mt-4 mb-2"
+          >
+            <View className="flex-row items-center justify-between mb-4">
+              <View className="flex-1">
+                <Text className="text-3xl font-bold text-white">Student Konnect</Text>
+                <Text className="text-base text-white/90 mt-1">{FEATURE_DESCRIPTIONS.heroMessage}</Text>
+                <Text className="text-sm text-white/80 mt-2">{FEATURE_DESCRIPTIONS.tagline}</Text>
+              </View>
             <TouchableOpacity 
               onPress={() => router.push("/notifications" as any)}
-              className="w-10 h-10 bg-surface rounded-full items-center justify-center border border-border"
+              className="w-10 h-10 bg-white/20 rounded-full items-center justify-center"
               style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
             >
-              <IconSymbol name="bell.fill" size={20} color={colors.foreground} />
+              <IconSymbol name="bell.fill" size={20} color="white" />
             </TouchableOpacity>
           </View>
+          </LinearGradient>
 
           {/* Wallet Card - Omnex Global Horizontal Card */}
           <View className="gap-2">
