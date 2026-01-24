@@ -1,75 +1,55 @@
+// Home Screen with Visa/Mastercard Wallet and More Options
 import { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, RefreshControl, Dimensions, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, RefreshControl } from "react-native";
 import { useRouter } from "expo-router";
-import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useWallet } from "@/contexts/WalletContext";
-import { AnimatedText } from "@/components/AnimatedText";
-import { AnimatedGradientCard } from "@/components/AnimatedGradientCard";
-import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
-import { BRAND_COLORS, FEATURE_COLORS } from "@/constants/brand-colors";
+import { MoreOptionsModal } from "@/components/MoreOptionsModal";
+import { TrustedBanner } from "@/components/TrustedBanner";
+import { BRAND_COLORS } from "@/constants/brand-colors";
 import { FEATURE_DESCRIPTIONS } from "@/constants/feature-descriptions";
 
-const { width } = Dimensions.get("window");
+type QuickAction = {
+  id: string;
+  title: string;
+  image: any;
+};
 
-const PREMIUM_FEATURES = [
-  {
-    id: "marketplace",
-    title: "Marketplace",
-    description: FEATURE_DESCRIPTIONS.features.marketplace.description,
-    badge: FEATURE_DESCRIPTIONS.features.marketplace.badge,
-    icon: "cart.fill",
-    colors: [BRAND_COLORS.purple.light, BRAND_COLORS.purple.dark],
-    route: "/marketplace",
-  },
-  {
-    id: "accommodation",
-    title: "Accommodation",
-    description: FEATURE_DESCRIPTIONS.features.accommodation.description,
-    badge: FEATURE_DESCRIPTIONS.features.accommodation.badge,
-    icon: "house.fill",
-    colors: [BRAND_COLORS.blue.light, BRAND_COLORS.blue.dark],
-    route: "/accommodation",
-  },
-  {
-    id: "digital-connect",
-    title: "Digital Connect",
-    description: FEATURE_DESCRIPTIONS.features.digitalConnect.description,
-    badge: FEATURE_DESCRIPTIONS.features.digitalConnect.badge,
-    icon: "laptopcomputer",
-    colors: [BRAND_COLORS.gold.light, BRAND_COLORS.orange.DEFAULT],
-    route: "/digital-connect",
-  },
-  {
-    id: "streaming",
-    title: "Streaming Hub",
-    description: FEATURE_DESCRIPTIONS.features.streaming.description,
-    badge: FEATURE_DESCRIPTIONS.features.streaming.badge,
-    icon: "play.circle.fill",
-    colors: [BRAND_COLORS.cyan, BRAND_COLORS.teal],
-    route: "/podcasts",
-  },
-  {
-    id: "wellness",
-    title: "Wellness",
-    description: FEATURE_DESCRIPTIONS.features.wellness.description,
-    badge: FEATURE_DESCRIPTIONS.features.wellness.badge,
-    icon: "heart.fill",
-    colors: ["#ec4899", "#f43f5e"],
-    route: "/wellness",
-  },
-  {
-    id: "dating",
-    title: "Student Hookup",
-    description: FEATURE_DESCRIPTIONS.features.dating.description,
-    badge: FEATURE_DESCRIPTIONS.features.dating.badge,
-    icon: "heart.circle.fill",
-    colors: ["#f43f5e", "#fb7185"],
-    route: "/dating-swipe",
-  },
+const QUICK_ACTIONS: QuickAction[] = [
+  { id: "send", title: "Send Money", image: require("@/assets/images/send-money-bg.jpg") },
+  { id: "pay", title: "Pay", image: require("@/assets/images/pay-merchant-bg.jpg") },
+  { id: "savings", title: "Savings", image: require("@/assets/images/savings-bg.jpg") },
+];
+
+type FeaturedService = {
+  id: string;
+  title: string;
+  image: any;
+};
+
+const FEATURED_SERVICES: FeaturedService[] = [
+  { id: "marketplace", title: "Marketplace", image: require("@/assets/images/marketplace-bg.jpg") },
+  { id: "accommodation", title: "Accommodation", image: require("@/assets/images/accommodation-bg.jpg") },
+  { id: "loans", title: "Student Loans", image: require("@/assets/images/loans-bg.jpg") },
+  { id: "dating", title: "Dating", image: require("@/assets/images/dating-bg.jpg") },
+];
+
+type Transaction = {
+  id: string;
+  description: string;
+  amount: number;
+  type: "debit" | "credit";
+  date: string;
+};
+
+const RECENT_TRANSACTIONS: Transaction[] = [
+  { id: "1", description: "Shoprite", amount: -245.50, type: "debit", date: "Today, 10:30 AM" },
+  { id: "2", description: "NSFAS Allowance", amount: 1500.00, type: "credit", date: "Yesterday" },
+  { id: "3", description: "Uber", amount: -85.00, type: "debit", date: "2 days ago" },
 ];
 
 export default function HomeScreen() {
@@ -77,344 +57,274 @@ export default function HomeScreen() {
   const router = useRouter();
   const { balance, isLoading } = useWallet();
   const [refreshing, setRefreshing] = useState(false);
+  const [moreOptionsVisible, setMoreOptionsVisible] = useState(false);
 
   const onRefresh = async () => {
     setRefreshing(true);
+    // Simulate refresh
     setTimeout(() => setRefreshing(false), 1000);
   };
 
+  const handleServicePress = (serviceId: string) => {
+    const routes: Record<string, string> = {
+      marketplace: "/marketplace",
+      accommodation: "/accommodation",
+      loans: "/student-loans",
+      dating: "/dating",
+    };
+    
+    const route = routes[serviceId];
+    if (route) {
+      router.push(route as any);
+    }
+  };
+
   return (
-    <ScreenContainer edges={["top", "left", "right"]}>
+    <ScreenContainer className="p-4" edges={["top", "left", "right"]}>
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
+        contentContainerStyle={{ flexGrow: 1 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        showsVerticalScrollIndicator={false}
       >
-        {/* Hero Header with Animated Gradient */}
-        <Animated.View entering={FadeInDown.duration(800).springify()}>
+        <View className="gap-6 pb-6">
+          {/* Header with Gradient */}
           <LinearGradient
-            colors={[...BRAND_COLORS.gradients.hero, BRAND_COLORS.purple.dark]}
+            colors={BRAND_COLORS.gradients.hero}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.heroGradient}
+            className="rounded-3xl p-6 -mx-4 -mt-4 mb-2"
           >
-            {/* Glassmorphism overlay */}
-            <View style={styles.glassOverlay} />
-            
-            {/* Floating orbs for depth */}
-            <View style={[styles.floatingOrb, { top: 20, right: 30, backgroundColor: BRAND_COLORS.gold.light }]} />
-            <View style={[styles.floatingOrb, { bottom: 40, left: 20, backgroundColor: BRAND_COLORS.blue.light }]} />
-            
-            <View style={styles.heroContent}>
-              <View style={{ flex: 1 }}>
-                <AnimatedText
-                  animation="slideDown"
-                  gradient
-                  gradientColors={['#ffffff', '#fcd34d', '#ffffff']}
-                  style={styles.heroTitle}
-                  glow
-                >
-                  Student Konnect
-                </AnimatedText>
-                
-                <AnimatedText
-                  animation="fadeIn"
-                  delay={200}
-                  style={styles.heroSubtitle}
-                >
-                  {FEATURE_DESCRIPTIONS.heroMessage}
-                </AnimatedText>
-                
-                <AnimatedText
-                  animation="fadeIn"
-                  delay={400}
-                  style={styles.heroTagline}
-                >
-                  {FEATURE_DESCRIPTIONS.tagline}
-                </AnimatedText>
+            <View className="flex-row items-center justify-between mb-4">
+              <View className="flex-1">
+                <Text className="text-3xl font-bold text-white">Student Konnect</Text>
+                <Text className="text-base text-white/90 mt-1">{FEATURE_DESCRIPTIONS.heroMessage}</Text>
+                <Text className="text-sm text-white/80 mt-2">{FEATURE_DESCRIPTIONS.tagline}</Text>
               </View>
-              
-              <TouchableOpacity
-                onPress={() => router.push("/notifications" as any)}
-                style={styles.notificationButton}
-              >
-                <View style={styles.notificationGlow} />
-                <IconSymbol name="bell.fill" size={22} color="white" />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity 
+              onPress={() => router.push("/notifications" as any)}
+              className="w-10 h-10 bg-white/20 rounded-full items-center justify-center"
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <IconSymbol name="bell.fill" size={20} color="white" />
+            </TouchableOpacity>
+          </View>
           </LinearGradient>
-        </Animated.View>
 
-        {/* Wallet Card with Glow Animation */}
-        <Animated.View entering={FadeInUp.delay(300).duration(800).springify()} style={styles.walletContainer}>
-          <AnimatedGradientCard
-            colors={['#1e293b', '#334155', '#475569']}
-            animationType="glow"
-            glassmorphism
-            style={styles.walletCard}
-          >
-            <View style={styles.walletContent}>
-              {/* Balance Section */}
-              <View style={styles.balanceSection}>
-                <Text style={styles.balanceLabel}>Available Balance</Text>
-                <AnimatedText
-                  animation="pulse"
-                  gradient
-                  gradientColors={[BRAND_COLORS.gold.light, BRAND_COLORS.orange.DEFAULT, BRAND_COLORS.gold.light]}
-                  style={styles.balanceAmount}
-                  glow
-                >
-                  R{isLoading ? "---" : balance.toFixed(2)}
-                </AnimatedText>
-                <View style={styles.statusBadge}>
-                  <View style={styles.statusDot} />
-                  <Text style={styles.statusText}>Active</Text>
+          {/* Wallet Card - Omnex Global Horizontal Card */}
+          <View className="gap-2">
+            <TouchableOpacity
+              onPress={() => router.push("/transactions" as any)}
+              className="rounded-2xl active:opacity-90 overflow-hidden bg-white"
+              style={{
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.3,
+                shadowRadius: 12,
+                elevation: 8,
+                height: 200,
+              }}
+            >
+              {/* Card Background Image */}
+              <Image
+                source={require("@/assets/images/omnex-card.png")}
+                style={{ width: "100%", height: "100%" }}
+                contentFit="fill"
+              />
+              
+              {/* Card Overlay Content */}
+              <View className="absolute top-0 left-0 right-0 bottom-0 p-6 justify-between items-center">
+                {/* Top Section: Student Info */}
+                <View className="gap-1 items-center">
+                  <Text 
+                    className="text-xs font-bold font-mono tracking-wide"
+                    style={{ 
+                      textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                      textShadowOffset: { width: 0, height: 1 },
+                      textShadowRadius: 2,
+                      color: '#1f2937'
+                    }}
+                  >
+                    ID: SK-000000
+                  </Text>
+                  <View className="px-3 py-1 rounded-full" style={{ backgroundColor: '#f97316' }}>
+                    <Text className="text-white text-xs font-semibold">Active</Text>
+                  </View>
+                  <Text 
+                    className="text-sm font-bold font-mono tracking-wide"
+                    style={{ 
+                      textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                      textShadowOffset: { width: 0, height: 1 },
+                      textShadowRadius: 2,
+                      color: '#000000'
+                    }}
+                  >
+                    STUDENT USER
+                  </Text>
+                  <Text 
+                    className="text-xs font-mono tracking-wide"
+                    style={{ 
+                      textShadowColor: 'rgba(0, 0, 0, 0.2)',
+                      textShadowOffset: { width: 0, height: 1 },
+                      textShadowRadius: 2,
+                      color: '#4b5563'
+                    }}
+                  >
+                    Available Balance
+                  </Text>
+                </View>
+
+                {/* Bottom Section: Balance */}
+                <View>
+                  <Text 
+                    className="text-2xl font-bold font-mono tracking-wide"
+                    style={{ 
+                      textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                      textShadowOffset: { width: 0, height: 1 },
+                      textShadowRadius: 2,
+                      color: '#dc2626'
+                    }}
+                  >
+                    R{isLoading ? "---" : balance.toFixed(2)}
+                  </Text>
                 </View>
               </View>
+            </TouchableOpacity>
+            
+            {/* Account Text Below Card */}
+            <Text className="text-center text-xs text-muted mt-1">
+              Omnex University of Botswana Konnect Account
+            </Text>
+          </View>
 
-              {/* Quick Actions */}
-              <View style={styles.quickActions}>
-                {[
-                  { icon: "paperplane.fill", label: "Send", color: BRAND_COLORS.blue.DEFAULT },
-                  { icon: "creditcard.fill", label: "Pay", color: BRAND_COLORS.purple.DEFAULT },
-                  { icon: "arrow.down.circle.fill", label: "Request", color: BRAND_COLORS.gold.DEFAULT },
-                ].map((action, index) => (
-                  <TouchableOpacity
-                    key={action.label}
-                    style={styles.quickActionButton}
-                    onPress={() => {}}
-                  >
-                    <LinearGradient
-                      colors={[action.color, action.color + '80']}
-                      style={styles.quickActionGradient}
-                    >
-                      <IconSymbol name={action.icon as any} size={20} color="white" />
-                    </LinearGradient>
-                    <Text style={styles.quickActionLabel}>{action.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </AnimatedGradientCard>
-        </Animated.View>
-
-        {/* Features Grid */}
-        <View style={styles.featuresContainer}>
-          <AnimatedText
-            animation="slideRight"
-            delay={500}
-            gradient
-            gradientColors={BRAND_COLORS.gradients.hero}
-            style={styles.sectionTitle}
-            glow
-          >
-            Explore Features ✨
-          </AnimatedText>
-
-          <View style={styles.featuresGrid}>
-            {PREMIUM_FEATURES.map((feature, index) => (
-              <Animated.View
-                key={feature.id}
-                entering={FadeInUp.delay(600 + index * 100).duration(600).springify()}
+          {/* Quick Actions */}
+          <View className="gap-3">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-lg font-semibold text-foreground">Quick Actions</Text>
+              <TouchableOpacity
+                onPress={() => setMoreOptionsVisible(true)}
+                className="bg-surface px-4 py-2 rounded-full border border-border active:opacity-70"
               >
-                <PremiumFeatureCard
-                  title={feature.title}
-                  description={feature.description}
-                  badge={feature.badge}
-                  icon={feature.icon}
-                  colors={feature.colors}
-                  onPress={() => router.push(feature.route as any)}
-                  delay={index * 100}
-                />
-              </Animated.View>
+                <Text className="text-primary text-sm font-semibold">More</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+              {QUICK_ACTIONS.map((action) => (
+                <TouchableOpacity
+                  key={action.id}
+                  onPress={() => {
+                    if (action.id === "savings") {
+                      router.push("/savings-pockets");
+                    } else if (action.id === "send") {
+                      router.push("/send-money");
+                    } else if (action.id === "pay") {
+                      router.push("/pay");
+                    }
+                  }}
+                  className="rounded-2xl overflow-hidden active:opacity-90"
+                  style={{
+                    width: 160,
+                    height: 100,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                    elevation: 2,
+                  }}
+                >
+                  <Image
+                    source={action.image}
+                    style={{ width: "100%", height: "100%" }}
+                    contentFit="cover"
+                  />
+                  <View className="absolute top-0 left-0 right-0 bottom-0 items-center justify-center">
+                    <View className="bg-black/60 px-4 py-2 rounded-full">
+                      <Text className="text-white text-sm font-bold text-center">
+                        {action.title}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* Recent Transactions */}
+          <View className="gap-3">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-lg font-semibold text-foreground">
+                Recent Transactions
+              </Text>
+              <TouchableOpacity onPress={() => router.push("/transactions" as any)}>
+                <Text className="text-primary text-sm font-semibold">View All</Text>
+              </TouchableOpacity>
+            </View>
+            {RECENT_TRANSACTIONS.map((transaction) => (
+              <View
+                key={transaction.id}
+                className="bg-surface rounded-2xl p-4 border border-border"
+              >
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-1">
+                    <Text className="text-base font-semibold text-foreground mb-1">
+                      {transaction.description}
+                    </Text>
+                    <Text className="text-xs text-muted">{transaction.date}</Text>
+                  </View>
+                  <Text
+                    className={`text-lg font-bold ${
+                      transaction.type === "credit" ? "text-success" : "text-foreground"
+                    }`}
+                  >
+                    {transaction.type === "credit" ? "+" : ""}R
+                    {Math.abs(transaction.amount).toFixed(2)}
+                  </Text>
+                </View>
+              </View>
             ))}
           </View>
-        </View>
 
-        {/* Trust Banner */}
-        <Animated.View entering={FadeInUp.delay(1200).duration(600)} style={styles.trustBanner}>
-          <LinearGradient
-            colors={[BRAND_COLORS.gold.DEFAULT + '20', BRAND_COLORS.orange.DEFAULT + '20']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.trustGradient}
-          >
-            <IconSymbol name="checkmark.shield.fill" size={24} color={BRAND_COLORS.gold.DEFAULT} />
-            <Text style={styles.trustText}>{FEATURE_DESCRIPTIONS.trustMessage}</Text>
-          </LinearGradient>
-        </Animated.View>
+          {/* Trusted by Students */}
+          <TrustedBanner type="universities" title="Trusted by Students @" />
+          <TrustedBanner type="brands" />
+
+          {/* Featured Services */}
+          <View className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">Featured Services</Text>
+            <View className="flex-row flex-wrap gap-3">
+              {FEATURED_SERVICES.map((service) => (
+                <View key={service.id} style={{ width: "48%" }}>
+                  <TouchableOpacity
+                    onPress={() => handleServicePress(service.id)}
+                    className="rounded-2xl overflow-hidden active:opacity-90"
+                    style={{
+                      height: 140,
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 4,
+                      elevation: 2,
+                    }}
+                  >
+                    <Image
+                      source={service.image}
+                      style={{ width: "100%", height: "100%" }}
+                      contentFit="cover"
+                    />
+                  </TouchableOpacity>
+                  <Text className="text-sm font-semibold text-foreground mt-2 text-center">
+                    {service.title}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
       </ScrollView>
+
+      {/* More Options Modal */}
+      <MoreOptionsModal
+        visible={moreOptionsVisible}
+        onClose={() => setMoreOptionsVisible(false)}
+      />
     </ScreenContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  heroGradient: {
-    paddingHorizontal: 24,
-    paddingTop: 48,
-    paddingBottom: 32,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  glassOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  floatingOrb: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    opacity: 0.2,
-    shadowColor: '#fff',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 30,
-  },
-  heroContent: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    zIndex: 1,
-  },
-  heroTitle: {
-    fontSize: 42,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 8,
-  },
-  heroSubtitle: {
-    fontSize: 18,
-    color: 'rgba(255, 255, 255, 0.95)',
-    marginBottom: 6,
-    fontWeight: '600',
-  },
-  heroTagline: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.85)',
-    lineHeight: 20,
-  },
-  notificationButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  notificationGlow: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    shadowColor: '#fff',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 15,
-  },
-  walletContainer: {
-    paddingHorizontal: 16,
-    marginTop: -24,
-  },
-  walletCard: {
-    height: 200,
-  },
-  walletContent: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'space-between',
-  },
-  balanceSection: {
-    alignItems: 'center',
-  },
-  balanceLabel: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: 8,
-    fontWeight: '500',
-  },
-  balanceAmount: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 12,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(34, 197, 94, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#22c55e',
-    marginRight: 6,
-  },
-  statusText: {
-    fontSize: 12,
-    color: '#22c55e',
-    fontWeight: '600',
-  },
-  quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  quickActionButton: {
-    alignItems: 'center',
-  },
-  quickActionGradient: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  quickActionLabel: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '600',
-  },
-  featuresContainer: {
-    paddingHorizontal: 16,
-    marginTop: 32,
-  },
-  sectionTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  featuresGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  trustBanner: {
-    marginHorizontal: 16,
-    marginTop: 24,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  trustGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    gap: 12,
-  },
-  trustText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: BRAND_COLORS.gold.dark,
-  },
-});
