@@ -17,6 +17,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { supabase } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
+import { FEATURE_DESCRIPTIONS } from "@/constants/feature-descriptions";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 48) / 2; // 2 columns with padding
@@ -557,9 +558,12 @@ export default function MarketplaceScreen() {
         <View className="mb-6 pt-2">
           <View className="flex-row items-center justify-between mb-2">
             <View className="flex-1">
-              <Text className="text-4xl font-bold text-primary mb-1">Student Marketplace</Text>
+              <View className="flex-row items-center gap-2 mb-1">
+                <Text className="text-4xl font-bold text-primary">{FEATURE_DESCRIPTIONS.features.marketplace.title}</Text>
+                <Text className="text-lg">{FEATURE_DESCRIPTIONS.features.marketplace.badge}</Text>
+              </View>
               <Text className="text-sm text-muted-foreground">
-                Buy, sell & trade with fellow students
+                {FEATURE_DESCRIPTIONS.features.marketplace.description}
               </Text>
             </View>
             <TouchableOpacity
