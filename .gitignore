@@ -68,3 +68,4 @@ blockchain/deployments.json
 
 # Tunnel URL (generated at runtime)
 .tunnel-url.json
+.env
