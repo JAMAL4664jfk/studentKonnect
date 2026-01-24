@@ -590,6 +590,19 @@ export default function AccommodationScreen() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
+            onPress={() => router.push("/my-accommodations")}
+            className="px-4 py-2 rounded-xl flex-row items-center gap-2 bg-surface"
+          >
+            <IconSymbol
+              name="list.bullet"
+              size={16}
+              color={colors.foreground}
+            />
+            <Text className="font-semibold text-foreground">
+              My Listings
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             className="ml-auto bg-primary px-4 py-2 rounded-xl flex-row items-center gap-2"
             onPress={() => router.push("/create-accommodation")}
           >

@@ -681,6 +681,19 @@ export default function MarketplaceScreen() {
               Featured
             </Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/my-marketplace")}
+            className="px-4 py-2 rounded-xl flex-row items-center gap-1.5 bg-surface"
+          >
+            <IconSymbol
+              name="list.bullet"
+              size={14}
+              color={colors.foreground}
+            />
+            <Text className="font-semibold text-foreground">
+              My Items
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
 
         {/* Category Filter */}
