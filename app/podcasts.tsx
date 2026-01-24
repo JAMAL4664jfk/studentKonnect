@@ -117,7 +117,9 @@ export default function PodcastsScreen() {
     episodeNumber: "",
     seasonNumber: "",
   });
+  const [mediaType, setMediaType] = useState<"audio" | "video">("audio");
   const [audioFile, setAudioFile] = useState<{ uri: string; name: string } | null>(null);
+  const [videoFile, setVideoFile] = useState<{ uri: string; name: string } | null>(null);
   const [episodeThumbnail, setEpisodeThumbnail] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -274,6 +276,28 @@ export default function PodcastsScreen() {
     }
   };
 
+  const pickVideoFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "video/*",
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setVideoFile({
+          uri: result.assets[0].uri,
+          name: result.assets[0].name,
+        });
+      }
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to pick video file",
+      });
+    }
+  };
+
   const pickThumbnail = async (type: "series" | "episode") => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -383,11 +407,11 @@ export default function PodcastsScreen() {
       return;
     }
 
-    if (!newEpisode.title || !audioFile) {
+    if (!newEpisode.title || (mediaType === "audio" && !audioFile) || (mediaType === "video" && !videoFile)) {
       Toast.show({
         type: "error",
         text1: "Missing Fields",
-        text2: "Please provide title and audio file",
+        text2: `Please provide title and ${mediaType} file`,
       });
       return;
     }
@@ -403,20 +427,41 @@ export default function PodcastsScreen() {
 
     setUploading(true);
     try {
-      // Upload audio file
-      const audioFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.mp3`;
-      const audioResponse = await fetch(audioFile.uri);
-      const audioBlob = await audioResponse.blob();
+      let audioUrl = null;
+      let videoUrl = null;
 
-      const { error: audioUploadError } = await supabase.storage
-        .from("podcasts")
-        .upload(`audio/${audioFileName}`, audioBlob);
+      // Upload media file based on type
+      if (mediaType === "audio" && audioFile) {
+        const audioFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.mp3`;
+        const audioResponse = await fetch(audioFile.uri);
+        const audioBlob = await audioResponse.blob();
 
-      if (audioUploadError) throw audioUploadError;
+        const { error: audioUploadError } = await supabase.storage
+          .from("podcasts")
+          .upload(`audio/${audioFileName}`, audioBlob);
 
-      const {
-        data: { publicUrl: audioUrl },
-      } = supabase.storage.from("podcasts").getPublicUrl(`audio/${audioFileName}`);
+        if (audioUploadError) throw audioUploadError;
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("podcasts").getPublicUrl(`audio/${audioFileName}`);
+        audioUrl = publicUrl;
+      } else if (mediaType === "video" && videoFile) {
+        const videoFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.mp4`;
+        const videoResponse = await fetch(videoFile.uri);
+        const videoBlob = await videoResponse.blob();
+
+        const { error: videoUploadError } = await supabase.storage
+          .from("podcasts")
+          .upload(`videos/${videoFileName}`, videoBlob);
+
+        if (videoUploadError) throw videoUploadError;
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("podcasts").getPublicUrl(`videos/${videoFileName}`);
+        videoUrl = publicUrl;
+      }
 
       // Upload thumbnail if provided
       let thumbnailUrl = null;
@@ -443,8 +488,10 @@ export default function PodcastsScreen() {
         description: newEpisode.description || null,
         host_name: newEpisode.host || "Anonymous",
         category: newEpisode.category,
-        duration: newEpisode.duration || null,
+        duration: newEpisode.duration ? parseInt(newEpisode.duration) : null,
+        media_type: mediaType,
         audio_url: audioUrl,
+        video_url: videoUrl,
         thumbnail_url: thumbnailUrl,
         user_id: currentUser.id,
         series_id: uploadType === "series" ? selectedSeriesId : null,
@@ -472,7 +519,9 @@ export default function PodcastsScreen() {
         episodeNumber: "",
         seasonNumber: "",
       });
+      setMediaType("audio");
       setAudioFile(null);
+      setVideoFile(null);
       setEpisodeThumbnail(null);
       setShowUploadEpisode(false);
       await fetchPodcasts(false);
@@ -1344,16 +1393,75 @@ export default function PodcastsScreen() {
                   )}
                 </View>
 
+                {/* Media Type Selection */}
                 <View>
-                  <Text className="text-sm font-medium text-foreground mb-2">Audio File *</Text>
+                  <Text className="text-sm font-medium text-foreground mb-2">Media Type *</Text>
+                  <View className="flex-row gap-3">
+                    <TouchableOpacity
+                      onPress={() => {
+                        setMediaType("audio");
+                        setVideoFile(null);
+                      }}
+                      className={`flex-1 px-4 py-3 rounded-xl ${
+                        mediaType === "audio" ? "bg-primary" : "bg-surface"
+                      }`}
+                      style={{ borderWidth: 1, borderColor: colors.border }}
+                    >
+                      <View className="items-center">
+                        <IconSymbol name="waveform" size={24} color={mediaType === "audio" ? "white" : colors.foreground} />
+                        <Text
+                          className={`text-center font-medium mt-1 ${
+                            mediaType === "audio" ? "text-white" : "text-foreground"
+                          }`}
+                        >
+                          Audio
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setMediaType("video");
+                        setAudioFile(null);
+                      }}
+                      className={`flex-1 px-4 py-3 rounded-xl ${
+                        mediaType === "video" ? "bg-primary" : "bg-surface"
+                      }`}
+                      style={{ borderWidth: 1, borderColor: colors.border }}
+                    >
+                      <View className="items-center">
+                        <IconSymbol name="video.fill" size={24} color={mediaType === "video" ? "white" : colors.foreground} />
+                        <Text
+                          className={`text-center font-medium mt-1 ${
+                            mediaType === "video" ? "text-white" : "text-foreground"
+                          }`}
+                        >
+                          Video
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Media File Picker */}
+                <View>
+                  <Text className="text-sm font-medium text-foreground mb-2">
+                    {mediaType === "audio" ? "Audio" : "Video"} File *
+                  </Text>
                   <TouchableOpacity
-                    onPress={pickAudio}
+                    onPress={mediaType === "audio" ? pickAudio : pickVideoFile}
                     className="bg-surface border border-border rounded-xl p-4 items-center justify-center"
                     style={{ minHeight: 80 }}
                   >
-                    <IconSymbol name="waveform" size={32} color={colors.primary} />
+                    <IconSymbol 
+                      name={mediaType === "audio" ? "waveform" : "video.fill"} 
+                      size={32} 
+                      color={colors.primary} 
+                    />
                     <Text className="text-sm text-primary mt-2">
-                      {audioFile ? audioFile.name : "Tap to select audio file"}
+                      {mediaType === "audio" 
+                        ? (audioFile ? audioFile.name : "Tap to select audio file")
+                        : (videoFile ? videoFile.name : "Tap to select video file")
+                      }
                     </Text>
                   </TouchableOpacity>
                 </View>
