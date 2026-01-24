@@ -114,6 +114,12 @@ export default function FullRegistrationScreen() {
   }, []);
 
   const checkBiometricAvailability = async () => {
+    // Biometric auth not available on web
+    if (Platform.OS === 'web') {
+      setBiometricAvailable(false);
+      return;
+    }
+    
     try {
       const compatible = await LocalAuthentication.hasHardwareAsync();
       const enrolled = await LocalAuthentication.isEnrolledAsync();
@@ -131,6 +137,7 @@ export default function FullRegistrationScreen() {
       }
     } catch (error) {
       console.error("Biometric check error:", error);
+      setBiometricAvailable(false);
     }
   };
 
@@ -221,19 +228,23 @@ export default function FullRegistrationScreen() {
 
       if (error) throw error;
 
-      // If biometric is enabled, set up biometric authentication
-      if (biometricEnabled && biometricAvailable) {
-        const result = await LocalAuthentication.authenticateAsync({
-          promptMessage: "Verify your identity",
-          fallbackLabel: "Use password instead",
-        });
-
-        if (result.success) {
-          Toast.show({
-            type: "success",
-            text1: "Biometric Setup Complete!",
-            text2: "You can now use biometric authentication",
+      // If biometric is enabled, set up biometric authentication (not on web)
+      if (biometricEnabled && biometricAvailable && Platform.OS !== 'web') {
+        try {
+          const result = await LocalAuthentication.authenticateAsync({
+            promptMessage: "Verify your identity",
+            fallbackLabel: "Use password instead",
           });
+
+          if (result.success) {
+            Toast.show({
+              type: "success",
+              text1: "Biometric Setup Complete!",
+              text2: "You can now use biometric authentication",
+            });
+          }
+        } catch (error) {
+          console.log('Biometric auth failed:', error);
         }
       }
 
