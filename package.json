@@ -27,6 +27,7 @@
     "@openzeppelin/contracts": "^5.4.0",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/slider": "^4.5.2",
+    "@react-native-masked-view/masked-view": "^0.3.1",
     "@react-native-picker/picker": "^2.11.4",
     "@react-navigation/bottom-tabs": "^7.8.12",
     "@react-navigation/elements": "^2.9.2",
