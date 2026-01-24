@@ -349,7 +349,7 @@ export default function MarketplaceScreen() {
           {/* Price and Stats */}
           <View className="flex-row items-center justify-between">
             <Text className="text-lg font-bold text-primary">
-              {item.currency}{parseFloat(item.price).toLocaleString()}
+              R{parseFloat(item.price).toLocaleString()}
             </Text>
             <View className="flex-row items-center gap-2">
               <View className="flex-row items-center gap-1">
@@ -473,7 +473,7 @@ export default function MarketplaceScreen() {
             {/* Price Card */}
             <View className="bg-primary/10 rounded-2xl p-5 mb-6">
               <Text className="text-4xl font-bold text-primary mb-2">
-                {selectedItem.currency} {parseFloat(selectedItem.price).toLocaleString()}
+                R{parseFloat(selectedItem.price).toLocaleString()}
               </Text>
               <View className="flex-row items-center gap-4 mt-2">
                 <View className="flex-row items-center gap-1">

@@ -297,7 +297,7 @@ export default function AccommodationScreen() {
             </View>
             <View className="items-end">
               <Text className="text-2xl font-bold text-primary">
-                {item.currency}{parseFloat(item.price).toLocaleString()}
+                R{parseFloat(item.price).toLocaleString()}
               </Text>
               <Text className="text-xs text-muted-foreground">per month</Text>
             </View>
@@ -424,7 +424,7 @@ export default function AccommodationScreen() {
             {/* Price Card */}
             <View className="bg-primary/10 rounded-2xl p-5 mb-6">
               <Text className="text-4xl font-bold text-primary mb-2">
-                {selectedAccommodation.currency} {parseFloat(selectedAccommodation.price).toLocaleString()}
+                R{parseFloat(selectedAccommodation.price).toLocaleString()}
               </Text>
               <Text className="text-sm text-muted-foreground">per month</Text>
             </View>
