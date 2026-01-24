@@ -18,6 +18,8 @@ import { supabase } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SwipeableCard } from "@/components/SwipeableCard";
 
 interface DatingProfile {
   id: string;
@@ -470,105 +472,65 @@ export default function DatingSwipeScreen() {
   }
 
   return (
-    <ScreenContainer edges={["top", "left", "right"]}>
-      <View className="flex-1 p-4">
-        {/* Header */}
-        <View className="flex-row items-center justify-between mb-4">
-          <TouchableOpacity onPress={() => router.back()}>
-            <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
-          </TouchableOpacity>
-          <Text className="text-lg font-bold text-foreground">Student Dating</Text>
-          <TouchableOpacity onPress={() => router.push("/dating-matches" as any)}>
-            <IconSymbol name="heart.fill" size={24} color={colors.primary} />
-          </TouchableOpacity>
-        </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ScreenContainer edges={["top", "left", "right"]}>
+        <View className="flex-1 p-4">
+          {/* Header */}
+          <View className="flex-row items-center justify-between mb-4">
+            <TouchableOpacity onPress={() => router.back()}>
+              <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
+            </TouchableOpacity>
+            <Text className="text-lg font-bold text-foreground">Student Dating</Text>
+            <TouchableOpacity onPress={() => router.push("/dating-matches" as any)}>
+              <IconSymbol name="heart.fill" size={24} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
 
-        {/* Profile Card */}
-        <View className="flex-1 mb-4">
-          <View
-            className="flex-1 bg-surface rounded-3xl overflow-hidden"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.2,
-              shadowRadius: 8,
-              elevation: 4,
-            }}
-          >
-            {currentProfile.profile_photo_url ? (
-              <Image
-                source={{ uri: currentProfile.profile_photo_url }}
-                style={{ width: "100%", height: "70%" }}
-                contentFit="cover"
+          {/* Swipeable Cards Stack */}
+          <View className="flex-1 items-center justify-center mb-4">
+            {profiles.slice(currentIndex, currentIndex + 2).reverse().map((profile, index) => (
+              <SwipeableCard
+                key={profile.id}
+                profile={profile}
+                onSwipeLeft={() => handleSwipe(false)}
+                onSwipeRight={() => handleSwipe(true)}
+                isTop={index === 1}
               />
-            ) : (
-              <View
-                className="items-center justify-center bg-surface"
-                style={{ width: "100%", height: "70%" }}
-              >
-                <IconSymbol name="person.fill" size={80} color={colors.muted} />
-              </View>
-            )}
+            ))}
+          </View>
 
-            {/* Profile Info */}
-            <View className="p-6">
-              <Text className="text-2xl font-bold text-foreground">
-                {currentProfile.display_name}, {currentProfile.age}
-              </Text>
-              {currentProfile.institution && (
-                <Text className="text-sm text-muted mt-1">
-                  {currentProfile.institution}
-                </Text>
-              )}
-              {currentProfile.bio && (
-                <Text className="text-sm text-foreground mt-2" numberOfLines={2}>
-                  {currentProfile.bio}
-                </Text>
-              )}
-              {currentProfile.interests && currentProfile.interests.length > 0 && (
-                <View className="flex-row flex-wrap gap-2 mt-3">
-                  {currentProfile.interests.slice(0, 3).map((interest, index) => (
-                    <View key={index} className="bg-primary/10 px-3 py-1 rounded-full">
-                      <Text className="text-xs text-primary font-medium">{interest}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
+          {/* Action Buttons */}
+          <View className="flex-row items-center justify-center gap-6 pb-4">
+            <TouchableOpacity
+              onPress={() => handleSwipe(false)}
+              className="bg-red-500 rounded-full p-4"
+              style={{
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+                elevation: 4,
+              }}
+            >
+              <IconSymbol name="xmark" size={32} color="white" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => handleSwipe(true)}
+              className="bg-green-500 rounded-full p-4"
+              style={{
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+                elevation: 4,
+              }}
+            >
+              <IconSymbol name="heart.fill" size={32} color="white" />
+            </TouchableOpacity>
           </View>
         </View>
-
-        {/* Action Buttons */}
-        <View className="flex-row items-center justify-center gap-6 pb-4">
-          <TouchableOpacity
-            onPress={() => handleSwipe(false)}
-            className="bg-red-500 rounded-full p-4"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
-              shadowRadius: 4,
-              elevation: 4,
-            }}
-          >
-            <IconSymbol name="xmark" size={32} color="white" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => handleSwipe(true)}
-            className="bg-green-500 rounded-full p-4"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
-              shadowRadius: 4,
-              elevation: 4,
-            }}
-          >
-            <IconSymbol name="heart.fill" size={32} color="white" />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScreenContainer>
+      </ScreenContainer>
+    </GestureHandlerRootView>
   );
 }
