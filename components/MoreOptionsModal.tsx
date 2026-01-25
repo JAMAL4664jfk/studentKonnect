@@ -83,12 +83,34 @@ export function MoreOptionsModal({ visible, onClose }: MoreOptionsModalProps) {
       subtitle: "Buy tech & textbooks",
       image: require("@/assets/images/loans-bg.jpg"),
     },
+    {
+      id: "discover",
+      title: "Discover Users",
+      subtitle: "Find & connect with students",
+      image: require("@/assets/images/dating-bg.jpg"),
+    },
+    {
+      id: "requests",
+      title: "Connection Requests",
+      subtitle: "Manage your connections",
+      image: require("@/assets/images/podcast-bg.jpg"),
+    },
   ];
 
   const handleActionPress = (actionId: string) => {
     if (actionId === "digitalconnect") {
       onClose();
       router.push("/digital-connect" as any);
+      return;
+    }
+    if (actionId === "discover") {
+      onClose();
+      router.push("/discover-users" as any);
+      return;
+    }
+    if (actionId === "requests") {
+      onClose();
+      router.push("/connection-requests" as any);
       return;
     }
     setSelectedAction(actionId);

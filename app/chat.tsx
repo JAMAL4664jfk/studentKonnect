@@ -300,6 +300,22 @@ export default function ChatScreen() {
               </Text>
             </View>
           </View>
+
+          {/* Call Buttons */}
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              onPress={() => router.push(`/voice-call?userId=${otherUserId}&userName=${otherUser?.full_name}` as any)}
+              className="w-10 h-10 rounded-full bg-surface items-center justify-center"
+            >
+              <IconSymbol name="phone.fill" size={18} color={colors.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push(`/video-call?userId=${otherUserId}&userName=${otherUser?.full_name}` as any)}
+              className="w-10 h-10 rounded-full bg-surface items-center justify-center"
+            >
+              <IconSymbol name="video.fill" size={18} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Messages */}
