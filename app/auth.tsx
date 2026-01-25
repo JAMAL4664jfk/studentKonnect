@@ -304,11 +304,10 @@ export default function AuthScreen() {
           <ImageBackground
             source={require("@/assets/images/auth-background.jpg")}
             className="flex-1"
-            imageStyle={{ opacity: 0.15 }}
-            style={{ backgroundColor: colors.background }}
             resizeMode="cover"
           >
-            <View className="flex-1 px-6 pt-16 pb-8">
+            {/* Semi-transparent overlay for readability */}
+            <View className="flex-1 bg-background/80 px-6 pt-16 pb-8">
             {/* Logo */}
             <View className="items-center mb-8">
               <Image
