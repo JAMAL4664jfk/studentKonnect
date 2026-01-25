@@ -39,6 +39,7 @@ export default function FullRegistrationScreen() {
   const [courseProgram, setCourseProgram] = useState("");
   const [yearOfStudy, setYearOfStudy] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -137,6 +138,12 @@ export default function FullRegistrationScreen() {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!phoneNumber) {
+      newErrors.phoneNumber = "Phone number is required";
+    } else if (!/^\+?27\s?\d{2}\s?\d{3}\s?\d{4}$/.test(phoneNumber.replace(/\s/g, ''))) {
+      newErrors.phoneNumber = "Please enter a valid SA phone number (e.g., +27 82 123 4567)";
     }
 
     if (!password) {
@@ -463,6 +470,32 @@ export default function FullRegistrationScreen() {
                 </View>
                 {errors.email && (
                   <Text className="text-xs text-red-500 mt-1">{errors.email}</Text>
+                )}
+              </View>
+
+              {/* Phone Number */}
+              <View className="mb-4">
+                <Text className="text-sm font-semibold text-foreground mb-2">Phone Number</Text>
+                <View
+                  className={`bg-surface border-2 rounded-xl px-4 py-3 flex-row items-center ${
+                    errors.phoneNumber ? "border-red-500" : "border-border"
+                  }`}
+                >
+                  <IconSymbol name="phone.fill" size={20} color={colors.mutedForeground} />
+                  <TextInput
+                    placeholder="+27 82 123 4567"
+                    placeholderTextColor={colors.mutedForeground}
+                    value={phoneNumber}
+                    onChangeText={(text) => {
+                      setPhoneNumber(text);
+                      if (errors.phoneNumber) setErrors({ ...errors, phoneNumber: "" });
+                    }}
+                    keyboardType="phone-pad"
+                    className="flex-1 ml-3 text-base text-foreground"
+                  />
+                </View>
+                {errors.phoneNumber && (
+                  <Text className="text-xs text-red-500 mt-1">{errors.phoneNumber}</Text>
                 )}
               </View>
 
