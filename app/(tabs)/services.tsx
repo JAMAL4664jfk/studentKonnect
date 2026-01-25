@@ -97,6 +97,33 @@ const SERVICES: ServiceItem[] = [
     badgeText: "Rewards System",
     badgeColor: "#eab308",
   },
+  {
+    id: "nsfas",
+    name: "NSFAS",
+    icon: "doc.text.fill",
+    description: "Apply for student funding",
+    backgroundImage: require("@/assets/images/wallet-bg.jpg"),
+    badgeText: "Apply Now",
+    badgeColor: "#10b981",
+  },
+  {
+    id: "health-cover",
+    name: "Student Health Cover",
+    icon: "cross.case.fill",
+    description: "Affordable healthcare plans",
+    backgroundImage: require("@/assets/images/mental-health-counselling.jpg"),
+    badgeText: "Get Covered",
+    badgeColor: "#ef4444",
+  },
+  {
+    id: "lecturer",
+    name: "Connect to Lecturer",
+    icon: "person.2.fill",
+    description: "Chat with your lecturers",
+    backgroundImage: require("@/assets/images/hero-student-connect.jpg"),
+    badgeText: "Connect Now",
+    badgeColor: "#6366f1",
+  },
 ];
 
 export default function ServicesScreen() {
@@ -114,6 +141,9 @@ export default function ServicesScreen() {
       wellness: "/wellness",
       career: "/career",
       gamification: "/gamification",
+      nsfas: "/nsfas",
+      "health-cover": "/student-health-cover",
+      lecturer: "/connect-lecturer",
     };
     
     const route = routes[serviceId];
