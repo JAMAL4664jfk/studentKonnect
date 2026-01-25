@@ -12,16 +12,17 @@ import {
   ImageBackground,
 } from "react-native";
 import { Image } from "expo-image";
-// LinearGradient removed - using ImageBackground instead
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { supabase } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
-import { SA_INSTITUTIONS, Institution } from "@/constants/sa-institutions-with-logos";
+import { SA_INSTITUTIONS, Institution, getInstitutionsByType } from "@/constants/sa-institutions-with-logos";
 
-type AuthMode = "login" | "signup";
+type AuthMode = "login" | "institution-select" | "signup-method" | "full-signup" | "quick-signup";
+type InstitutionType = "university" | "tvet" | "staff" | "parent" | "";
+type SignupMethod = "full" | "quick" | null;
 
 export default function AuthScreen() {
   const colors = useColors();
@@ -31,6 +32,7 @@ export default function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showInstitutionPicker, setShowInstitutionPicker] = useState(false);
+  const [signupMethod, setSignupMethod] = useState<SignupMethod>(null);
 
   // Form state
   const [email, setEmail] = useState("");
@@ -39,24 +41,31 @@ export default function AuthScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [studentNumber, setStudentNumber] = useState("");
+  const [institutionType, setInstitutionType] = useState<InstitutionType>("");
   const [selectedInstitution, setSelectedInstitution] = useState<Institution | null>(null);
   const [courseProgram, setCourseProgram] = useState("");
   const [yearOfStudy, setYearOfStudy] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Quick signup state
+  const [quickLookupResults, setQuickLookupResults] = useState<any[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const filteredInstitutions = SA_INSTITUTIONS.filter((inst) =>
-    inst.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    inst.shortName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredInstitutions = SA_INSTITUTIONS.filter((inst) => {
+    const matchesSearch = inst.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inst.shortName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = institutionType === "university" ? inst.type === "university" :
+                       institutionType === "tvet" ? inst.type === "tvet" : true;
+    return matchesSearch && matchesType;
+  });
 
   const validateEmail = (email: string): boolean => {
     return /\S+@\S+\.\S+/.test(email);
   };
 
   const validatePhoneNumber = (phone: string): boolean => {
-    // SA phone numbers: 10 digits starting with 0, or 9 digits without 0
     const cleaned = phone.replace(/\s/g, "");
     return /^0\d{9}$/.test(cleaned) || /^\d{9}$/.test(cleaned);
   };
@@ -68,7 +77,7 @@ export default function AuthScreen() {
     if (!/(?=.*[0-9])/.test(password)) {
       return { valid: false, message: "Password must contain at least 1 number" };
     }
-    if (!/(?=.*[!@#$%^&*(),.?":{}|<>])/.test(password)) {
+    if (!/(?=.*[!@#$%^&*(),.?\":{}|<>])/.test(password)) {
       return { valid: false, message: "Password must contain at least 1 special character" };
     }
     return { valid: true };
@@ -76,17 +85,9 @@ export default function AuthScreen() {
 
   const validateLoginForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!validateEmail(email)) {
-      newErrors.email = "Invalid email format";
-    }
-    
-    if (!password) {
-      newErrors.password = "Password is required";
-    }
-    
+    if (!email) newErrors.email = "Email is required";
+    else if (!validateEmail(email)) newErrors.email = "Invalid email format";
+    if (!password) newErrors.password = "Password is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -97,47 +98,25 @@ export default function AuthScreen() {
     if (!fullName || fullName.trim().length < 2) {
       newErrors.fullName = "Full name must be at least 2 characters";
     }
-    
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!validateEmail(email)) {
-      newErrors.email = "Invalid email format";
-    }
-    
-    if (!phoneNumber) {
-      newErrors.phoneNumber = "Phone number is required";
-    } else if (!validatePhoneNumber(phoneNumber)) {
-      newErrors.phoneNumber = "Invalid phone number (10 digits starting with 0)";
-    }
-    
+    if (!email) newErrors.email = "Email is required";
+    else if (!validateEmail(email)) newErrors.email = "Invalid email format";
+    if (!phoneNumber) newErrors.phoneNumber = "Phone number is required";
+    else if (!validatePhoneNumber(phoneNumber)) newErrors.phoneNumber = "Invalid phone number";
     if (!studentNumber || studentNumber.length < 5) {
       newErrors.studentNumber = "Student number must be at least 5 characters";
     }
-    
-    if (!selectedInstitution) {
-      newErrors.institution = "Please select an institution";
-    }
-    
+    if (!selectedInstitution) newErrors.institution = "Please select an institution";
     if (!courseProgram || courseProgram.trim().length < 2) {
       newErrors.courseProgram = "Course/Program must be at least 2 characters";
     }
-    
-    if (!yearOfStudy) {
-      newErrors.yearOfStudy = "Please select year of study";
-    }
+    if (!yearOfStudy) newErrors.yearOfStudy = "Please select year of study";
     
     const passwordValidation = validatePassword(password);
-    if (!password) {
-      newErrors.password = "Password is required";
-    } else if (!passwordValidation.valid) {
-      newErrors.password = passwordValidation.message!;
-    }
+    if (!password) newErrors.password = "Password is required";
+    else if (!passwordValidation.valid) newErrors.password = passwordValidation.message!;
     
-    if (!confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
-    } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
+    if (!confirmPassword) newErrors.confirmPassword = "Please confirm your password";
+    else if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -178,7 +157,6 @@ export default function AuthScreen() {
 
     setLoading(true);
     try {
-      // Format phone number to E.164 format (+27...)
       const formattedPhone = phoneNumber.startsWith("0")
         ? `+27${phoneNumber.slice(1)}`
         : `+27${phoneNumber}`;
@@ -193,6 +171,7 @@ export default function AuthScreen() {
             student_id: studentNumber,
             institution_id: selectedInstitution!.id,
             institution_name: selectedInstitution!.name,
+            institution_type: institutionType,
             course_program: courseProgram,
             year_of_study: yearOfStudy,
           },
@@ -213,6 +192,46 @@ export default function AuthScreen() {
         type: "error",
         text1: "Sign Up Failed",
         text2: error.message || "Please check your details and try again",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuickLookup = async () => {
+    if (!studentNumber || !selectedInstitution) {
+      Toast.show({
+        type: "error",
+        text1: "Missing Information",
+        text2: "Please enter student number and select institution",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Mock lookup - in production, query actual database
+      const mockStudents = [
+        {
+          id: 1,
+          name: fullName || "John Doe",
+          studentNumber: studentNumber,
+          institution: selectedInstitution.name,
+          course: "Computer Science",
+          year: 3,
+          email: `${studentNumber}@student.ac.za`,
+        },
+      ];
+
+      setQuickLookupResults(mockStudents);
+      if (mockStudents.length > 0) {
+        setSelectedStudent(mockStudents[0]);
+      }
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Lookup Failed",
+        text2: error.message || "Failed to lookup student information",
       });
     } finally {
       setLoading(false);
@@ -243,7 +262,6 @@ export default function AuthScreen() {
               </TouchableOpacity>
             </View>
             
-            {/* Search */}
             <View className="flex-row items-center bg-surface rounded-xl px-4 py-3">
               <IconSymbol name="magnifyingglass" size={20} color={colors.mutedForeground} />
               <TextInput
@@ -306,8 +324,7 @@ export default function AuthScreen() {
             className="flex-1"
             resizeMode="cover"
           >
-            {/* Semi-transparent overlay for readability */}
-            <View className="flex-1 bg-background/80 px-6 pt-16 pb-8">
+            <View className="flex-1 bg-black/60 px-6 pt-16 pb-8">
             {/* Logo */}
             <View className="items-center mb-8">
               <Image
@@ -315,345 +332,486 @@ export default function AuthScreen() {
                 className="w-32 h-32 mb-4"
                 contentFit="contain"
               />
-              <Text className="text-3xl font-bold text-white text-center">
-                StudentKonnect
-              </Text>
-              <Text className="text-white/80 text-center mt-2">
-                {mode === "login" ? "Welcome back!" : "Create your account"}
-              </Text>
+              <View className="bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4">
+                <Text className="text-3xl font-bold text-white text-center">
+                  StudentKonnect
+                </Text>
+                <Text className="text-white/90 text-center mt-2">
+                  {mode === "login" ? "Welcome back!" :
+                   mode === "institution-select" ? "Select your category" :
+                   mode === "signup-method" ? "Choose registration method" :
+                   "Create your account"}
+                </Text>
+              </View>
             </View>
 
             {/* Form Container */}
-            <View className="bg-background rounded-3xl p-6 shadow-lg">
-              {mode === "login" ? (
+            <View className="bg-white/95 backdrop-blur-md rounded-3xl p-6 shadow-lg">
+              {mode === "login" && (
                 // LOGIN FORM
                 <View className="gap-4">
-                  {/* Email */}
                   <View>
-                    <Text className="text-sm font-medium text-foreground mb-2">
-                      Email
-                    </Text>
-                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="envelope.fill" size={20} color={colors.mutedForeground} />
+                    <Text className="text-sm font-medium text-gray-700 mb-2">Email</Text>
+                    <View className="flex-row items-center bg-white rounded-xl px-4 py-3 border border-gray-200">
+                      <IconSymbol name="envelope.fill" size={20} color="#6b7280" />
                       <TextInput
                         value={email}
                         onChangeText={setEmail}
                         placeholder="your.email@example.com"
-                        placeholderTextColor={colors.mutedForeground}
+                        placeholderTextColor="#9ca3af"
                         keyboardType="email-address"
                         autoCapitalize="none"
-                        className="flex-1 ml-3 text-foreground"
+                        className="flex-1 ml-3 text-gray-900"
                       />
                     </View>
-                    {errors.email && (
-                      <Text className="text-destructive text-xs mt-1">{errors.email}</Text>
-                    )}
+                    {errors.email && <Text className="text-red-500 text-xs mt-1">{errors.email}</Text>}
                   </View>
 
-                  {/* Password */}
                   <View>
-                    <Text className="text-sm font-medium text-foreground mb-2">
-                      Password
-                    </Text>
-                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="lock.fill" size={20} color={colors.mutedForeground} />
+                    <Text className="text-sm font-medium text-gray-700 mb-2">Password</Text>
+                    <View className="flex-row items-center bg-white rounded-xl px-4 py-3 border border-gray-200">
+                      <IconSymbol name="lock.fill" size={20} color="#6b7280" />
                       <TextInput
                         value={password}
                         onChangeText={setPassword}
                         placeholder="Enter your password"
-                        placeholderTextColor={colors.mutedForeground}
+                        placeholderTextColor="#9ca3af"
                         secureTextEntry={!showPassword}
-                        className="flex-1 ml-3 text-foreground"
+                        className="flex-1 ml-3 text-gray-900"
                       />
                       <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                        <IconSymbol
-                          name={showPassword ? "eye.slash.fill" : "eye.fill"}
-                          size={20}
-                          color={colors.mutedForeground}
-                        />
+                        <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={20} color="#6b7280" />
                       </TouchableOpacity>
                     </View>
-                    {errors.password && (
-                      <Text className="text-destructive text-xs mt-1">{errors.password}</Text>
-                    )}
+                    {errors.password && <Text className="text-red-500 text-xs mt-1">{errors.password}</Text>}
                   </View>
 
-                  {/* Login Button */}
                   <TouchableOpacity
                     onPress={handleLogin}
                     disabled={loading}
-                    className="bg-primary rounded-xl py-4 items-center mt-4"
+                    className="bg-blue-600 rounded-xl py-4 items-center mt-4"
                   >
                     {loading ? (
                       <ActivityIndicator color="white" />
                     ) : (
-                      <Text className="text-primary-foreground font-semibold text-base">
-                        Log In
-                      </Text>
+                      <Text className="text-white font-semibold text-base">Log In</Text>
                     )}
                   </TouchableOpacity>
 
-                  {/* Switch to Signup */}
                   <View className="flex-row items-center justify-center mt-4">
-                    <Text className="text-muted-foreground">Don't have an account? </Text>
-                    <TouchableOpacity onPress={() => setMode("signup")}>
-                      <Text className="text-primary font-semibold">Sign Up</Text>
+                    <Text className="text-gray-600">Don't have an account? </Text>
+                    <TouchableOpacity onPress={() => setMode("institution-select")}>
+                      <Text className="text-blue-600 font-semibold">Sign Up</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
-              ) : (
-                // SIGNUP FORM
+              )}
+
+              {mode === "institution-select" && (
+                // INSTITUTION TYPE SELECTION
                 <View className="gap-4">
-                  {/* Full Name */}
-                  <View>
-                    <Text className="text-sm font-medium text-foreground mb-2">
-                      Full Name
-                    </Text>
-                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="person.fill" size={20} color={colors.mutedForeground} />
-                      <TextInput
-                        value={fullName}
-                        onChangeText={setFullName}
-                        placeholder="John Doe"
-                        placeholderTextColor={colors.mutedForeground}
-                        className="flex-1 ml-3 text-foreground"
-                      />
-                    </View>
-                    {errors.fullName && (
-                      <Text className="text-destructive text-xs mt-1">{errors.fullName}</Text>
-                    )}
-                  </View>
+                  <Text className="text-lg font-bold text-gray-900 text-center mb-2">
+                    I am a...
+                  </Text>
 
-                  {/* Email */}
-                  <View>
-                    <Text className="text-sm font-medium text-foreground mb-2">
-                      Email
-                    </Text>
-                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="envelope.fill" size={20} color={colors.mutedForeground} />
-                      <TextInput
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="your.email@example.com"
-                        placeholderTextColor={colors.mutedForeground}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        className="flex-1 ml-3 text-foreground"
-                      />
-                    </View>
-                    {errors.email && (
-                      <Text className="text-destructive text-xs mt-1">{errors.email}</Text>
-                    )}
-                  </View>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setInstitutionType("university");
+                      setMode("signup-method");
+                    }}
+                    className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 items-center"
+                  >
+                    <IconSymbol name="building.2.fill" size={32} color="#2563eb" />
+                    <Text className="text-blue-900 font-semibold text-base mt-2">University Student</Text>
+                  </TouchableOpacity>
 
-                  {/* Phone Number */}
-                  <View>
-                    <Text className="text-sm font-medium text-foreground mb-2">
-                      Phone Number
-                    </Text>
-                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="phone.fill" size={20} color={colors.mutedForeground} />
-                      <Text className="text-foreground font-medium ml-3 mr-2">+27</Text>
-                      <TextInput
-                        value={phoneNumber}
-                        onChangeText={setPhoneNumber}
-                        placeholder="812345678"
-                        placeholderTextColor={colors.mutedForeground}
-                        keyboardType="phone-pad"
-                        maxLength={10}
-                        className="flex-1 text-foreground"
-                      />
-                    </View>
-                    {errors.phoneNumber && (
-                      <Text className="text-destructive text-xs mt-1">{errors.phoneNumber}</Text>
-                    )}
-                  </View>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setInstitutionType("tvet");
+                      setMode("signup-method");
+                    }}
+                    className="bg-green-50 border-2 border-green-200 rounded-xl p-4 items-center"
+                  >
+                    <IconSymbol name="graduationcap.fill" size={32} color="#16a34a" />
+                    <Text className="text-green-900 font-semibold text-base mt-2">TVET College Student</Text>
+                  </TouchableOpacity>
 
-                  {/* Student Number */}
-                  <View>
-                    <Text className="text-sm font-medium text-foreground mb-2">
-                      Student Number
-                    </Text>
-                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="number" size={20} color={colors.mutedForeground} />
-                      <TextInput
-                        value={studentNumber}
-                        onChangeText={setStudentNumber}
-                        placeholder="202312345"
-                        placeholderTextColor={colors.mutedForeground}
-                        className="flex-1 ml-3 text-foreground"
-                      />
-                    </View>
-                    {errors.studentNumber && (
-                      <Text className="text-destructive text-xs mt-1">{errors.studentNumber}</Text>
-                    )}
-                  </View>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setInstitutionType("staff");
+                      setMode("signup-method");
+                    }}
+                    className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 items-center"
+                  >
+                    <IconSymbol name="person.badge.key.fill" size={32} color="#9333ea" />
+                    <Text className="text-purple-900 font-semibold text-base mt-2">Staff Member</Text>
+                  </TouchableOpacity>
 
-                  {/* Institution */}
-                  <View>
-                    <Text className="text-sm font-medium text-foreground mb-2">
-                      Institution
+                  <TouchableOpacity
+                    onPress={() => {
+                      setInstitutionType("parent");
+                      setMode("signup-method");
+                    }}
+                    className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4 items-center"
+                  >
+                    <IconSymbol name="person.2.fill" size={32} color="#ea580c" />
+                    <Text className="text-orange-900 font-semibold text-base mt-2">Parent/Guardian</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => setMode("login")}
+                    className="mt-4"
+                  >
+                    <Text className="text-gray-600 text-center">
+                      Already have an account? <Text className="text-blue-600 font-semibold">Log In</Text>
                     </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {mode === "signup-method" && (
+                // SIGNUP METHOD SELECTION
+                <View className="gap-4">
+                  <Text className="text-lg font-bold text-gray-900 text-center mb-2">
+                    Choose Registration Method
+                  </Text>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSignupMethod("quick");
+                      setMode("quick-signup");
+                    }}
+                    className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4"
+                  >
+                    <View className="flex-row items-center">
+                      <IconSymbol name="bolt.fill" size={28} color="#2563eb" />
+                      <View className="flex-1 ml-3">
+                        <Text className="text-blue-900 font-semibold text-base">Quick Registration</Text>
+                        <Text className="text-gray-600 text-sm mt-1">
+                          Auto-fill with student number lookup
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSignupMethod("full");
+                      setMode("full-signup");
+                    }}
+                    className="bg-green-50 border-2 border-green-200 rounded-xl p-4"
+                  >
+                    <View className="flex-row items-center">
+                      <IconSymbol name="pencil.circle.fill" size={28} color="#16a34a" />
+                      <View className="flex-1 ml-3">
+                        <Text className="text-green-900 font-semibold text-base">Full Registration</Text>
+                        <Text className="text-gray-600 text-sm mt-1">
+                          Enter all details manually
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => setMode("institution-select")}
+                    className="mt-4"
+                  >
+                    <Text className="text-gray-600 text-center">
+                      <Text className="text-blue-600 font-semibold">← Back</Text>
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {mode === "quick-signup" && (
+                // QUICK SIGNUP
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  <View className="gap-4">
+                    <Text className="text-lg font-bold text-gray-900 text-center mb-2">
+                      Quick Registration
+                    </Text>
+
+                    <View>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Student Number</Text>
+                      <View className="flex-row items-center bg-white rounded-xl px-4 py-3 border border-gray-200">
+                        <IconSymbol name="number" size={20} color="#6b7280" />
+                        <TextInput
+                          value={studentNumber}
+                          onChangeText={setStudentNumber}
+                          placeholder="202312345"
+                          placeholderTextColor="#9ca3af"
+                          className="flex-1 ml-3 text-gray-900"
+                        />
+                      </View>
+                    </View>
+
+                    <View>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Institution</Text>
+                      <TouchableOpacity
+                        onPress={() => setShowInstitutionPicker(true)}
+                        className="flex-row items-center bg-white rounded-xl px-4 py-3 border border-gray-200"
+                      >
+                        {selectedInstitution ? (
+                          <>
+                            <Image
+                              source={{ uri: selectedInstitution.logo }}
+                              className="w-8 h-8 rounded mr-3"
+                              contentFit="contain"
+                            />
+                            <Text className="flex-1 text-gray-900">{selectedInstitution.name}</Text>
+                          </>
+                        ) : (
+                          <>
+                            <IconSymbol name="building.2.fill" size={20} color="#6b7280" />
+                            <Text className="flex-1 ml-3 text-gray-400">Select your institution</Text>
+                          </>
+                        )}
+                        <IconSymbol name="chevron.down" size={20} color="#6b7280" />
+                      </TouchableOpacity>
+                    </View>
+
                     <TouchableOpacity
-                      onPress={() => setShowInstitutionPicker(true)}
-                      className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border"
+                      onPress={handleQuickLookup}
+                      disabled={loading}
+                      className="bg-blue-600 rounded-xl py-4 items-center"
                     >
-                      {selectedInstitution ? (
-                        <>
-                          <Image
-                            source={{ uri: selectedInstitution.logo }}
-                            className="w-8 h-8 rounded mr-3"
-                            contentFit="contain"
-                          />
-                          <Text className="flex-1 text-foreground">
-                            {selectedInstitution.name}
-                          </Text>
-                        </>
+                      {loading ? (
+                        <ActivityIndicator color="white" />
                       ) : (
-                        <>
-                          <IconSymbol name="building.2.fill" size={20} color={colors.mutedForeground} />
-                          <Text className="flex-1 ml-3 text-muted-foreground">
-                            Select your institution
-                          </Text>
-                        </>
+                        <Text className="text-white font-semibold text-base">Lookup Student</Text>
                       )}
-                      <IconSymbol name="chevron.down" size={20} color={colors.mutedForeground} />
                     </TouchableOpacity>
-                    {errors.institution && (
-                      <Text className="text-destructive text-xs mt-1">{errors.institution}</Text>
-                    )}
-                  </View>
 
-                  {/* Course/Program */}
-                  <View>
-                    <Text className="text-sm font-medium text-foreground mb-2">
-                      Course/Program
-                    </Text>
-                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="book.fill" size={20} color={colors.mutedForeground} />
-                      <TextInput
-                        value={courseProgram}
-                        onChangeText={setCourseProgram}
-                        placeholder="e.g., Computer Science"
-                        placeholderTextColor={colors.mutedForeground}
-                        className="flex-1 ml-3 text-foreground"
-                      />
-                    </View>
-                    {errors.courseProgram && (
-                      <Text className="text-destructive text-xs mt-1">{errors.courseProgram}</Text>
-                    )}
-                  </View>
-
-                  {/* Year of Study */}
-                  <View>
-                    <Text className="text-sm font-medium text-foreground mb-2">
-                      Year of Study
-                    </Text>
-                    <View className="flex-row gap-2">
-                      {["1", "2", "3", "4+"].map((year) => (
+                    {selectedStudent && (
+                      <View className="bg-green-50 border border-green-200 rounded-xl p-4 mt-2">
+                        <Text className="text-green-900 font-semibold mb-2">Student Found!</Text>
+                        <Text className="text-gray-700">Name: {selectedStudent.name}</Text>
+                        <Text className="text-gray-700">Course: {selectedStudent.course}</Text>
+                        <Text className="text-gray-700">Year: {selectedStudent.year}</Text>
+                        
                         <TouchableOpacity
-                          key={year}
-                          onPress={() => setYearOfStudy(year)}
-                          className={`flex-1 py-3 rounded-xl border ${
-                            yearOfStudy === year
-                              ? "bg-primary border-primary"
-                              : "bg-surface border-border"
-                          }`}
+                          onPress={handleSignup}
+                          disabled={loading}
+                          className="bg-green-600 rounded-xl py-3 items-center mt-4"
                         >
-                          <Text
-                            className={`text-center font-semibold ${
-                              yearOfStudy === year ? "text-primary-foreground" : "text-foreground"
+                          <Text className="text-white font-semibold">Confirm & Create Account</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+
+                    <TouchableOpacity
+                      onPress={() => setMode("signup-method")}
+                      className="mt-4"
+                    >
+                      <Text className="text-gray-600 text-center">
+                        <Text className="text-blue-600 font-semibold">← Back</Text>
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
+              )}
+
+              {mode === "full-signup" && (
+                // FULL SIGNUP FORM (scrollable)
+                <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 500 }}>
+                  <View className="gap-4">
+                    <Text className="text-lg font-bold text-gray-900 text-center mb-2">
+                      Full Registration
+                    </Text>
+
+                    {/* All form fields here - keeping it concise */}
+                    <View>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Full Name</Text>
+                      <View className="flex-row items-center bg-white rounded-xl px-4 py-3 border border-gray-200">
+                        <IconSymbol name="person.fill" size={20} color="#6b7280" />
+                        <TextInput
+                          value={fullName}
+                          onChangeText={setFullName}
+                          placeholder="John Doe"
+                          placeholderTextColor="#9ca3af"
+                          className="flex-1 ml-3 text-gray-900"
+                        />
+                      </View>
+                      {errors.fullName && <Text className="text-red-500 text-xs mt-1">{errors.fullName}</Text>}
+                    </View>
+
+                    <View>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Email</Text>
+                      <View className="flex-row items-center bg-white rounded-xl px-4 py-3 border border-gray-200">
+                        <IconSymbol name="envelope.fill" size={20} color="#6b7280" />
+                        <TextInput
+                          value={email}
+                          onChangeText={setEmail}
+                          placeholder="your.email@example.com"
+                          placeholderTextColor="#9ca3af"
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                          className="flex-1 ml-3 text-gray-900"
+                        />
+                      </View>
+                      {errors.email && <Text className="text-red-500 text-xs mt-1">{errors.email}</Text>}
+                    </View>
+
+                    <View>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Phone Number</Text>
+                      <View className="flex-row items-center bg-white rounded-xl px-4 py-3 border border-gray-200">
+                        <IconSymbol name="phone.fill" size={20} color="#6b7280" />
+                        <Text className="text-gray-900 font-medium ml-3 mr-2">+27</Text>
+                        <TextInput
+                          value={phoneNumber}
+                          onChangeText={setPhoneNumber}
+                          placeholder="812345678"
+                          placeholderTextColor="#9ca3af"
+                          keyboardType="phone-pad"
+                          maxLength={10}
+                          className="flex-1 text-gray-900"
+                        />
+                      </View>
+                      {errors.phoneNumber && <Text className="text-red-500 text-xs mt-1">{errors.phoneNumber}</Text>}
+                    </View>
+
+                    <View>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Student Number</Text>
+                      <View className="flex-row items-center bg-white rounded-xl px-4 py-3 border border-gray-200">
+                        <IconSymbol name="number" size={20} color="#6b7280" />
+                        <TextInput
+                          value={studentNumber}
+                          onChangeText={setStudentNumber}
+                          placeholder="202312345"
+                          placeholderTextColor="#9ca3af"
+                          className="flex-1 ml-3 text-gray-900"
+                        />
+                      </View>
+                      {errors.studentNumber && <Text className="text-red-500 text-xs mt-1">{errors.studentNumber}</Text>}
+                    </View>
+
+                    <View>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Institution</Text>
+                      <TouchableOpacity
+                        onPress={() => setShowInstitutionPicker(true)}
+                        className="flex-row items-center bg-white rounded-xl px-4 py-3 border border-gray-200"
+                      >
+                        {selectedInstitution ? (
+                          <>
+                            <Image
+                              source={{ uri: selectedInstitution.logo }}
+                              className="w-8 h-8 rounded mr-3"
+                              contentFit="contain"
+                            />
+                            <Text className="flex-1 text-gray-900">{selectedInstitution.name}</Text>
+                          </>
+                        ) : (
+                          <>
+                            <IconSymbol name="building.2.fill" size={20} color="#6b7280" />
+                            <Text className="flex-1 ml-3 text-gray-400">Select your institution</Text>
+                          </>
+                        )}
+                        <IconSymbol name="chevron.down" size={20} color="#6b7280" />
+                      </TouchableOpacity>
+                      {errors.institution && <Text className="text-red-500 text-xs mt-1">{errors.institution}</Text>}
+                    </View>
+
+                    <View>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Course/Program</Text>
+                      <View className="flex-row items-center bg-white rounded-xl px-4 py-3 border border-gray-200">
+                        <IconSymbol name="book.fill" size={20} color="#6b7280" />
+                        <TextInput
+                          value={courseProgram}
+                          onChangeText={setCourseProgram}
+                          placeholder="e.g., Computer Science"
+                          placeholderTextColor="#9ca3af"
+                          className="flex-1 ml-3 text-gray-900"
+                        />
+                      </View>
+                      {errors.courseProgram && <Text className="text-red-500 text-xs mt-1">{errors.courseProgram}</Text>}
+                    </View>
+
+                    <View>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Year of Study</Text>
+                      <View className="flex-row gap-2">
+                        {["1", "2", "3", "4+"].map((year) => (
+                          <TouchableOpacity
+                            key={year}
+                            onPress={() => setYearOfStudy(year)}
+                            className={`flex-1 py-3 rounded-xl border ${
+                              yearOfStudy === year
+                                ? "bg-blue-600 border-blue-600"
+                                : "bg-white border-gray-200"
                             }`}
                           >
-                            {year}
-                          </Text>
+                            <Text
+                              className={`text-center font-semibold ${
+                                yearOfStudy === year ? "text-white" : "text-gray-900"
+                              }`}
+                            >
+                              {year}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                      {errors.yearOfStudy && <Text className="text-red-500 text-xs mt-1">{errors.yearOfStudy}</Text>}
+                    </View>
+
+                    <View>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Password</Text>
+                      <View className="flex-row items-center bg-white rounded-xl px-4 py-3 border border-gray-200">
+                        <IconSymbol name="lock.fill" size={20} color="#6b7280" />
+                        <TextInput
+                          value={password}
+                          onChangeText={setPassword}
+                          placeholder="Min 8 chars, 1 number, 1 special"
+                          placeholderTextColor="#9ca3af"
+                          secureTextEntry={!showPassword}
+                          className="flex-1 ml-3 text-gray-900"
+                        />
+                        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                          <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={20} color="#6b7280" />
                         </TouchableOpacity>
-                      ))}
+                      </View>
+                      {errors.password && <Text className="text-red-500 text-xs mt-1">{errors.password}</Text>}
                     </View>
-                    {errors.yearOfStudy && (
-                      <Text className="text-destructive text-xs mt-1">{errors.yearOfStudy}</Text>
-                    )}
-                  </View>
 
-                  {/* Password */}
-                  <View>
-                    <Text className="text-sm font-medium text-foreground mb-2">
-                      Password
-                    </Text>
-                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="lock.fill" size={20} color={colors.mutedForeground} />
-                      <TextInput
-                        value={password}
-                        onChangeText={setPassword}
-                        placeholder="Min 8 chars, 1 number, 1 special"
-                        placeholderTextColor={colors.mutedForeground}
-                        secureTextEntry={!showPassword}
-                        className="flex-1 ml-3 text-foreground"
-                      />
-                      <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                        <IconSymbol
-                          name={showPassword ? "eye.slash.fill" : "eye.fill"}
-                          size={20}
-                          color={colors.mutedForeground}
+                    <View>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Confirm Password</Text>
+                      <View className="flex-row items-center bg-white rounded-xl px-4 py-3 border border-gray-200">
+                        <IconSymbol name="lock.fill" size={20} color="#6b7280" />
+                        <TextInput
+                          value={confirmPassword}
+                          onChangeText={setConfirmPassword}
+                          placeholder="Re-enter your password"
+                          placeholderTextColor="#9ca3af"
+                          secureTextEntry={!showConfirmPassword}
+                          className="flex-1 ml-3 text-gray-900"
                         />
-                      </TouchableOpacity>
+                        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                          <IconSymbol name={showConfirmPassword ? "eye.slash.fill" : "eye.fill"} size={20} color="#6b7280" />
+                        </TouchableOpacity>
+                      </View>
+                      {errors.confirmPassword && <Text className="text-red-500 text-xs mt-1">{errors.confirmPassword}</Text>}
                     </View>
-                    {errors.password && (
-                      <Text className="text-destructive text-xs mt-1">{errors.password}</Text>
-                    )}
-                  </View>
 
-                  {/* Confirm Password */}
-                  <View>
-                    <Text className="text-sm font-medium text-foreground mb-2">
-                      Confirm Password
-                    </Text>
-                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="lock.fill" size={20} color={colors.mutedForeground} />
-                      <TextInput
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        placeholder="Re-enter your password"
-                        placeholderTextColor={colors.mutedForeground}
-                        secureTextEntry={!showConfirmPassword}
-                        className="flex-1 ml-3 text-foreground"
-                      />
-                      <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                        <IconSymbol
-                          name={showConfirmPassword ? "eye.slash.fill" : "eye.fill"}
-                          size={20}
-                          color={colors.mutedForeground}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                    {errors.confirmPassword && (
-                      <Text className="text-destructive text-xs mt-1">{errors.confirmPassword}</Text>
-                    )}
-                  </View>
+                    <TouchableOpacity
+                      onPress={handleSignup}
+                      disabled={loading}
+                      className="bg-blue-600 rounded-xl py-4 items-center mt-4"
+                    >
+                      {loading ? (
+                        <ActivityIndicator color="white" />
+                      ) : (
+                        <Text className="text-white font-semibold text-base">Create Account</Text>
+                      )}
+                    </TouchableOpacity>
 
-                  {/* Sign Up Button */}
-                  <TouchableOpacity
-                    onPress={handleSignup}
-                    disabled={loading}
-                    className="bg-primary rounded-xl py-4 items-center mt-4"
-                  >
-                    {loading ? (
-                      <ActivityIndicator color="white" />
-                    ) : (
-                      <Text className="text-primary-foreground font-semibold text-base">
-                        Create Account
+                    <TouchableOpacity
+                      onPress={() => setMode("signup-method")}
+                      className="mt-4"
+                    >
+                      <Text className="text-gray-600 text-center">
+                        <Text className="text-blue-600 font-semibold">← Back</Text>
                       </Text>
-                    )}
-                  </TouchableOpacity>
-
-                  {/* Switch to Login */}
-                  <View className="flex-row items-center justify-center mt-4">
-                    <Text className="text-muted-foreground">Already have an account? </Text>
-                    <TouchableOpacity onPress={() => setMode("login")}>
-                      <Text className="text-primary font-semibold">Log In</Text>
                     </TouchableOpacity>
                   </View>
-                </View>
+                </ScrollView>
               )}
             </View>
             </View>
@@ -661,7 +819,6 @@ export default function AuthScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Institution Picker Modal */}
       {renderInstitutionPicker()}
     </ScreenContainer>
   );
