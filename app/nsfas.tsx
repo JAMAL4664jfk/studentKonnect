@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Linking,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -95,10 +96,16 @@ export default function NSFASScreen() {
           </TouchableOpacity>
           
           <View style={styles.headerContent}>
-            <Text style={styles.headerEmoji}>🎓</Text>
-            <Text style={styles.headerTitle}>NSFAS Funding</Text>
+            <View style={styles.logoContainer}>
+              <Image
+                source={require("@/assets/images/nsfas-logo.png")}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </View>
+            <Text style={styles.headerTitle}>National Student Financial Aid Scheme</Text>
             <Text style={styles.headerSubtitle}>
-              National Student Financial Aid Scheme
+              Your Partner in Funding Higher Education
             </Text>
           </View>
         </LinearGradient>
@@ -401,18 +408,36 @@ const styles = StyleSheet.create({
   headerContent: {
     alignItems: "center",
   },
+  logoContainer: {
+    width: 180,
+    height: 80,
+    marginBottom: 16,
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  logo: {
+    width: "100%",
+    height: "100%",
+  },
   headerEmoji: {
     fontSize: 48,
     marginBottom: 12,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: "bold",
     color: "white",
     marginBottom: 8,
+    textAlign: "center",
   },
   headerSubtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: "rgba(255, 255, 255, 0.9)",
     textAlign: "center",
   },
