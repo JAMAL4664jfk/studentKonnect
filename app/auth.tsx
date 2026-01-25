@@ -245,13 +245,13 @@ export default function AuthScreen() {
       transparent={true}
       onRequestClose={() => setShowInstitutionPicker(false)}
     >
-      <View className="flex-1 bg-black/50">
+      <View className="flex-1 bg-black/30">
         <TouchableOpacity
           className="flex-1"
           activeOpacity={1}
           onPress={() => setShowInstitutionPicker(false)}
         />
-        <View className="bg-background rounded-t-3xl" style={{ maxHeight: "80%" }}>
+        <View className="bg-background/90 backdrop-blur-lg rounded-t-3xl" style={{ maxHeight: "80%" }}>
           <View className="p-6 border-b border-border">
             <View className="flex-row items-center justify-between mb-4">
               <Text className="text-xl font-bold text-foreground">
@@ -285,11 +285,14 @@ export default function AuthScreen() {
                 }}
                 className="flex-row items-center py-4 border-b border-border"
               >
-                <Image
-                  source={{ uri: institution.logo }}
-                  className="w-12 h-12 rounded-lg mr-3"
-                  contentFit="contain"
-                />
+                <View className="w-12 h-12 rounded-lg mr-3 bg-gray-100 items-center justify-center overflow-hidden">
+                  <Image
+                    source={{ uri: institution.logo }}
+                    className="w-full h-full"
+                    contentFit="contain"
+                    transition={200}
+                  />
+                </View>
                 <View className="flex-1">
                   <Text className="text-base font-semibold text-foreground">
                     {institution.name}
@@ -324,7 +327,7 @@ export default function AuthScreen() {
             className="flex-1"
             resizeMode="cover"
           >
-            <View className="flex-1 bg-black/60 px-6 pt-16 pb-8">
+            <View className="flex-1 bg-black/40 px-6 pt-16 pb-8">
             {/* Logo */}
             <View className="items-center mb-8">
               <Image
@@ -332,7 +335,7 @@ export default function AuthScreen() {
                 className="w-32 h-32 mb-4"
                 contentFit="contain"
               />
-              <View className="bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4">
+              <View className="bg-white/20 backdrop-blur-md rounded-2xl px-6 py-4">
                 <Text className="text-3xl font-bold text-white text-center">
                   StudentKonnect
                 </Text>
@@ -346,7 +349,7 @@ export default function AuthScreen() {
             </View>
 
             {/* Form Container */}
-            <View className="bg-white/95 backdrop-blur-md rounded-3xl p-6 shadow-lg">
+            <View className="bg-white/85 backdrop-blur-md rounded-3xl p-6 shadow-lg">
               {mode === "login" && (
                 // LOGIN FORM
                 <View className="gap-4">
@@ -553,13 +556,16 @@ export default function AuthScreen() {
                       >
                         {selectedInstitution ? (
                           <>
-                            <Image
-                              source={{ uri: selectedInstitution.logo }}
-                              className="w-8 h-8 rounded mr-3"
-                              contentFit="contain"
-                            />
+                            <View className="w-8 h-8 rounded mr-3 bg-gray-100 items-center justify-center overflow-hidden">
+                              <Image
+                                source={{ uri: selectedInstitution.logo }}
+                                className="w-full h-full"
+                                contentFit="contain"
+                                transition={200}
+                              />
+                            </View>
                             <Text className="flex-1 text-gray-900">{selectedInstitution.name}</Text>
-                          </>
+                          <>
                         ) : (
                           <>
                             <IconSymbol name="building.2.fill" size={20} color="#6b7280" />
@@ -693,13 +699,16 @@ export default function AuthScreen() {
                       >
                         {selectedInstitution ? (
                           <>
-                            <Image
-                              source={{ uri: selectedInstitution.logo }}
-                              className="w-8 h-8 rounded mr-3"
-                              contentFit="contain"
-                            />
+                            <View className="w-8 h-8 rounded mr-3 bg-gray-100 items-center justify-center overflow-hidden">
+                              <Image
+                                source={{ uri: selectedInstitution.logo }}
+                                className="w-full h-full"
+                                contentFit="contain"
+                                transition={200}
+                              />
+                            </View>
                             <Text className="flex-1 text-gray-900">{selectedInstitution.name}</Text>
-                          </>
+                          <>
                         ) : (
                           <>
                             <IconSymbol name="building.2.fill" size={20} color="#6b7280" />
