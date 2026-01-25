@@ -16,10 +16,10 @@ DECLARE
   v_comment_id UUID;
 BEGIN
   -- Get first user from profiles
-  SELECT id INTO v_user_id FROM profiles LIMIT 1;
+  SELECT id INTO v_user_id FROM profiles ORDER BY created_at LIMIT 1;
   
   -- Get first podcast
-  SELECT id INTO v_podcast_id FROM podcasts LIMIT 1;
+  SELECT id INTO v_podcast_id FROM podcasts ORDER BY created_at DESC LIMIT 1;
   
   -- Only proceed if we have a valid user
   IF v_user_id IS NOT NULL AND v_podcast_id IS NOT NULL THEN

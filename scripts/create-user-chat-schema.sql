@@ -128,7 +128,7 @@ CREATE POLICY "Everyone can view online status"
 ON user_online_status FOR SELECT
 USING (true);
 
-CREATE POLICY "Users can update their own status"
+CREATE POLICY "Users can insert their own status"
 ON user_online_status FOR INSERT
 WITH CHECK (user_id IN (SELECT id FROM profiles WHERE id = auth.uid()));
 
