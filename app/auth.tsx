@@ -8,126 +8,136 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Modal,
 } from "react-native";
-import { ImageBackground } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { supabase } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
-import { Ionicons } from "@expo/vector-icons";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { SA_INSTITUTIONS, Institution } from "@/constants/sa-institutions-with-logos";
 
-type AuthMode = "login" | "institution-select" | "signup-method" | "full-signup" | "quick-signup";
-type InstitutionType = "university" | "tvet_college" | "college" | "";
-type SignupMethod = "full" | "quick" | null;
-
-const universities = [
-  "University of Cape Town",
-  "University of the Witwatersrand",
-  "Stellenbosch University",
-  "University of Pretoria",
-  "University of Johannesburg",
-  "University of KwaZulu-Natal",
-  "Rhodes University",
-  "University of the Western Cape",
-  "University of South Africa (UNISA)",
-  "North-West University",
-  "Nelson Mandela University",
-  "University of the Free State",
-  "Cape Peninsula University of Technology",
-  "Durban University of Technology",
-  "Tshwane University of Technology",
-];
-
-const tvetColleges = [
-  "Boland College",
-  "Buffalo City College",
-  "Capricorn College",
-  "Central Johannesburg College",
-  "Coastal KZN College",
-  "College of Cape Town",
-  "Eastcape Midlands College",
-  "Ekurhuleni East College",
-  "Ekurhuleni West College",
-  "Elangeni College",
-  "False Bay College",
-  "Goldfields College",
-];
-
-const colleges = [
-  "Boston City Campus",
-  "Damelin College",
-  "Rosebank College",
-  "Varsity College",
-  "CTI Education Group",
-  "Pearson Institute of Higher Education",
-  "AFDA Film School",
-  "AAA School of Advertising",
-  "Vega School",
-  "IMM Graduate School",
-];
+type AuthMode = "login" | "signup";
 
 export default function AuthScreen() {
   const colors = useColors();
   const router = useRouter();
   const [mode, setMode] = useState<AuthMode>("login");
   const [loading, setLoading] = useState(false);
-  const [signupMethod, setSignupMethod] = useState<SignupMethod>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showInstitutionPicker, setShowInstitutionPicker] = useState(false);
 
   // Form state
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [studentNumber, setStudentNumber] = useState("");
-  const [institutionType, setInstitutionType] = useState<InstitutionType>("");
-  const [institutionName, setInstitutionName] = useState("");
+  const [selectedInstitution, setSelectedInstitution] = useState<Institution | null>(null);
   const [courseProgram, setCourseProgram] = useState("");
   const [yearOfStudy, setYearOfStudy] = useState("");
-
-  // Quick signup state
-  const [quickLookupResults, setQuickLookupResults] = useState<any[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const availableInstitutions =
-    institutionType === "university"
-      ? universities
-      : institutionType === "tvet_college"
-      ? tvetColleges
-      : colleges;
+  const filteredInstitutions = SA_INSTITUTIONS.filter((inst) =>
+    inst.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    inst.shortName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const getInstitutionLabel = () => {
-    if (institutionType === "university") return "University";
-    if (institutionType === "tvet_college") return "TVET College";
-    if (institutionType === "college") return "College";
-    return "Institution";
+  const validateEmail = (email: string): boolean => {
+    return /\S+@\S+\.\S+/.test(email);
+  };
+
+  const validatePhoneNumber = (phone: string): boolean => {
+    // SA phone numbers: 10 digits starting with 0, or 9 digits without 0
+    const cleaned = phone.replace(/\s/g, "");
+    return /^0\d{9}$/.test(cleaned) || /^\d{9}$/.test(cleaned);
+  };
+
+  const validatePassword = (password: string): { valid: boolean; message?: string } => {
+    if (password.length < 8) {
+      return { valid: false, message: "Password must be at least 8 characters" };
+    }
+    if (!/(?=.*[0-9])/.test(password)) {
+      return { valid: false, message: "Password must contain at least 1 number" };
+    }
+    if (!/(?=.*[!@#$%^&*(),.?":{}|<>])/.test(password)) {
+      return { valid: false, message: "Password must contain at least 1 special character" };
+    }
+    return { valid: true };
   };
 
   const validateLoginForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!email) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Invalid email format";
-    if (!password) newErrors.password = "Password is required";
+    
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!validateEmail(email)) {
+      newErrors.email = "Invalid email format";
+    }
+    
+    if (!password) {
+      newErrors.password = "Password is required";
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const validateSignupForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!fullName || fullName.length < 2) newErrors.fullName = "Full name must be at least 2 characters";
-    if (!studentNumber || studentNumber.length < 5) newErrors.studentNumber = "Student number must be at least 5 characters";
-    if (!institutionName) newErrors.institutionName = "Please select an institution";
-    if (!courseProgram || courseProgram.length < 2) newErrors.courseProgram = "Course/Program must be at least 2 characters";
-    if (!yearOfStudy) newErrors.yearOfStudy = "Please select year of study";
-    if (!email) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Invalid email format";
-    if (!password) newErrors.password = "Password is required";
-    else if (password.length < 8) newErrors.password = "Password must be at least 8 characters";
-    else if (!/(?=.*[0-9])(?=.*[!@#$%^&*])/.test(password))
-      newErrors.password = "Password must contain at least 1 number and 1 special character";
+    
+    if (!fullName || fullName.trim().length < 2) {
+      newErrors.fullName = "Full name must be at least 2 characters";
+    }
+    
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!validateEmail(email)) {
+      newErrors.email = "Invalid email format";
+    }
+    
+    if (!phoneNumber) {
+      newErrors.phoneNumber = "Phone number is required";
+    } else if (!validatePhoneNumber(phoneNumber)) {
+      newErrors.phoneNumber = "Invalid phone number (10 digits starting with 0)";
+    }
+    
+    if (!studentNumber || studentNumber.length < 5) {
+      newErrors.studentNumber = "Student number must be at least 5 characters";
+    }
+    
+    if (!selectedInstitution) {
+      newErrors.institution = "Please select an institution";
+    }
+    
+    if (!courseProgram || courseProgram.trim().length < 2) {
+      newErrors.courseProgram = "Course/Program must be at least 2 characters";
+    }
+    
+    if (!yearOfStudy) {
+      newErrors.yearOfStudy = "Please select year of study";
+    }
+    
+    const passwordValidation = validatePassword(password);
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (!passwordValidation.valid) {
+      newErrors.password = passwordValidation.message!;
+    }
+    
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -167,19 +177,23 @@ export default function AuthScreen() {
 
     setLoading(true);
     try {
+      // Format phone number to E.164 format (+27...)
+      const formattedPhone = phoneNumber.startsWith("0")
+        ? `+27${phoneNumber.slice(1)}`
+        : `+27${phoneNumber}`;
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullName,
+            phone_number: formattedPhone,
             student_id: studentNumber,
-            institution_type: institutionType,
-            institution_name: institutionName,
+            institution_id: selectedInstitution!.id,
+            institution_name: selectedInstitution!.name,
             course_program: courseProgram,
             year_of_study: yearOfStudy,
-            terms_accepted: true,
-            terms_accepted_at: new Date().toISOString(),
           },
         },
       });
@@ -189,7 +203,7 @@ export default function AuthScreen() {
       Toast.show({
         type: "success",
         text1: "Account Created!",
-        text2: "Welcome to Scholar Hub",
+        text2: "Welcome to StudentKonnect",
       });
 
       router.replace("/(tabs)");
@@ -204,691 +218,446 @@ export default function AuthScreen() {
     }
   };
 
-  const handleQuickLookup = async () => {
-    if (!studentNumber || !institutionName) {
-      Toast.show({
-        type: "error",
-        text1: "Missing Information",
-        text2: "Please enter student number and select institution",
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Mock student lookup - in production, this would query a database
-      const mockStudents = [
-        {
-          id: 1,
-          name: "John Doe",
-          studentNumber: studentNumber,
-          institution: institutionName,
-          course: "Computer Science",
-          year: 3,
-          email: `${studentNumber}@student.ac.za`,
-        },
-        {
-          id: 2,
-          name: "Jane Smith",
-          studentNumber: studentNumber,
-          institution: institutionName,
-          course: "Business Administration",
-          year: 2,
-          email: `${studentNumber}@university.edu`,
-        },
-      ];
-
-      setQuickLookupResults(mockStudents);
-
-      if (mockStudents.length === 0) {
-        Toast.show({
-          type: "error",
-          text1: "No Match Found",
-          text2: "No student found with that number at the selected institution",
-        });
-      }
-    } catch (error: any) {
-      Toast.show({
-        type: "error",
-        text1: "Lookup Failed",
-        text2: error.message || "Failed to lookup student information",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleQuickSignup = async () => {
-    if (!selectedStudent) return;
-
-    setLoading(true);
-    try {
-      // Generate secure temporary password
-      const tempPassword = crypto.randomUUID().slice(0, 16) + "Aa1!";
-
-      const { data, error } = await supabase.auth.signUp({
-        email: selectedStudent.email,
-        password: tempPassword,
-        options: {
-          data: {
-            full_name: selectedStudent.name,
-            student_id: selectedStudent.studentNumber,
-            institution_type: institutionType,
-            institution_name: selectedStudent.institution,
-            course_program: selectedStudent.course,
-            year_of_study: selectedStudent.year.toString(),
-            terms_accepted: true,
-            terms_accepted_at: new Date().toISOString(),
-          },
-        },
-      });
-
-      if (error) throw error;
-
-      Toast.show({
-        type: "success",
-        text1: "Account Created!",
-        text2: "Welcome to Scholar Hub. Check your email to set a password.",
-      });
-
-      router.replace("/(tabs)");
-    } catch (error: any) {
-      Toast.show({
-        type: "error",
-        text1: "Sign Up Failed",
-        text2: error.message || "Failed to create account",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const renderLoginScreen = () => (
-    <View className="w-full max-w-md p-6 bg-card/95 rounded-2xl border-2 border-primary/20 backdrop-blur-xl">
-      <View className="items-center mb-6">
-        <View className="bg-primary p-4 rounded-xl mb-4">
-          <Ionicons name="wallet" size={32} color="#fff" />
-        </View>
-        <Text className="text-3xl font-bold text-foreground mb-2">Welcome Back!</Text>
-        <Text className="text-muted text-center">welcome back we missed you</Text>
-      </View>
-
-      <View className="space-y-4">
-        <View>
-          <Text className="text-sm text-foreground mb-2">Username</Text>
-          <View className="flex-row items-center bg-surface border border-border rounded-lg px-4 py-3">
-            <Ionicons name="person" size={20} color={colors.muted} />
-            <TextInput
-              placeholder="Username"
-              placeholderTextColor={colors.muted}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              className="flex-1 ml-3 text-foreground"
-            />
-          </View>
-          {errors.email && <Text className="text-error text-xs mt-1">{errors.email}</Text>}
-        </View>
-
-        <View>
-          <Text className="text-sm text-foreground mb-2">Password</Text>
-          <View className="flex-row items-center bg-surface border border-border rounded-lg px-4 py-3">
-            <Ionicons name="lock-closed" size={20} color={colors.muted} />
-            <TextInput
-              placeholder="••••••••"
-              placeholderTextColor={colors.muted}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              className="flex-1 ml-3 text-foreground"
-            />
-          </View>
-          {errors.password && <Text className="text-error text-xs mt-1">{errors.password}</Text>}
-        </View>
-
-        <TouchableOpacity>
-          <Text className="text-primary text-right text-sm">Forgot Password?</Text>
-        </TouchableOpacity>
-
+  const renderInstitutionPicker = () => (
+    <Modal
+      visible={showInstitutionPicker}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={() => setShowInstitutionPicker(false)}
+    >
+      <View className="flex-1 bg-black/50">
         <TouchableOpacity
-          onPress={handleLogin}
-          disabled={loading}
-          className="bg-gradient-to-r from-primary to-pink-500 rounded-full py-4 items-center mt-4"
-          style={{
-            backgroundColor: colors.primary,
-          }}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text className="text-white font-semibold text-base">Sign In</Text>
-          )}
-        </TouchableOpacity>
-
-        <View className="flex-row items-center justify-center mt-4">
-          <Text className="text-muted">Don't have an account? </Text>
-          <TouchableOpacity onPress={() => setMode("institution-select")}>
-            <Text className="text-primary font-semibold">Sign up</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity onPress={() => router.push("/(tabs)")} className="mt-4">
-          <Text className="text-muted text-center">Continue as Guest</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  const renderInstitutionSelect = () => (
-    <View className="w-full max-w-md p-6 bg-card/95 rounded-2xl border-2 border-primary/20 backdrop-blur-xl">
-      <View className="items-center mb-6">
-        <View className="bg-primary p-4 rounded-xl mb-4">
-          <Ionicons name="school" size={32} color="#fff" />
-        </View>
-        <Text className="text-3xl font-bold text-foreground mb-2">Get Started</Text>
-        <Text className="text-muted text-center">Select your institution type to continue</Text>
-      </View>
-
-      <View className="space-y-3">
-        <TouchableOpacity
-          onPress={() => {
-            setInstitutionType("university");
-            setMode("signup-method");
-          }}
-          className="bg-surface border-2 border-primary/30 rounded-xl p-6 items-center"
-        >
-          <Ionicons name="school" size={32} color={colors.primary} />
-          <Text className="text-foreground font-bold text-lg mt-2">University</Text>
-          <Text className="text-muted text-sm text-center mt-1">Traditional universities and institutions</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => {
-            setInstitutionType("tvet_college");
-            setMode("signup-method");
-          }}
-          className="bg-surface border-2 border-primary/30 rounded-xl p-6 items-center"
-        >
-          <MaterialCommunityIcons name="tools" size={32} color="#3b82f6" />
-          <Text className="text-foreground font-bold text-lg mt-2">TVET College</Text>
-          <Text className="text-muted text-sm text-center mt-1">Technical and vocational education</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => {
-            setInstitutionType("college");
-            setMode("signup-method");
-          }}
-          className="bg-surface border-2 border-primary/30 rounded-xl p-6 items-center"
-        >
-          <MaterialCommunityIcons name="office-building" size={32} color="#3b82f6" />
-          <Text className="text-foreground font-bold text-lg mt-2">College</Text>
-          <Text className="text-muted text-sm text-center mt-1">Private colleges and institutions</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => setMode("login")} className="mt-4">
-          <Text className="text-muted text-center">← Back to Login</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  const renderSignupMethodSelect = () => (
-    <View className="w-full max-w-2xl p-6 bg-card/95 rounded-2xl border-2 border-primary/20 backdrop-blur-xl">
-      <View className="items-center mb-6">
-        <Text className="text-3xl font-bold text-foreground mb-2">{getInstitutionLabel()} Student</Text>
-        <Text className="text-muted text-center">Choose how you'd like to create your account</Text>
-      </View>
-
-      <View className="flex-row gap-4">
-        {/* Full Registration */}
-        <TouchableOpacity
-          onPress={() => {
-            setSignupMethod("full");
-            setMode("full-signup");
-          }}
-          className="flex-1 bg-surface border-2 border-primary/30 rounded-xl p-6"
-        >
-          <View className="items-center">
-            <View className="bg-primary p-4 rounded-xl mb-4">
-              <Ionicons name="person-add" size={28} color="#fff" />
-            </View>
-            <Text className="text-foreground font-bold text-lg mb-2">Full Registration</Text>
-            <Text className="text-muted text-xs text-center mb-4">
-              Fill in all your details manually to create a complete profile
-            </Text>
-
-            <View className="space-y-2 w-full">
-              <View className="flex-row items-center gap-2">
-                <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                <Text className="text-muted text-xs flex-1">Complete control over your information</Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                <Text className="text-muted text-xs flex-1">Choose your own email and password</Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                <Text className="text-muted text-xs flex-1">Takes 2-3 minutes</Text>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        {/* Quick Registration */}
-        <TouchableOpacity
-          onPress={() => {
-            setSignupMethod("quick");
-            setMode("quick-signup");
-          }}
-          className="flex-1 bg-surface border-2 border-primary/30 rounded-xl p-6"
-        >
-          <View className="items-center">
-            <View className="bg-gradient-to-br from-blue-500 to-blue-600 p-4 rounded-xl mb-4">
-              <MaterialCommunityIcons name="school" size={28} color="#fff" />
-            </View>
-            <Text className="text-foreground font-bold text-lg mb-2">Quick Registration</Text>
-            <Text className="text-muted text-xs text-center mb-4">
-              Use your student number and institution to auto-fill your details
-            </Text>
-
-            <View className="space-y-2 w-full">
-              <View className="flex-row items-center gap-2">
-                <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                <Text className="text-muted text-xs flex-1">Instant student verification</Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                <Text className="text-muted text-xs flex-1">Pre-filled information from your institution</Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                <Text className="text-muted text-xs flex-1">Takes less than 1 minute</Text>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity
-        onPress={() => {
-          setInstitutionType("");
-          setMode("institution-select");
-        }}
-        className="mt-6"
-      >
-        <Text className="text-muted text-center">← Change institution type</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderFullSignupForm = () => (
-    <ScrollView className="w-full max-w-md">
-      <View className="p-6 bg-card/95 rounded-2xl border-2 border-primary/20 backdrop-blur-xl">
-        <View className="items-center mb-6">
-          <View className="bg-primary p-4 rounded-xl mb-4">
-            <Ionicons name="wallet" size={32} color="#fff" />
-          </View>
-          <Text className="text-3xl font-bold text-foreground mb-2">Full Registration</Text>
-          <Text className="text-muted text-center">Create your account and start managing your finances</Text>
-        </View>
-
-        <View className="space-y-4">
-          <View>
-            <Text className="text-sm text-foreground mb-2">Full Name</Text>
-            <TextInput
-              placeholder="John Doe"
-              placeholderTextColor={colors.muted}
-              value={fullName}
-              onChangeText={(text) => setFullName(text.replace(/[^a-zA-Z\s]/g, ""))}
-              className="bg-surface border border-border rounded-lg px-4 py-3 text-foreground"
-            />
-            {errors.fullName && <Text className="text-error text-xs mt-1">{errors.fullName}</Text>}
-          </View>
-
-          <View>
-            <Text className="text-sm text-foreground mb-2">Student Number</Text>
-            <TextInput
-              placeholder="202412345"
-              placeholderTextColor={colors.muted}
-              value={studentNumber}
-              onChangeText={(text) => setStudentNumber(text.replace(/[^0-9]/g, ""))}
-              keyboardType="numeric"
-              className="bg-surface border border-border rounded-lg px-4 py-3 text-foreground"
-            />
-            {errors.studentNumber && <Text className="text-error text-xs mt-1">{errors.studentNumber}</Text>}
-          </View>
-
-          <View>
-            <Text className="text-sm text-foreground mb-2">Select {getInstitutionLabel()}</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="border border-border rounded-lg bg-surface"
-              style={{ maxHeight: 150 }}
-            >
-              <View className="p-2">
-                {availableInstitutions.map((institution) => (
-                  <TouchableOpacity
-                    key={institution}
-                    onPress={() => setInstitutionName(institution)}
-                    className={`px-4 py-3 rounded-lg mb-2 ${
-                      institutionName === institution ? "bg-primary" : "bg-surface"
-                    }`}
-                  >
-                    <Text
-                      className={`${institutionName === institution ? "text-white" : "text-foreground"}`}
-                    >
-                      {institution}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-            {errors.institutionName && <Text className="text-error text-xs mt-1">{errors.institutionName}</Text>}
-          </View>
-
-          <View>
-            <Text className="text-sm text-foreground mb-2">Course/Program</Text>
-            <TextInput
-              placeholder="Computer Science, Business Administration, etc."
-              placeholderTextColor={colors.muted}
-              value={courseProgram}
-              onChangeText={(text) => setCourseProgram(text.replace(/[^a-zA-Z\s]/g, ""))}
-              className="bg-surface border border-border rounded-lg px-4 py-3 text-foreground"
-            />
-            {errors.courseProgram && <Text className="text-error text-xs mt-1">{errors.courseProgram}</Text>}
-          </View>
-
-          <View>
-            <Text className="text-sm text-foreground mb-2">Year of Study</Text>
-            <View className="flex-row gap-2">
-              {["1", "2", "3", "4", "5", "6"].map((year) => (
-                <TouchableOpacity
-                  key={year}
-                  onPress={() => setYearOfStudy(year)}
-                  className={`flex-1 px-4 py-3 rounded-lg ${
-                    yearOfStudy === year ? "bg-primary" : "bg-surface border border-border"
-                  }`}
-                >
-                  <Text className={`text-center ${yearOfStudy === year ? "text-white" : "text-foreground"}`}>
-                    {year}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            {errors.yearOfStudy && <Text className="text-error text-xs mt-1">{errors.yearOfStudy}</Text>}
-          </View>
-
-          <View>
-            <Text className="text-sm text-foreground mb-2">Email</Text>
-            <TextInput
-              placeholder="student@university.edu"
-              placeholderTextColor={colors.muted}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              className="bg-surface border border-border rounded-lg px-4 py-3 text-foreground"
-            />
-            {errors.email && <Text className="text-error text-xs mt-1">{errors.email}</Text>}
-          </View>
-
-          <View>
-            <Text className="text-sm text-foreground mb-2">Password</Text>
-            <TextInput
-              placeholder="••••••••"
-              placeholderTextColor={colors.muted}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              className="bg-surface border border-border rounded-lg px-4 py-3 text-foreground"
-            />
-            <Text className="text-muted text-xs mt-1">
-              Must be at least 8 characters with 1 number and 1 special character
-            </Text>
-            {errors.password && <Text className="text-error text-xs mt-1">{errors.password}</Text>}
-          </View>
-
-          <View className="bg-surface/50 rounded-lg p-3 flex-row items-start gap-2">
-            <Ionicons name="finger-print" size={20} color={colors.primary} />
-            <View className="flex-1">
-              <Text className="text-foreground font-medium text-sm">Biometric Security</Text>
-              <Text className="text-muted text-xs">
-                You'll be able to enable fingerprint/face recognition after signup
+          className="flex-1"
+          activeOpacity={1}
+          onPress={() => setShowInstitutionPicker(false)}
+        />
+        <View className="bg-background rounded-t-3xl" style={{ maxHeight: "80%" }}>
+          <View className="p-6 border-b border-border">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-xl font-bold text-foreground">
+                Select Institution
               </Text>
+              <TouchableOpacity onPress={() => setShowInstitutionPicker(false)}>
+                <IconSymbol name="xmark.circle.fill" size={28} color={colors.mutedForeground} />
+              </TouchableOpacity>
             </View>
-            <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-          </View>
-
-          <TouchableOpacity
-            onPress={handleSignup}
-            disabled={loading}
-            className="bg-primary rounded-full py-4 items-center mt-4"
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <View className="flex-row items-center">
-                <Ionicons name="person-add" size={16} color="#fff" />
-                <Text className="text-white font-semibold text-base ml-2">Create Account</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-
-          <View className="flex-row items-center justify-center mt-4">
-            <Text className="text-muted">Already have an account? </Text>
-            <TouchableOpacity
-              onPress={() => {
-                setMode("login");
-                setSignupMethod(null);
-              }}
-            >
-              <Text className="text-primary font-semibold">Sign in</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity
-            onPress={() => {
-              setMode("signup-method");
-              setSignupMethod(null);
-            }}
-            className="mt-2"
-          >
-            <Text className="text-muted text-center">← Back to signup options</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
-  );
-
-  const renderQuickSignupForm = () => {
-    if (quickLookupResults.length === 0) {
-      return (
-        <View className="w-full max-w-md p-6 bg-card/95 rounded-2xl border-2 border-primary/20 backdrop-blur-xl">
-          <View className="items-center mb-6">
-            <View className="bg-primary p-4 rounded-xl mb-4">
-              <Ionicons name="school" size={32} color="#fff" />
-            </View>
-            <Text className="text-3xl font-bold text-foreground mb-2">Quick Registration</Text>
-            <Text className="text-muted text-center">Enter your student details to find your profile</Text>
-          </View>
-
-          <View className="space-y-4">
-            <View>
-              <Text className="text-sm text-foreground mb-2">Student Number</Text>
+            
+            {/* Search */}
+            <View className="flex-row items-center bg-surface rounded-xl px-4 py-3">
+              <IconSymbol name="magnifyingglass" size={20} color={colors.mutedForeground} />
               <TextInput
-                placeholder="202412345"
-                placeholderTextColor={colors.muted}
-                value={studentNumber}
-                onChangeText={setStudentNumber}
-                keyboardType="numeric"
-                className="bg-surface border border-border rounded-lg px-4 py-3 text-foreground"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="Search institutions..."
+                placeholderTextColor={colors.mutedForeground}
+                className="flex-1 ml-2 text-foreground"
               />
             </View>
+          </View>
 
-            <View>
-              <Text className="text-sm text-foreground mb-2">Select {getInstitutionLabel()}</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                className="border border-border rounded-lg bg-surface"
-                style={{ maxHeight: 150 }}
+          <ScrollView className="px-6">
+            {filteredInstitutions.map((institution) => (
+              <TouchableOpacity
+                key={institution.id}
+                onPress={() => {
+                  setSelectedInstitution(institution);
+                  setShowInstitutionPicker(false);
+                  setSearchQuery("");
+                }}
+                className="flex-row items-center py-4 border-b border-border"
               >
-                <View className="p-2">
-                  {availableInstitutions.map((institution) => (
-                    <TouchableOpacity
-                      key={institution}
-                      onPress={() => setInstitutionName(institution)}
-                      className={`px-4 py-3 rounded-lg mb-2 ${
-                        institutionName === institution ? "bg-primary" : "bg-surface"
-                      }`}
-                    >
-                      <Text
-                        className={`${institutionName === institution ? "text-white" : "text-foreground"}`}
-                      >
-                        {institution}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                <Image
+                  source={{ uri: institution.logo }}
+                  className="w-12 h-12 rounded-lg mr-3"
+                  contentFit="contain"
+                />
+                <View className="flex-1">
+                  <Text className="text-base font-semibold text-foreground">
+                    {institution.name}
+                  </Text>
+                  <Text className="text-sm text-muted-foreground mt-1">
+                    {institution.type === "university" ? "University" : "TVET College"}
+                  </Text>
                 </View>
-              </ScrollView>
+                {selectedInstitution?.id === institution.id && (
+                  <IconSymbol name="checkmark.circle.fill" size={24} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  return (
+    <ScreenContainer>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1"
+      >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          <LinearGradient
+            colors={["#1e3a8a", "#3b82f6", "#60a5fa"]}
+            className="flex-1 px-6 pt-16 pb-8"
+          >
+            {/* Logo */}
+            <View className="items-center mb-8">
+              <Image
+                source={require("@/assets/images/student-konnect-logo.png")}
+                className="w-32 h-32 mb-4"
+                contentFit="contain"
+              />
+              <Text className="text-3xl font-bold text-white text-center">
+                StudentKonnect
+              </Text>
+              <Text className="text-white/80 text-center mt-2">
+                {mode === "login" ? "Welcome back!" : "Create your account"}
+              </Text>
             </View>
 
-            <TouchableOpacity
-              onPress={handleQuickLookup}
-              disabled={loading || !institutionName}
-              className="bg-primary rounded-full py-4 items-center mt-4"
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
+            {/* Form Container */}
+            <View className="bg-background rounded-3xl p-6 shadow-lg">
+              {mode === "login" ? (
+                // LOGIN FORM
+                <View className="gap-4">
+                  {/* Email */}
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Email
+                    </Text>
+                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
+                      <IconSymbol name="envelope.fill" size={20} color={colors.mutedForeground} />
+                      <TextInput
+                        value={email}
+                        onChangeText={setEmail}
+                        placeholder="your.email@example.com"
+                        placeholderTextColor={colors.mutedForeground}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        className="flex-1 ml-3 text-foreground"
+                      />
+                    </View>
+                    {errors.email && (
+                      <Text className="text-destructive text-xs mt-1">{errors.email}</Text>
+                    )}
+                  </View>
+
+                  {/* Password */}
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Password
+                    </Text>
+                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
+                      <IconSymbol name="lock.fill" size={20} color={colors.mutedForeground} />
+                      <TextInput
+                        value={password}
+                        onChangeText={setPassword}
+                        placeholder="Enter your password"
+                        placeholderTextColor={colors.mutedForeground}
+                        secureTextEntry={!showPassword}
+                        className="flex-1 ml-3 text-foreground"
+                      />
+                      <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                        <IconSymbol
+                          name={showPassword ? "eye.slash.fill" : "eye.fill"}
+                          size={20}
+                          color={colors.mutedForeground}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    {errors.password && (
+                      <Text className="text-destructive text-xs mt-1">{errors.password}</Text>
+                    )}
+                  </View>
+
+                  {/* Login Button */}
+                  <TouchableOpacity
+                    onPress={handleLogin}
+                    disabled={loading}
+                    className="bg-primary rounded-xl py-4 items-center mt-4"
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text className="text-primary-foreground font-semibold text-base">
+                        Log In
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+
+                  {/* Switch to Signup */}
+                  <View className="flex-row items-center justify-center mt-4">
+                    <Text className="text-muted-foreground">Don't have an account? </Text>
+                    <TouchableOpacity onPress={() => setMode("signup")}>
+                      <Text className="text-primary font-semibold">Sign Up</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               ) : (
-                <Text className="text-white font-semibold text-base">Find My Profile</Text>
+                // SIGNUP FORM
+                <View className="gap-4">
+                  {/* Full Name */}
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Full Name
+                    </Text>
+                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
+                      <IconSymbol name="person.fill" size={20} color={colors.mutedForeground} />
+                      <TextInput
+                        value={fullName}
+                        onChangeText={setFullName}
+                        placeholder="John Doe"
+                        placeholderTextColor={colors.mutedForeground}
+                        className="flex-1 ml-3 text-foreground"
+                      />
+                    </View>
+                    {errors.fullName && (
+                      <Text className="text-destructive text-xs mt-1">{errors.fullName}</Text>
+                    )}
+                  </View>
+
+                  {/* Email */}
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Email
+                    </Text>
+                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
+                      <IconSymbol name="envelope.fill" size={20} color={colors.mutedForeground} />
+                      <TextInput
+                        value={email}
+                        onChangeText={setEmail}
+                        placeholder="your.email@example.com"
+                        placeholderTextColor={colors.mutedForeground}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        className="flex-1 ml-3 text-foreground"
+                      />
+                    </View>
+                    {errors.email && (
+                      <Text className="text-destructive text-xs mt-1">{errors.email}</Text>
+                    )}
+                  </View>
+
+                  {/* Phone Number */}
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Phone Number
+                    </Text>
+                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
+                      <IconSymbol name="phone.fill" size={20} color={colors.mutedForeground} />
+                      <Text className="text-foreground font-medium ml-3 mr-2">+27</Text>
+                      <TextInput
+                        value={phoneNumber}
+                        onChangeText={setPhoneNumber}
+                        placeholder="812345678"
+                        placeholderTextColor={colors.mutedForeground}
+                        keyboardType="phone-pad"
+                        maxLength={10}
+                        className="flex-1 text-foreground"
+                      />
+                    </View>
+                    {errors.phoneNumber && (
+                      <Text className="text-destructive text-xs mt-1">{errors.phoneNumber}</Text>
+                    )}
+                  </View>
+
+                  {/* Student Number */}
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Student Number
+                    </Text>
+                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
+                      <IconSymbol name="number" size={20} color={colors.mutedForeground} />
+                      <TextInput
+                        value={studentNumber}
+                        onChangeText={setStudentNumber}
+                        placeholder="202312345"
+                        placeholderTextColor={colors.mutedForeground}
+                        className="flex-1 ml-3 text-foreground"
+                      />
+                    </View>
+                    {errors.studentNumber && (
+                      <Text className="text-destructive text-xs mt-1">{errors.studentNumber}</Text>
+                    )}
+                  </View>
+
+                  {/* Institution */}
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Institution
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setShowInstitutionPicker(true)}
+                      className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border"
+                    >
+                      {selectedInstitution ? (
+                        <>
+                          <Image
+                            source={{ uri: selectedInstitution.logo }}
+                            className="w-8 h-8 rounded mr-3"
+                            contentFit="contain"
+                          />
+                          <Text className="flex-1 text-foreground">
+                            {selectedInstitution.name}
+                          </Text>
+                        </>
+                      ) : (
+                        <>
+                          <IconSymbol name="building.2.fill" size={20} color={colors.mutedForeground} />
+                          <Text className="flex-1 ml-3 text-muted-foreground">
+                            Select your institution
+                          </Text>
+                        </>
+                      )}
+                      <IconSymbol name="chevron.down" size={20} color={colors.mutedForeground} />
+                    </TouchableOpacity>
+                    {errors.institution && (
+                      <Text className="text-destructive text-xs mt-1">{errors.institution}</Text>
+                    )}
+                  </View>
+
+                  {/* Course/Program */}
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Course/Program
+                    </Text>
+                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
+                      <IconSymbol name="book.fill" size={20} color={colors.mutedForeground} />
+                      <TextInput
+                        value={courseProgram}
+                        onChangeText={setCourseProgram}
+                        placeholder="e.g., Computer Science"
+                        placeholderTextColor={colors.mutedForeground}
+                        className="flex-1 ml-3 text-foreground"
+                      />
+                    </View>
+                    {errors.courseProgram && (
+                      <Text className="text-destructive text-xs mt-1">{errors.courseProgram}</Text>
+                    )}
+                  </View>
+
+                  {/* Year of Study */}
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Year of Study
+                    </Text>
+                    <View className="flex-row gap-2">
+                      {["1", "2", "3", "4+"].map((year) => (
+                        <TouchableOpacity
+                          key={year}
+                          onPress={() => setYearOfStudy(year)}
+                          className={`flex-1 py-3 rounded-xl border ${
+                            yearOfStudy === year
+                              ? "bg-primary border-primary"
+                              : "bg-surface border-border"
+                          }`}
+                        >
+                          <Text
+                            className={`text-center font-semibold ${
+                              yearOfStudy === year ? "text-primary-foreground" : "text-foreground"
+                            }`}
+                          >
+                            {year}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                    {errors.yearOfStudy && (
+                      <Text className="text-destructive text-xs mt-1">{errors.yearOfStudy}</Text>
+                    )}
+                  </View>
+
+                  {/* Password */}
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Password
+                    </Text>
+                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
+                      <IconSymbol name="lock.fill" size={20} color={colors.mutedForeground} />
+                      <TextInput
+                        value={password}
+                        onChangeText={setPassword}
+                        placeholder="Min 8 chars, 1 number, 1 special"
+                        placeholderTextColor={colors.mutedForeground}
+                        secureTextEntry={!showPassword}
+                        className="flex-1 ml-3 text-foreground"
+                      />
+                      <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                        <IconSymbol
+                          name={showPassword ? "eye.slash.fill" : "eye.fill"}
+                          size={20}
+                          color={colors.mutedForeground}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    {errors.password && (
+                      <Text className="text-destructive text-xs mt-1">{errors.password}</Text>
+                    )}
+                  </View>
+
+                  {/* Confirm Password */}
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Confirm Password
+                    </Text>
+                    <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
+                      <IconSymbol name="lock.fill" size={20} color={colors.mutedForeground} />
+                      <TextInput
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                        placeholder="Re-enter your password"
+                        placeholderTextColor={colors.mutedForeground}
+                        secureTextEntry={!showConfirmPassword}
+                        className="flex-1 ml-3 text-foreground"
+                      />
+                      <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                        <IconSymbol
+                          name={showConfirmPassword ? "eye.slash.fill" : "eye.fill"}
+                          size={20}
+                          color={colors.mutedForeground}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    {errors.confirmPassword && (
+                      <Text className="text-destructive text-xs mt-1">{errors.confirmPassword}</Text>
+                    )}
+                  </View>
+
+                  {/* Sign Up Button */}
+                  <TouchableOpacity
+                    onPress={handleSignup}
+                    disabled={loading}
+                    className="bg-primary rounded-xl py-4 items-center mt-4"
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text className="text-primary-foreground font-semibold text-base">
+                        Create Account
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+
+                  {/* Switch to Login */}
+                  <View className="flex-row items-center justify-center mt-4">
+                    <Text className="text-muted-foreground">Already have an account? </Text>
+                    <TouchableOpacity onPress={() => setMode("login")}>
+                      <Text className="text-primary font-semibold">Log In</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               )}
-            </TouchableOpacity>
+            </View>
+          </LinearGradient>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
-            <TouchableOpacity
-              onPress={() => {
-                setMode("signup-method");
-                setSignupMethod(null);
-              }}
-              className="mt-2"
-            >
-              <Text className="text-muted text-center">← Back to signup options</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      );
-    }
-
-    // Student selection view
-    return (
-      <View className="w-full max-w-md p-6 bg-card/95 rounded-2xl border-2 border-primary/20 backdrop-blur-xl">
-        <View className="bg-success/10 border-2 border-success/30 rounded-lg p-4 mb-4">
-          <Text className="text-success font-semibold mb-1">Students Found!</Text>
-          <Text className="text-muted text-xs">Select your name below to continue</Text>
-        </View>
-
-        <View className="space-y-3 mb-4">
-          {quickLookupResults.map((student) => (
-            <TouchableOpacity
-              key={student.id}
-              onPress={() => setSelectedStudent(student)}
-              className={`p-4 border-2 rounded-xl ${
-                selectedStudent?.id === student.id
-                  ? "border-primary bg-primary/5"
-                  : "border-border bg-surface"
-              }`}
-            >
-              <View className="flex-row items-center gap-3">
-                <View
-                  className={`p-2 rounded-lg ${
-                    selectedStudent?.id === student.id ? "bg-primary" : "bg-muted"
-                  }`}
-                >
-                  <Ionicons
-                    name="person"
-                    size={20}
-                    color={selectedStudent?.id === student.id ? "#fff" : colors.foreground}
-                  />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-foreground font-bold">{student.name}</Text>
-                  <Text className="text-muted text-xs">
-                    {student.course} • Year {student.year}
-                  </Text>
-                  <Text className="text-muted text-xs">{student.email}</Text>
-                </View>
-                {selectedStudent?.id === student.id && (
-                  <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <TouchableOpacity
-          onPress={handleQuickSignup}
-          disabled={!selectedStudent || loading}
-          className="bg-primary rounded-full py-4 items-center"
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text className="text-white font-semibold text-base">Create Account</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => {
-            setQuickLookupResults([]);
-            setSelectedStudent(null);
-            setStudentNumber("");
-            setInstitutionName("");
-          }}
-          className="mt-4"
-        >
-          <Text className="text-muted text-center">Try Different Details</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
-   return (
-    <ImageBackground
-      source={require("@/assets/images/hero-multiracial-students.jpg")}
-      style={{ flex: 1 }}
-      resizeMode="cover"
-      blurRadius={3}
-    >
-      <LinearGradient
-        colors={["rgba(0,0,0,0.6)", "rgba(0,0,0,0.8)"]}
-        style={{ flex: 1 }}
-      >
-        <ScreenContainer edges={["top", "left", "right"]}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            className="flex-1"
-          >
-            <ScrollView
-              contentContainerStyle={{
-                flexGrow: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                padding: 16,
-              }}
-              showsVerticalScrollIndicator={false}
-            >
-              {mode === "login" && renderLoginScreen()}
-              {mode === "institution-select" && renderInstitutionSelect()}
-              {mode === "signup-method" && renderSignupMethodSelect()}
-              {mode === "full-signup" && renderFullSignupForm()}
-              {mode === "quick-signup" && renderQuickSignupForm()}
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </ScreenContainer>
-      </LinearGradient>
-    </ImageBackground>
+      {/* Institution Picker Modal */}
+      {renderInstitutionPicker()}
+    </ScreenContainer>
   );
 }
