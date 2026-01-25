@@ -302,10 +302,11 @@ export default function AuthScreen() {
           contentContainerStyle={{ flexGrow: 1 }}
         >
           <ImageBackground
-            source={require("@/assets/images/student-konnect-logo.png")}
+            source={require("@/assets/images/auth-background.jpg")}
             className="flex-1"
-            imageStyle={{ opacity: 0.05 }}
+            imageStyle={{ opacity: 0.15 }}
             style={{ backgroundColor: colors.background }}
+            resizeMode="cover"
           >
             <View className="flex-1 px-6 pt-16 pb-8">
             {/* Logo */}
