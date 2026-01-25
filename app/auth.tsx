@@ -9,9 +9,10 @@ import {
   Platform,
   ActivityIndicator,
   Modal,
+  ImageBackground,
 } from "react-native";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
+// LinearGradient removed - using ImageBackground instead
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -300,10 +301,13 @@ export default function AuthScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 1 }}
         >
-          <LinearGradient
-            colors={["#1e3a8a", "#3b82f6", "#60a5fa"]}
-            className="flex-1 px-6 pt-16 pb-8"
+          <ImageBackground
+            source={require("@/assets/images/student-konnect-logo.png")}
+            className="flex-1"
+            imageStyle={{ opacity: 0.05 }}
+            style={{ backgroundColor: colors.background }}
           >
+            <View className="flex-1 px-6 pt-16 pb-8">
             {/* Logo */}
             <View className="items-center mb-8">
               <Image
@@ -652,7 +656,8 @@ export default function AuthScreen() {
                 </View>
               )}
             </View>
-          </LinearGradient>
+            </View>
+          </ImageBackground>
         </ScrollView>
       </KeyboardAvoidingView>
 
