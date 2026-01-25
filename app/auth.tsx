@@ -565,7 +565,7 @@ export default function AuthScreen() {
                               />
                             </View>
                             <Text className="flex-1 text-gray-900">{selectedInstitution.name}</Text>
-                          <>
+                          </>
                         ) : (
                           <>
                             <IconSymbol name="building.2.fill" size={20} color="#6b7280" />
@@ -708,7 +708,7 @@ export default function AuthScreen() {
                               />
                             </View>
                             <Text className="flex-1 text-gray-900">{selectedInstitution.name}</Text>
-                          <>
+                          </>
                         ) : (
                           <>
                             <IconSymbol name="building.2.fill" size={20} color="#6b7280" />
