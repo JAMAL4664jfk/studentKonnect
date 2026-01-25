@@ -28,8 +28,7 @@ BEGIN
     VALUES
       (v_podcast_id, v_user_id, 'Great episode! Really enjoyed the insights shared here.', NULL, 5, NOW() - INTERVAL '2 days'),
       (v_podcast_id, v_user_id, 'This was so helpful, thank you for sharing!', NULL, 3, NOW() - INTERVAL '1 day'),
-      (v_podcast_id, v_user_id, 'Looking forward to the next episode!', NULL, 2, NOW() - INTERVAL '12 hours')
-    RETURNING id INTO v_comment_id;
+      (v_podcast_id, v_user_id, 'Looking forward to the next episode!', NULL, 2, NOW() - INTERVAL '12 hours');
     
     -- Add a reply to the first comment
     INSERT INTO podcast_comments (podcast_id, user_id, content, parent_id, likes_count, created_at)
