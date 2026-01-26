@@ -1,12 +1,12 @@
 /** @type {const} */
 const themeColors = {
   // Primary brand colors
-  primary: { light: 'hsl(231, 48%, 48%)', dark: 'hsl(220, 70%, 60%)' },
-  background: { light: 'hsl(0, 0%, 100%)', dark: 'hsl(230, 35%, 15%)' },
-  surface: { light: 'hsl(0, 0%, 96%)', dark: 'hsl(232, 32%, 18%)' },
+  primary: { light: 'hsl(210, 100%, 56%)', dark: 'hsl(210, 100%, 65%)' },
+  background: { light: 'hsl(0, 0%, 100%)', dark: 'hsl(215, 25%, 27%)' },
+  surface: { light: 'hsl(210, 40%, 98%)', dark: 'hsl(215, 25%, 32%)' },
   foreground: { light: 'hsl(34, 19%, 14%)', dark: 'hsl(0, 0%, 100%)' },
-  muted: { light: 'hsl(231, 15%, 45%)', dark: 'hsl(0, 0%, 75%)' },
-  border: { light: 'hsl(231, 15%, 90%)', dark: 'hsl(232, 25%, 28%)' },
+  muted: { light: 'hsl(215, 20%, 55%)', dark: 'hsl(215, 15%, 70%)' },
+  border: { light: 'hsl(210, 30%, 92%)', dark: 'hsl(215, 20%, 40%)' },
   
   // Secondary colors
   secondary: { light: 'hsl(179, 75%, 45%)', dark: 'hsl(260, 60%, 60%)' },
@@ -23,7 +23,7 @@ const themeColors = {
   accommodation: { light: 'hsl(30, 90%, 50%)', dark: 'hsl(30, 90%, 55%)' },
   
   // Tint for tab bar
-  tint: { light: 'hsl(231, 48%, 48%)', dark: 'hsl(220, 70%, 60%)' },
+  tint: { light: 'hsl(210, 100%, 56%)', dark: 'hsl(210, 100%, 65%)' },
 };
 
 module.exports = { themeColors };
