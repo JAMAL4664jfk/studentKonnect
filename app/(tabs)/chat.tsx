@@ -801,6 +801,9 @@ export default function ChatScreen() {
           <View className="flex-row items-center justify-between">
             <Text className="text-2xl font-bold text-foreground">Student Konnect</Text>
             <View className="flex-row gap-3">
+              <TouchableOpacity onPress={() => router.push("/connection-requests" as any)}>
+                <IconSymbol name="person.badge.plus" size={24} color={colors.foreground} />
+              </TouchableOpacity>
               <TouchableOpacity>
                 <IconSymbol name="camera.fill" size={24} color={colors.foreground} />
               </TouchableOpacity>

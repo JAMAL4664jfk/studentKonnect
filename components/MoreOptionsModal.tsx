@@ -66,10 +66,10 @@ export function MoreOptionsModal({ visible, onClose }: MoreOptionsModalProps) {
       image: require("@/assets/images/career-bg.jpg"),
     },
     {
-      id: "moneymarket",
-      title: "Money Market",
-      subtitle: "High-yield savings",
-      image: require("@/assets/images/podcast-bg.jpg"),
+      id: "studymaterial",
+      title: "Study Material",
+      subtitle: "Books & stationery",
+      image: require("@/assets/images/career-bg.jpg"),
     },
     {
       id: "savings",
@@ -83,18 +83,7 @@ export function MoreOptionsModal({ visible, onClose }: MoreOptionsModalProps) {
       subtitle: "Buy tech & textbooks",
       image: require("@/assets/images/loans-bg.jpg"),
     },
-    {
-      id: "discover",
-      title: "Discover Users",
-      subtitle: "Find & connect with students",
-      image: require("@/assets/images/dating-bg.jpg"),
-    },
-    {
-      id: "requests",
-      title: "Connection Requests",
-      subtitle: "Manage your connections",
-      image: require("@/assets/images/podcast-bg.jpg"),
-    },
+
     {
       id: "tutoring",
       title: "Tutoring",
@@ -109,14 +98,9 @@ export function MoreOptionsModal({ visible, onClose }: MoreOptionsModalProps) {
       router.push("/digital-connect" as any);
       return;
     }
-    if (actionId === "discover") {
+    if (actionId === "studymaterial") {
       onClose();
-      router.push("/discover-users" as any);
-      return;
-    }
-    if (actionId === "requests") {
-      onClose();
-      router.push("/connection-requests" as any);
+      router.push("/study-material" as any);
       return;
     }
     if (actionId === "tutoring") {
