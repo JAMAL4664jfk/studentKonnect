@@ -22,6 +22,9 @@ interface Job {
   type: string;
   title: string;
   company: string;
+  companyLogo?: string;
+  postedBy: string;
+  postedByType: "company" | "person";
   match: string;
   matchScore: number;
   location: string;
@@ -40,6 +43,9 @@ const JOBS: Job[] = [
     type: "Internship",
     title: "Software Engineering Intern",
     company: "TechCorp Solutions",
+    companyLogo: "https://ui-avatars.com/api/?name=TechCorp+Solutions&background=3b82f6&color=fff&size=128",
+    postedBy: "TechCorp Solutions HR",
+    postedByType: "company",
     match: "95%",
     matchScore: 95,
     location: "Remote",
@@ -67,6 +73,9 @@ const JOBS: Job[] = [
     type: "Internship",
     title: "Marketing Assistant",
     company: "Brand Innovate",
+    companyLogo: "https://ui-avatars.com/api/?name=Brand+Innovate&background=10b981&color=fff&size=128",
+    postedBy: "Sarah Johnson",
+    postedByType: "person",
     match: "88%",
     matchScore: 88,
     location: "Johannesburg",
@@ -94,6 +103,9 @@ const JOBS: Job[] = [
     type: "Learnership",
     title: "Data Analytics Learnership",
     company: "InsightsCo",
+    companyLogo: "https://ui-avatars.com/api/?name=InsightsCo&background=8b5cf6&color=fff&size=128",
+    postedBy: "InsightsCo Talent Team",
+    postedByType: "company",
     match: "82%",
     matchScore: 82,
     location: "Cape Town",
@@ -393,11 +405,23 @@ export default function CareerScreen() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const file = result.assets[0];
+        const fileSizeMB = file.size ? file.size / (1024 * 1024) : 0;
+        const MAX_FILE_SIZE_MB = 5;
+
+        if (fileSizeMB > MAX_FILE_SIZE_MB) {
+          Toast.show({
+            type: "error",
+            text1: "File Too Large",
+            text2: `File size must be under ${MAX_FILE_SIZE_MB}MB. Your file is ${fileSizeMB.toFixed(2)}MB.`,
+          });
+          return;
+        }
+
         setCvFileName(file.name);
         Toast.show({
           type: "success",
           text1: "CV Uploaded",
-          text2: `${file.name} has been uploaded successfully.`,
+          text2: `${file.name} (${fileSizeMB.toFixed(2)}MB) uploaded successfully.`,
         });
       }
     } catch (error) {
@@ -783,39 +807,58 @@ export default function CareerScreen() {
                     }}
                   >
                     <View className="flex-row items-start justify-between mb-3">
-                      <View className="flex-1">
-                        <View className="flex-row items-center mb-2">
-                          <View
-                            className="px-2 py-1 rounded-md mr-2"
-                            style={{
-                              backgroundColor:
-                                job.type === "Internship"
-                                  ? colors.primary + "20"
-                                  : job.type === "Learnership"
-                                  ? colors.warning + "20"
-                                  : colors.success + "20",
-                            }}
-                          >
-                            <Text
-                              className="text-xs font-bold"
+                      <View className="flex-row flex-1">
+                        {/* Company Logo */}
+                        {job.companyLogo && (
+                          <Image
+                            source={{ uri: job.companyLogo }}
+                            className="w-12 h-12 rounded-xl mr-3"
+                            contentFit="cover"
+                          />
+                        )}
+                        <View className="flex-1">
+                          <View className="flex-row items-center mb-2">
+                            <View
+                              className="px-2 py-1 rounded-md mr-2"
                               style={{
-                                color:
+                                backgroundColor:
                                   job.type === "Internship"
-                                    ? colors.primary
+                                    ? colors.primary + "20"
                                     : job.type === "Learnership"
-                                    ? colors.warning
-                                    : colors.success,
+                                    ? colors.warning + "20"
+                                    : colors.success + "20",
                               }}
                             >
-                              {job.type}
-                            </Text>
+                              <Text
+                                className="text-xs font-bold"
+                                style={{
+                                  color:
+                                    job.type === "Internship"
+                                      ? colors.primary
+                                      : job.type === "Learnership"
+                                      ? colors.warning
+                                      : colors.success,
+                                }}
+                              >
+                                {job.type}
+                              </Text>
+                            </View>
+                            <Text className="text-xs text-muted">{job.postedDate}</Text>
                           </View>
-                          <Text className="text-xs text-muted">{job.postedDate}</Text>
+                          <Text className="text-base font-bold text-foreground mb-1">
+                            {job.title}
+                          </Text>
+                          <Text className="text-sm text-muted mb-1">{job.company}</Text>
+                          {/* Posted By */}
+                          <View className="flex-row items-center">
+                            <IconSymbol 
+                              name={job.postedByType === "company" ? "building.2" : "person.circle"} 
+                              size={12} 
+                              color={colors.muted} 
+                            />
+                            <Text className="text-xs text-muted ml-1">Posted by {job.postedBy}</Text>
+                          </View>
                         </View>
-                        <Text className="text-base font-bold text-foreground mb-1">
-                          {job.title}
-                        </Text>
-                        <Text className="text-sm text-muted">{job.company}</Text>
                       </View>
                       <View
                         className="px-2 py-1 rounded-md"
@@ -903,45 +946,64 @@ export default function CareerScreen() {
               <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Job Header */}
                 <View className="mb-4">
-                  <View className="flex-row items-center justify-between mb-3">
-                    <View
-                      className="px-3 py-1 rounded-md"
-                      style={{
-                        backgroundColor:
-                          selectedJob.type === "Internship"
-                            ? colors.primary + "20"
-                            : selectedJob.type === "Learnership"
-                            ? colors.warning + "20"
-                            : colors.success + "20",
-                      }}
-                    >
-                      <Text
-                        className="text-xs font-bold"
+                  {/* Company Logo and Type/Match */}
+                  <View className="flex-row items-start justify-between mb-4">
+                    {selectedJob.companyLogo && (
+                      <Image
+                        source={{ uri: selectedJob.companyLogo }}
+                        className="w-16 h-16 rounded-xl"
+                        contentFit="cover"
+                      />
+                    )}
+                    <View className="flex-row gap-2">
+                      <View
+                        className="px-3 py-1 rounded-md"
                         style={{
-                          color:
+                          backgroundColor:
                             selectedJob.type === "Internship"
-                              ? colors.primary
+                              ? colors.primary + "20"
                               : selectedJob.type === "Learnership"
-                              ? colors.warning
-                              : colors.success,
+                              ? colors.warning + "20"
+                              : colors.success + "20",
                         }}
                       >
-                        {selectedJob.type}
-                      </Text>
-                    </View>
-                    <View
-                      className="px-3 py-1 rounded-md"
-                      style={{ backgroundColor: getMatchBgColor(selectedJob.matchScore) }}
-                    >
-                      <Text className="text-xs font-bold" style={{ color: getMatchColor(selectedJob.matchScore) }}>
-                        {selectedJob.match} Match
-                      </Text>
+                        <Text
+                          className="text-xs font-bold"
+                          style={{
+                            color:
+                              selectedJob.type === "Internship"
+                                ? colors.primary
+                                : selectedJob.type === "Learnership"
+                                ? colors.warning
+                                : colors.success,
+                          }}
+                        >
+                          {selectedJob.type}
+                        </Text>
+                      </View>
+                      <View
+                        className="px-3 py-1 rounded-md"
+                        style={{ backgroundColor: getMatchBgColor(selectedJob.matchScore) }}
+                      >
+                        <Text className="text-xs font-bold" style={{ color: getMatchColor(selectedJob.matchScore) }}>
+                          {selectedJob.match} Match
+                        </Text>
+                      </View>
                     </View>
                   </View>
                   <Text className="text-2xl font-bold text-foreground mb-1">
                     {selectedJob.title}
                   </Text>
-                  <Text className="text-base text-muted mb-3">{selectedJob.company}</Text>
+                  <Text className="text-base text-muted mb-2">{selectedJob.company}</Text>
+                  {/* Posted By */}
+                  <View className="flex-row items-center mb-3">
+                    <IconSymbol 
+                      name={selectedJob.postedByType === "company" ? "building.2.fill" : "person.circle.fill"} 
+                      size={14} 
+                      color={colors.muted} 
+                    />
+                    <Text className="text-sm text-muted ml-1">Posted by {selectedJob.postedBy}</Text>
+                  </View>
 
                   {/* Quick Info Grid */}
                   <View className="bg-surface rounded-xl p-4 mb-4">

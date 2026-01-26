@@ -711,11 +711,12 @@ export default function MarketplaceScreen() {
             <TouchableOpacity
               key={cat.key}
               onPress={() => setSelectedCategory(cat.key)}
-              className={`px-4 py-2.5 rounded-xl flex-row items-center gap-2 ${
+              className={`px-5 py-3 rounded-xl flex-row items-center gap-2 ${
                 selectedCategory === cat.key
                   ? "bg-primary/20 border-2 border-primary"
                   : "bg-surface"
               }`}
+              style={{ minWidth: 110 }}
             >
               <IconSymbol
                 name={cat.icon}
@@ -723,9 +724,10 @@ export default function MarketplaceScreen() {
                 color={selectedCategory === cat.key ? colors.primary : colors.foreground}
               />
               <Text
-                className={`font-medium ${
+                className={`font-medium text-sm ${
                   selectedCategory === cat.key ? "text-primary" : "text-foreground"
                 }`}
+                numberOfLines={1}
               >
                 {cat.label}
               </Text>

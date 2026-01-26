@@ -95,6 +95,12 @@ export function MoreOptionsModal({ visible, onClose }: MoreOptionsModalProps) {
       subtitle: "Manage your connections",
       image: require("@/assets/images/podcast-bg.jpg"),
     },
+    {
+      id: "tutoring",
+      title: "Tutoring",
+      subtitle: "Find tutors or offer tutoring",
+      image: require("@/assets/images/hero-student-connect.jpg"),
+    },
   ];
 
   const handleActionPress = (actionId: string) => {
@@ -111,6 +117,11 @@ export function MoreOptionsModal({ visible, onClose }: MoreOptionsModalProps) {
     if (actionId === "requests") {
       onClose();
       router.push("/connection-requests" as any);
+      return;
+    }
+    if (actionId === "tutoring") {
+      onClose();
+      router.push("/tutoring" as any);
       return;
     }
     setSelectedAction(actionId);

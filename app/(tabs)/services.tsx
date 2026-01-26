@@ -72,15 +72,6 @@ const SERVICES: ServiceItem[] = [
     badgeColor: "#3b82f6",
   },
   {
-    id: "tutor",
-    name: "Tutoring",
-    icon: "graduationcap.fill",
-    description: "Find tutors or offer tutoring",
-    backgroundImage: require("@/assets/images/hero-student-connect.jpg"),
-    badgeText: "Peer Learning",
-    badgeColor: "#06b6d4",
-  },
-  {
     id: "wellness",
     name: "Wellness",
     icon: "heart.fill",

@@ -154,7 +154,7 @@ export default function HomeScreen() {
                       textShadowColor: 'rgba(0, 0, 0, 0.3)',
                       textShadowOffset: { width: 0, height: 1 },
                       textShadowRadius: 2,
-                      color: '#000000'
+                      color: '#ffffff'
                     }}
                   >
                     STUDENT USER
@@ -165,7 +165,7 @@ export default function HomeScreen() {
                       textShadowColor: 'rgba(0, 0, 0, 0.2)',
                       textShadowOffset: { width: 0, height: 1 },
                       textShadowRadius: 2,
-                      color: '#4b5563'
+                      color: '#ffffff'
                     }}
                   >
                     Available Balance
