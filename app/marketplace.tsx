@@ -627,17 +627,18 @@ export default function MarketplaceScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           className="mb-4"
-          contentContainerStyle={{ gap: 8 }}
+          contentContainerStyle={{ gap: 10, paddingRight: 16 }}
         >
           <TouchableOpacity
             onPress={() => setSelectedFilter("all")}
-            className={`px-4 py-2 rounded-xl ${
-              selectedFilter === "all" ? "bg-primary" : "bg-surface"
+            className={`px-5 py-2.5 rounded-full ${
+              selectedFilter === "all" ? "bg-primary" : "bg-surface border border-border"
             }`}
+            style={{ minWidth: 70 }}
           >
             <Text
-              className={`font-semibold ${
-                selectedFilter === "all" ? "text-primary-foreground" : "text-foreground"
+              className={`font-semibold text-center ${
+                selectedFilter === "all" ? "text-white" : "text-foreground"
               }`}
             >
               All
@@ -645,18 +646,19 @@ export default function MarketplaceScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedFilter("popular")}
-            className={`px-4 py-2 rounded-xl flex-row items-center gap-1.5 ${
-              selectedFilter === "popular" ? "bg-primary" : "bg-surface"
+            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+              selectedFilter === "popular" ? "bg-primary" : "bg-surface border border-border"
             }`}
+            style={{ minWidth: 110 }}
           >
             <IconSymbol
               name="chart.bar.fill"
-              size={14}
+              size={16}
               color={selectedFilter === "popular" ? "#fff" : colors.foreground}
             />
             <Text
               className={`font-semibold ${
-                selectedFilter === "popular" ? "text-primary-foreground" : "text-foreground"
+                selectedFilter === "popular" ? "text-white" : "text-foreground"
               }`}
             >
               Popular
@@ -664,18 +666,19 @@ export default function MarketplaceScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedFilter("recent")}
-            className={`px-4 py-2 rounded-xl flex-row items-center gap-1.5 ${
-              selectedFilter === "recent" ? "bg-primary" : "bg-surface"
+            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+              selectedFilter === "recent" ? "bg-primary" : "bg-surface border border-border"
             }`}
+            style={{ minWidth: 100 }}
           >
             <IconSymbol
               name="clock.fill"
-              size={14}
+              size={16}
               color={selectedFilter === "recent" ? "#fff" : colors.foreground}
             />
             <Text
               className={`font-semibold ${
-                selectedFilter === "recent" ? "text-primary-foreground" : "text-foreground"
+                selectedFilter === "recent" ? "text-white" : "text-foreground"
               }`}
             >
               Recent
@@ -683,18 +686,19 @@ export default function MarketplaceScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedFilter("featured")}
-            className={`px-4 py-2 rounded-xl flex-row items-center gap-1.5 ${
-              selectedFilter === "featured" ? "bg-primary" : "bg-surface"
+            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+              selectedFilter === "featured" ? "bg-primary" : "bg-surface border border-border"
             }`}
+            style={{ minWidth: 115 }}
           >
             <IconSymbol
               name="star.fill"
-              size={14}
+              size={16}
               color={selectedFilter === "featured" ? "#fff" : colors.foreground}
             />
             <Text
               className={`font-semibold ${
-                selectedFilter === "featured" ? "text-primary-foreground" : "text-foreground"
+                selectedFilter === "featured" ? "text-white" : "text-foreground"
               }`}
             >
               Featured
@@ -702,11 +706,12 @@ export default function MarketplaceScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.push("/my-marketplace")}
-            className="px-4 py-2 rounded-xl flex-row items-center gap-1.5 bg-surface"
+            className="px-5 py-2.5 rounded-full flex-row items-center gap-2 bg-surface border border-border"
+            style={{ minWidth: 115 }}
           >
             <IconSymbol
               name="list.bullet"
-              size={14}
+              size={16}
               color={colors.foreground}
             />
             <Text className="font-semibold text-foreground">
@@ -720,27 +725,27 @@ export default function MarketplaceScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           className="mb-4"
-          contentContainerStyle={{ gap: 8 }}
+          contentContainerStyle={{ gap: 10, paddingRight: 16 }}
         >
           {CATEGORIES.map((cat) => (
             <TouchableOpacity
               key={cat.key}
               onPress={() => setSelectedCategory(cat.key)}
-              className={`px-5 py-3 rounded-xl flex-row items-center gap-2 ${
+              className={`px-5 py-2 rounded-full flex-row items-center gap-2 ${
                 selectedCategory === cat.key
-                  ? "bg-primary/20 border-2 border-primary"
-                  : "bg-surface"
+                  ? "bg-primary"
+                  : "bg-surface border border-border"
               }`}
-              style={{ minWidth: 110 }}
+              style={{ minWidth: 120 }}
             >
               <IconSymbol
                 name={cat.icon}
                 size={16}
-                color={selectedCategory === cat.key ? colors.primary : colors.foreground}
+                color={selectedCategory === cat.key ? "#fff" : colors.foreground}
               />
               <Text
-                className={`font-medium text-sm ${
-                  selectedCategory === cat.key ? "text-primary" : "text-foreground"
+                className={`font-semibold ${
+                  selectedCategory === cat.key ? "text-white" : "text-foreground"
                 }`}
                 numberOfLines={1}
               >

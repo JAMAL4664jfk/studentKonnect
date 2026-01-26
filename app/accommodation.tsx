@@ -572,31 +572,39 @@ export default function AccommodationScreen() {
         </View>
 
         {/* Filter Tabs */}
-        <View className="flex-row items-center gap-3 mb-4">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="mb-4"
+          contentContainerStyle={{ gap: 12, paddingRight: 16 }}
+        >
           <TouchableOpacity
             onPress={() => setSelectedFilter("all")}
-            className={`px-4 py-2 rounded-xl ${selectedFilter === "all" ? "bg-primary" : "bg-surface"}`}
+            className={`px-5 py-2.5 rounded-full ${selectedFilter === "all" ? "bg-primary" : "bg-surface border border-border"}`}
+            style={{ minWidth: 80 }}
           >
-            <Text className={`font-semibold ${selectedFilter === "all" ? "text-primary-foreground" : "text-foreground"}`}>
+            <Text className={`font-semibold text-center ${selectedFilter === "all" ? "text-white" : "text-foreground"}`}>
               All
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedFilter("favorites")}
-            className={`px-4 py-2 rounded-xl flex-row items-center gap-2 ${selectedFilter === "favorites" ? "bg-primary" : "bg-surface"}`}
+            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${selectedFilter === "favorites" ? "bg-primary" : "bg-surface border border-border"}`}
+            style={{ minWidth: 120 }}
           >
             <IconSymbol
               name="heart.fill"
               size={16}
               color={selectedFilter === "favorites" ? "#fff" : colors.foreground}
             />
-            <Text className={`font-semibold ${selectedFilter === "favorites" ? "text-primary-foreground" : "text-foreground"}`}>
+            <Text className={`font-semibold ${selectedFilter === "favorites" ? "text-white" : "text-foreground"}`}>
               Favorites ({favorites.size})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.push("/my-accommodations")}
-            className="px-4 py-2 rounded-xl flex-row items-center gap-2 bg-surface"
+            className="px-5 py-2.5 rounded-full flex-row items-center gap-2 bg-surface border border-border"
+            style={{ minWidth: 130 }}
           >
             <IconSymbol
               name="list.bullet"
@@ -608,32 +616,34 @@ export default function AccommodationScreen() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="ml-auto bg-primary px-4 py-2 rounded-xl flex-row items-center gap-2"
+            className="bg-primary px-5 py-2.5 rounded-full flex-row items-center gap-2"
             onPress={() => router.push("/create-accommodation")}
+            style={{ minWidth: 100 }}
           >
             <IconSymbol name="plus.circle.fill" size={18} color="#fff" />
-            <Text className="text-primary-foreground font-semibold">List</Text>
+            <Text className="text-white font-semibold">List</Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
 
         {/* Type Filter */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           className="mb-4"
-          contentContainerStyle={{ gap: 8 }}
+          contentContainerStyle={{ gap: 10, paddingRight: 16 }}
         >
           {TYPES.map((type) => (
             <TouchableOpacity
               key={type}
               onPress={() => setSelectedType(type)}
-              className={`px-4 py-2.5 rounded-xl ${
-                selectedType === type ? "bg-primary/20 border-2 border-primary" : "bg-surface"
+              className={`px-5 py-2 rounded-full ${
+                selectedType === type ? "bg-primary" : "bg-surface border border-border"
               }`}
+              style={{ minWidth: 90 }}
             >
               <Text
-                className={`font-medium capitalize ${
-                  selectedType === type ? "text-primary" : "text-foreground"
+                className={`font-semibold capitalize text-center ${
+                  selectedType === type ? "text-white" : "text-foreground"
                 }`}
               >
                 {type}
