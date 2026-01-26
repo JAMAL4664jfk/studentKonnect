@@ -161,7 +161,7 @@ export default function ServicesScreen() {
           {/* Logo and Tagline Header */}
           <View className="items-center gap-3 py-4">
             <Image
-              source={require("@/assets/images/icon.png")}
+              source={require("@/assets/images/student-konnect-logo.png")}
               style={{ width: 80, height: 80 }}
               contentFit="contain"
             />

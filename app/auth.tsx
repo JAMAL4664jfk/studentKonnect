@@ -332,7 +332,7 @@ export default function AuthScreen() {
             <View className="items-center mb-8">
               <View className="w-32 h-32 rounded-full overflow-hidden bg-white mb-4" style={{ shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 }}>
                 <Image
-                  source={require("@/assets/images/icon.png")}
+                  source={require("@/assets/images/student-konnect-logo.png")}
                   className="w-full h-full"
                   contentFit="cover"
                 />
