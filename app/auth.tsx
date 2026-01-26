@@ -140,7 +140,7 @@ export default function AuthScreen() {
         text2: "You have successfully logged in",
       });
 
-      router.replace("/(tabs)");
+      router.replace("/(tabs)/services");
     } catch (error: any) {
       Toast.show({
         type: "error",
@@ -186,7 +186,7 @@ export default function AuthScreen() {
         text2: "Welcome to StudentKonnect",
       });
 
-      router.replace("/(tabs)");
+      router.replace("/(tabs)/services");
     } catch (error: any) {
       Toast.show({
         type: "error",
