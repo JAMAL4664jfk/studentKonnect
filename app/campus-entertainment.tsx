@@ -92,7 +92,7 @@ const RADIO_STATIONS: RadioStation[] = [
 export default function CampusEntertainmentScreen() {
   const colors = useColors();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabType>("podcasts");
+  const [activeTab, setActiveTab] = useState<TabType>("campus-radio");
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [playingStationId, setPlayingStationId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -105,6 +105,13 @@ export default function CampusEntertainmentScreen() {
       }
     };
   }, [sound]);
+
+  useEffect(() => {
+    // Auto-navigate to full podcasts screen when podcasts tab is active
+    if (activeTab === "podcasts") {
+      router.push("/podcasts");
+    }
+  }, [activeTab]);
 
   const playRadioStation = async (station: RadioStation) => {
     try {
@@ -180,51 +187,11 @@ export default function CampusEntertainmentScreen() {
     }
   };
 
-  const renderPodcastsTab = () => (
-    <View className="gap-4">
-      <View className="bg-surface rounded-2xl p-6 border border-border items-center">
-        <IconSymbol name="mic.fill" size={48} color={colors.primary} />
-        <Text className="text-xl font-bold text-foreground mt-4 mb-2">
-          Student Podcasts
-        </Text>
-        <Text className="text-sm text-muted text-center mb-4">
-          Listen to student podcasts, create your own series, and manage episodes
-        </Text>
-        <TouchableOpacity
-          onPress={() => router.push("/podcasts")}
-          className="bg-primary px-6 py-3 rounded-full"
-        >
-          <Text className="text-white font-semibold">Open Podcasts</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View className="bg-surface rounded-2xl p-4 border border-border">
-        <Text className="text-base font-semibold text-foreground mb-2">Features:</Text>
-        <View className="gap-2">
-          <View className="flex-row items-center gap-2">
-            <IconSymbol name="checkmark.circle.fill" size={20} color={colors.primary} />
-            <Text className="text-sm text-foreground">Browse all podcast episodes</Text>
-          </View>
-          <View className="flex-row items-center gap-2">
-            <IconSymbol name="checkmark.circle.fill" size={20} color={colors.primary} />
-            <Text className="text-sm text-foreground">Create and manage your own series</Text>
-          </View>
-          <View className="flex-row items-center gap-2">
-            <IconSymbol name="checkmark.circle.fill" size={20} color={colors.primary} />
-            <Text className="text-sm text-foreground">Upload audio and video episodes</Text>
-          </View>
-          <View className="flex-row items-center gap-2">
-            <IconSymbol name="checkmark.circle.fill" size={20} color={colors.primary} />
-            <Text className="text-sm text-foreground">Rate and comment on episodes</Text>
-          </View>
-          <View className="flex-row items-center gap-2">
-            <IconSymbol name="checkmark.circle.fill" size={20} color={colors.primary} />
-            <Text className="text-sm text-foreground">Search by category and host</Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
+  const renderPodcastsTab = () => {
+    // Directly navigate to full podcasts screen
+    router.push("/podcasts");
+    return null;
+  };
 
   const renderRadioStations = (stations: RadioStation[], title: string) => (
     <View className="gap-4">
