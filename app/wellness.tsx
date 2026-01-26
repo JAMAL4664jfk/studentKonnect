@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, ActivityIndicator, ImageBackground } from "react-native";
+import { Image } from "expo-image";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -94,28 +95,59 @@ export default function WellnessScreen() {
     },
   ];
 
-  const wellnessResources = [    {
+  const wellnessResources = [
+    {
       id: "library",
       title: "Mental Health Library",
       description: "Articles and resources on mental wellness",
       icon: "book.fill",
-    },    {
+      thumbnail: "https://via.placeholder.com/300x200/6366F1/FFFFFF?text=Library",
+    },
+    {
       id: "yoga",
       title: "Yoga & Exercises",
       description: "Video tutorials for stress relief and fitness",
       icon: "figure.walk",
+      thumbnail: "https://via.placeholder.com/300x200/EC4899/FFFFFF?text=Yoga",
+      videos: [
+        {
+          id: "1",
+          title: "Morning Yoga Routine",
+          duration: "15 min",
+          thumbnail: "https://via.placeholder.com/300x200/EC4899/FFFFFF?text=Morning+Yoga",
+          url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        },
+        {
+          id: "2",
+          title: "Stress Relief Exercises",
+          duration: "10 min",
+          thumbnail: "https://via.placeholder.com/300x200/8B5CF6/FFFFFF?text=Stress+Relief",
+          url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        },
+      ],
     },
     {
       id: "meditation",
       title: "Meditation & Mindfulness",
       description: "Guided meditation and relaxation exercises",
       icon: "brain",
+      thumbnail: "https://via.placeholder.com/300x200/10B981/FFFFFF?text=Meditation",
+      videos: [
+        {
+          id: "3",
+          title: "5-Minute Mindfulness",
+          duration: "5 min",
+          thumbnail: "https://via.placeholder.com/300x200/10B981/FFFFFF?text=Mindfulness",
+          url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        },
+      ],
     },
     {
       id: "tracking",
       title: "Wellness Tracking",
       description: "Track your mood and mental health progress",
       icon: "chart.bar.fill",
+      thumbnail: "https://via.placeholder.com/300x200/F59E0B/FFFFFF?text=Tracking",
     },
   ];
 
@@ -166,36 +198,35 @@ export default function WellnessScreen() {
           {/* Counseling Services */}
           <View className="gap-3">
             <Text className="text-xl font-bold text-foreground">Counseling Services</Text>
-            {counselingOptions.map((option) => (
-              <TouchableOpacity
-                key={option.type}
-                onPress={() => handleBookCounseling(option.type)}
-                className="bg-surface rounded-2xl p-4 border border-border active:opacity-70"
-                style={{
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 4,
-                  elevation: 2,
-                }}
-              >
-                <View className="flex-row items-center gap-4">
-                  <View
-                    className="w-14 h-14 rounded-full items-center justify-center"
-                    style={{ backgroundColor: option.color + "20" }}
-                  >
-                    <IconSymbol name={option.icon} size={28} color={option.color} />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-base font-semibold text-foreground mb-1">
-                      {option.title}
+            <View className="flex-row flex-wrap gap-3">
+              {counselingOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.type}
+                  onPress={() => handleBookCounseling(option.type)}
+                  className="bg-surface rounded-2xl p-3 border border-border active:opacity-70"
+                  style={{
+                    width: "48%",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                    elevation: 2,
+                  }}
+                >
+                  <View className="items-center gap-2">
+                    <View
+                      className="w-12 h-12 rounded-full items-center justify-center"
+                      style={{ backgroundColor: option.color + "20" }}
+                    >
+                      <IconSymbol name={option.icon} size={24} color={option.color} />
+                    </View>
+                    <Text className="text-sm font-semibold text-foreground text-center">
+                      {option.title.replace(" Counseling", "").replace(" Support", "")}
                     </Text>
-                    <Text className="text-sm text-muted">{option.description}</Text>
                   </View>
-                  <IconSymbol name="chevron.right" size={20} color={colors.muted} />
-                </View>
-              </TouchableOpacity>
-            ))}
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           {/* Wellness Resources */}
@@ -205,7 +236,7 @@ export default function WellnessScreen() {
               <TouchableOpacity
                 key={resource.id}
                 onPress={() => setSelectedSection(resource.id as SectionType)}
-                className="bg-surface rounded-2xl p-4 border border-border active:opacity-70"
+                className="bg-surface rounded-2xl overflow-hidden border border-border active:opacity-70"
                 style={{
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: 2 },
@@ -214,20 +245,21 @@ export default function WellnessScreen() {
                   elevation: 2,
                 }}
               >
-                <View className="flex-row items-center gap-4">
-                  <View
-                    className="w-12 h-12 rounded-full items-center justify-center"
-                    style={{ backgroundColor: colors.primary + "20" }}
-                  >
-                    <IconSymbol name={resource.icon} size={24} color={colors.primary} />
+                <Image
+                  source={{ uri: resource.thumbnail }}
+                  style={{ width: "100%", height: 120 }}
+                  contentFit="cover"
+                />
+                <View className="p-4">
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-1">
+                      <Text className="text-base font-semibold text-foreground mb-1">
+                        {resource.title}
+                      </Text>
+                      <Text className="text-sm text-muted">{resource.description}</Text>
+                    </View>
+                    <IconSymbol name="chevron.right" size={20} color={colors.muted} />
                   </View>
-                  <View className="flex-1">
-                    <Text className="text-base font-semibold text-foreground mb-1">
-                      {resource.title}
-                    </Text>
-                    <Text className="text-sm text-muted">{resource.description}</Text>
-                  </View>
-                  <IconSymbol name="chevron.right" size={20} color={colors.muted} />
                 </View>
               </TouchableOpacity>
             ))}

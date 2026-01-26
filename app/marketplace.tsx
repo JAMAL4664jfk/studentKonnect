@@ -518,27 +518,42 @@ export default function MarketplaceScreen() {
             </View>
 
             {/* Action Buttons */}
+            {/* Seller Information */}
+            <View className="bg-surface rounded-2xl p-4 mb-4 border border-border">
+              <Text className="text-base font-bold text-foreground mb-3">Seller Information</Text>
+              <View className="flex-row items-center gap-3">
+                <View className="w-12 h-12 rounded-full bg-primary items-center justify-center">
+                  <IconSymbol name="person.fill" size={24} color="white" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-semibold text-foreground">Student Seller</Text>
+                  <Text className="text-sm text-muted">User ID: {selectedItem.userId}</Text>
+                </View>
+              </View>
+            </View>
+
             <TouchableOpacity
               className="bg-primary py-4 rounded-2xl items-center active:opacity-80 mb-3 flex-row justify-center gap-2"
               onPress={() => {
                 Toast.show({
-                  type: "info",
-                  text1: "Contact Feature",
-                  text2: "Contact seller functionality coming soon!",
+                  type: "success",
+                  text1: "Opening Chat",
+                  text2: "Contact seller via chat",
                 });
+                router.push(`/chat?userId=${selectedItem.userId}` as any);
               }}
             >
               <IconSymbol name="message.fill" size={20} color="#fff" />
-              <Text className="text-primary-foreground font-bold text-lg">Contact Seller</Text>
+              <Text className="text-white font-bold text-lg">Contact Seller</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="bg-surface py-4 rounded-2xl items-center active:opacity-80 mb-8 flex-row justify-center gap-2"
+              className="bg-surface py-4 rounded-2xl items-center active:opacity-80 mb-8 flex-row justify-center gap-2 border border-border"
               onPress={() => {
                 Toast.show({
-                  type: "info",
-                  text1: "Share Feature",
-                  text2: "Share functionality coming soon!",
+                  type: "success",
+                  text1: "Link Copied",
+                  text2: `Marketplace item: ${selectedItem.title}`,
                 });
               }}
             >

@@ -99,12 +99,12 @@ export function WellnessLibrary({ onArticlePress }: { onArticlePress?: (article:
       >
         <TouchableOpacity
           onPress={() => setSelectedCategory("all")}
-          className={`px-4 py-2 rounded-full ${
+          className={`px-3 py-1.5 rounded-full ${
             selectedCategory === "all" ? "bg-primary" : "bg-surface"
           }`}
         >
           <Text
-            className={`font-semibold ${
+            className={`text-sm font-semibold ${
               selectedCategory === "all" ? "text-white" : "text-foreground"
             }`}
           >
@@ -115,12 +115,12 @@ export function WellnessLibrary({ onArticlePress }: { onArticlePress?: (article:
           <TouchableOpacity
             key={cat.id}
             onPress={() => setSelectedCategory(cat.id)}
-            className={`px-4 py-2 rounded-full ${
+            className={`px-3 py-1.5 rounded-full ${
               selectedCategory === cat.id ? "bg-primary" : "bg-surface"
             }`}
           >
             <Text
-              className={`font-semibold ${
+              className={`text-sm font-semibold ${
                 selectedCategory === cat.id ? "text-white" : "text-foreground"
               }`}
             >
