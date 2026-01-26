@@ -158,8 +158,23 @@ export default function ServicesScreen() {
     <ScreenContainer className="p-4" edges={["top", "left", "right"]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
         <View className="flex-1 gap-6">
-          {/* Services Grid - First Thing Visible */}
-          <View className="gap-4 pt-4">
+          {/* Logo and Tagline Header */}
+          <View className="items-center gap-3 py-4">
+            <Image
+              source={require("@/assets/images/icon.png")}
+              style={{ width: 80, height: 80 }}
+              contentFit="contain"
+            />
+            <Text className="text-3xl font-bold text-foreground text-center">
+              Student Konnect
+            </Text>
+            <Text className="text-base text-muted text-center px-4">
+              Connecting over 300 million students globally
+            </Text>
+          </View>
+
+          {/* Services Grid */}
+          <View className="gap-4">
             {SERVICES.map((service) => (
               <TouchableOpacity
                 key={service.id}
@@ -224,21 +239,6 @@ export default function ServicesScreen() {
                 </ImageBackground>
               </TouchableOpacity>
             ))}
-          </View>
-
-          {/* Logo and Tagline Footer */}
-          <View className="items-center gap-3 py-6 mt-4">
-            <Image
-              source={require("@/assets/images/icon.png")}
-              style={{ width: 60, height: 60 }}
-              contentFit="contain"
-            />
-            <Text className="text-2xl font-bold text-foreground text-center">
-              Student Konnect
-            </Text>
-            <Text className="text-sm text-muted text-center px-4">
-              Connecting over 300 million students globally
-            </Text>
           </View>
         </View>
       </ScrollView>
