@@ -9,7 +9,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useWallet } from "@/contexts/WalletContext";
 import { MoreOptionsModal } from "@/components/MoreOptionsModal";
-import { TrustedBanner } from "@/components/TrustedBanner";
+
 import { BRAND_COLORS } from "@/constants/brand-colors";
 import { FEATURE_DESCRIPTIONS } from "@/constants/feature-descriptions";
 
@@ -282,9 +282,7 @@ export default function HomeScreen() {
             ))}
           </View>
 
-          {/* Trusted by Students */}
-          <TrustedBanner type="universities" title="Trusted by Students @" />
-          <TrustedBanner type="brands" />
+
 
           {/* Featured Services */}
           <View className="gap-3">

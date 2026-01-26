@@ -1,5 +1,6 @@
 import { ScrollView, Text, View, TouchableOpacity, ImageBackground } from "react-native";
 import { useRouter } from "expo-router";
+import { Image } from "expo-image";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
@@ -16,6 +17,24 @@ type ServiceItem = {
 };
 
 const SERVICES: ServiceItem[] = [
+  {
+    id: "my-account",
+    name: "My Student Account",
+    icon: "house.fill",
+    description: "Access your student dashboard",
+    backgroundImage: require("@/assets/images/hero-student-connect.jpg"),
+    badgeText: "Dashboard",
+    badgeColor: "#3b82f6",
+  },
+  {
+    id: "chat",
+    name: "Chat",
+    icon: "message.fill",
+    description: "Message your connections",
+    backgroundImage: require("@/assets/images/hero-student-connect.jpg"),
+    badgeText: "Coming Soon",
+    badgeColor: "#8b5cf6",
+  },
   {
     id: "marketplace",
     name: "Marketplace",
@@ -132,6 +151,8 @@ export default function ServicesScreen() {
 
   const handleServicePress = (serviceId: string) => {
     const routes: Record<string, string> = {
+      "my-account": "/",
+      chat: "/chat",
       marketplace: "/marketplace",
       accommodation: "/accommodation",
       loans: "/student-loans",
@@ -156,11 +177,18 @@ export default function ServicesScreen() {
     <ScreenContainer className="p-4" edges={["top", "left", "right"]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
         <View className="flex-1 gap-6">
-          {/* Header */}
-          <View className="gap-2">
-            <Text className="text-3xl font-bold text-foreground">Services</Text>
-            <Text className="text-base text-muted">
-              Explore all student services and features
+          {/* Logo and Tagline Header */}
+          <View className="items-center gap-3 py-4">
+            <Image
+              source={require("@/assets/images/icon.png")}
+              style={{ width: 80, height: 80 }}
+              contentFit="contain"
+            />
+            <Text className="text-3xl font-bold text-foreground text-center">
+              Student Konnect
+            </Text>
+            <Text className="text-base text-muted text-center px-4">
+              Connecting over 300 million students globally
             </Text>
           </View>
 
