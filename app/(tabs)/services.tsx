@@ -62,15 +62,7 @@ const SERVICES: ServiceItem[] = [
     badgeText: "Verified Listings",
     badgeColor: "#f97316",
   },
-  {
-    id: "loans",
-    name: "Student Loans",
-    icon: "creditcard.fill",
-    description: "Apply for student loans",
-    backgroundImage: require("@/assets/images/wallet-bg.jpg"),
-    badgeText: "Apply Now",
-    badgeColor: "#3b82f6",
-  },
+
   {
     id: "wellness",
     name: "Wellness",

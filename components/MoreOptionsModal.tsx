@@ -90,6 +90,12 @@ export function MoreOptionsModal({ visible, onClose }: MoreOptionsModalProps) {
       subtitle: "Find tutors or offer tutoring",
       image: require("@/assets/images/hero-student-connect.jpg"),
     },
+    {
+      id: "loans",
+      title: "Student Loans",
+      subtitle: "Apply for student loans",
+      image: require("@/assets/images/wallet-bg.jpg"),
+    },
   ];
 
   const handleActionPress = (actionId: string) => {
@@ -106,6 +112,11 @@ export function MoreOptionsModal({ visible, onClose }: MoreOptionsModalProps) {
     if (actionId === "tutoring") {
       onClose();
       router.push("/tutoring" as any);
+      return;
+    }
+    if (actionId === "loans") {
+      onClose();
+      router.push("/loans" as any);
       return;
     }
     setSelectedAction(actionId);
