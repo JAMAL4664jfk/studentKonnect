@@ -299,7 +299,7 @@ export default function CampusEntertainmentScreen() {
             <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-2xl font-bold text-foreground">Campus Entertainment</Text>
+            <Text className="text-2xl font-bold text-foreground">Content on Demand</Text>
             <Text className="text-sm text-muted">Podcasts, Radio & Music</Text>
           </View>
         </View>

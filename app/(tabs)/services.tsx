@@ -37,7 +37,7 @@ const SERVICES: ServiceItem[] = [
   },
   {
     id: "campus-entertainment",
-    name: "Campus Entertainment",
+    name: "Content on Demand",
     icon: "music.note",
     description: "Podcasts, campus radio & live stations",
     backgroundImage: require("@/assets/images/student-podcast-bg.jpg"),
