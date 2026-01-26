@@ -63,10 +63,8 @@ const getImageUrl = (images: string): string => {
   const imageArray = parseJSON(images);
   if (imageArray.length === 0) return "";
   const firstImage = imageArray[0];
-  if (firstImage.startsWith("/assets")) {
-    return "";
-  }
-  return firstImage;
+  // Return the image URL directly, don't filter out any images
+  return firstImage || "";
 };
 
 // Amenity icons mapping
@@ -397,15 +395,18 @@ export default function AccommodationScreen() {
             </View>
 
             {/* Images Carousel */}
-            {imagesArray.length > 0 && !imagesArray[0].startsWith("/assets") && (
+            {imagesArray.length > 0 && (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
                 {imagesArray.map((img: string, index: number) => (
-                  <Image
-                    key={index}
-                    source={{ uri: img }}
-                    className="w-80 h-64 rounded-2xl mr-3"
-                    contentFit="cover"
-                  />
+                  img && (
+                    <Image
+                      key={index}
+                      source={{ uri: img }}
+                      className="w-80 h-64 rounded-2xl mr-3"
+                      contentFit="cover"
+                      cachePolicy="memory-disk"
+                    />
+                  )
                 ))}
               </ScrollView>
             )}
