@@ -321,6 +321,7 @@ export default function AuthScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
         >
           <ImageBackground
             source={require("@/assets/images/auth-background.jpg")}
@@ -333,8 +334,9 @@ export default function AuthScreen() {
               <View className="w-32 h-32 rounded-full overflow-hidden bg-white mb-4" style={{ shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 }}>
                 <Image
                   source={require("@/assets/images/student-konnect-logo.png")}
-                  className="w-full h-full"
-                  contentFit="cover"
+                  style={{ width: 128, height: 128 }}
+                  contentFit="contain"
+                  cachePolicy="memory-disk"
                 />
               </View>
               <View className="bg-white/20 backdrop-blur-md rounded-2xl px-6 py-4">
@@ -621,7 +623,7 @@ export default function AuthScreen() {
 
               {mode === "full-signup" && (
                 // FULL SIGNUP FORM (scrollable)
-                <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 500 }}>
+                <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
                   <View className="gap-4">
                     <Text className="text-lg font-bold text-gray-900 text-center mb-2">
                       Full Registration
