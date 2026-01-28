@@ -13,32 +13,47 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
  */
 const ExpoSecureStoreAdapter = {
   getItem: async (key: string) => {
-    if (Platform.OS === "web") {
-      // On web, use localStorage if available
-      if (typeof window !== "undefined" && window.localStorage) {
-        return window.localStorage.getItem(key);
+    try {
+      if (Platform.OS === "web") {
+        // On web, use localStorage if available
+        if (typeof window !== "undefined" && window.localStorage) {
+          return window.localStorage.getItem(key);
+        }
+        return null;
       }
+      const result = await SecureStore.getItemAsync(key);
+      return result;
+    } catch (error) {
+      console.error("SecureStore getItem error:", error);
       return null;
     }
-    return await SecureStore.getItemAsync(key);
   },
   setItem: async (key: string, value: string) => {
-    if (Platform.OS === "web") {
-      if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(key, value);
+    try {
+      if (Platform.OS === "web") {
+        if (typeof window !== "undefined" && window.localStorage) {
+          window.localStorage.setItem(key, value);
+        }
+        return;
       }
-      return;
+      await SecureStore.setItemAsync(key, value);
+    } catch (error) {
+      console.error("SecureStore setItem error:", error);
+      throw error;
     }
-    await SecureStore.setItemAsync(key, value);
   },
   removeItem: async (key: string) => {
-    if (Platform.OS === "web") {
-      if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.removeItem(key);
+    try {
+      if (Platform.OS === "web") {
+        if (typeof window !== "undefined" && window.localStorage) {
+          window.localStorage.removeItem(key);
+        }
+        return;
       }
-      return;
+      await SecureStore.deleteItemAsync(key);
+    } catch (error) {
+      console.error("SecureStore removeItem error:", error);
     }
-    await SecureStore.deleteItemAsync(key);
   },
 };
 
