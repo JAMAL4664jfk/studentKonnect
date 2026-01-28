@@ -331,11 +331,11 @@ export default function AuthScreen() {
             <View className="flex-1 bg-black/40 px-6 pt-16 pb-8">
             {/* Logo */}
             <View className="items-center mb-8">
-              <View className="w-32 h-32 rounded-full overflow-hidden bg-white mb-4 items-center justify-center" style={{ shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 }}>
+              <View className="w-32 h-32 rounded-full overflow-hidden mb-4" style={{ shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 }}>
                 <Image
                   source={require("@/assets/images/student-konnect-logo.png")}
-                  style={{ width: 120, height: 120 }}
-                  contentFit="contain"
+                  style={{ width: 128, height: 128 }}
+                  contentFit="cover"
                   cachePolicy="memory-disk"
                 />
               </View>
