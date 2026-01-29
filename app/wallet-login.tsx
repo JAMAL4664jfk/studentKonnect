@@ -181,7 +181,7 @@ export default function WalletLoginScreen() {
                   Phone: 0844050611
                 </Text>
                 <Text className="text-xs text-blue-600">
-                  PIN: 67891
+                  PIN: 12345
                 </Text>
               </View>
             </View>

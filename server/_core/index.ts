@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import cryptoRouter from "../crypto/crypto-router";
 import { initializeOnStartup } from "../crypto/startup";
+import walletProxyRouter from "../routes/wallet-proxy";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -41,7 +42,7 @@ async function startServer() {
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.header(
       "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization, client-key, client-pass",
     );
     res.header("Access-Control-Allow-Credentials", "true");
 
@@ -72,6 +73,9 @@ async function startServer() {
 
   // Register crypto routes
   app.use("/api/crypto", cryptoRouter);
+
+  // Register wallet proxy routes
+  app.use("/api", walletProxyRouter);
 
   // Initialize blockchain services
   initializeOnStartup().catch((error) => {

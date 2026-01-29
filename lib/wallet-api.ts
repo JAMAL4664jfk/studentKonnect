@@ -5,6 +5,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 // API Configuration - Read from expo-constants for runtime access
 const API_CONFIG = {
@@ -152,11 +153,23 @@ class WalletAPIService {
   }
 
   /**
+   * Get API URL - use proxy on web to bypass CORS
+   */
+  private getApiUrl(endpoint: string): string {
+    if (Platform.OS === 'web') {
+      // Use backend proxy on web to bypass CORS
+      return `http://localhost:3000/api/wallet-proxy/${endpoint}`;
+    }
+    // Direct API call on native platforms
+    return `${this.baseUrl}${endpoint}`;
+  }
+
+  /**
    * Login with phone number and PIN
    */
   async login(phoneNumber: string, pin: string): Promise<WalletLoginResponse> {
     try {
-      const url = `${this.baseUrl}customer/login`;
+      const url = this.getApiUrl('customer/login');
       const headers = await this.getHeaders(false);
       const body = JSON.stringify({
         phone_number: phoneNumber,
@@ -223,7 +236,7 @@ class WalletAPIService {
    */
   async getBalance(): Promise<WalletBalance> {
     try {
-      const response = await fetch(`${this.baseUrl}customer/balance`, {
+      const response = await fetch(this.getApiUrl('customer/balance'), {
         method: 'GET',
         headers: await this.getHeaders(),
       });
@@ -252,7 +265,7 @@ class WalletAPIService {
   async getTransactions(limit: number = 50, offset: number = 0): Promise<Transaction[]> {
     try {
       const response = await fetch(
-        `${this.baseUrl}transactions?limit=${limit}&offset=${offset}`,
+        this.getApiUrl(`transactions?limit=${limit}&offset=${offset}`),
         {
           method: 'GET',
           headers: await this.getHeaders(),
@@ -278,7 +291,7 @@ class WalletAPIService {
    */
   async getVouchers(): Promise<Voucher[]> {
     try {
-      const response = await fetch(`${this.baseUrl}customer/vouchers`, {
+      const response = await fetch(this.getApiUrl('customer/vouchers'), {
         method: 'GET',
         headers: await this.getHeaders(),
       });
@@ -302,7 +315,7 @@ class WalletAPIService {
    */
   async getProfile(): Promise<CustomerProfile> {
     try {
-      const response = await fetch(`${this.baseUrl}customer/profile`, {
+      const response = await fetch(this.getApiUrl('customer/profile'), {
         method: 'GET',
         headers: await this.getHeaders(),
       });
@@ -331,7 +344,7 @@ class WalletAPIService {
    */
   async verifyToken(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}customer/verify_token`, {
+      const response = await fetch(this.getApiUrl('customer/verify_token'), {
         method: 'POST',
         headers: await this.getHeaders(),
       });

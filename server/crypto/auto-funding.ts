@@ -125,7 +125,7 @@ export class AutoFundingService {
       await this.initializeFunder();
     }
 
-    const needs Funding = await this.needsFunding(address);
+    const needsFunding = await this.needsFunding(address);
     if (needsFunding) {
       await this.fundWallet(address);
     }
