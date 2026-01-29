@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { walletAPI } from "@/lib/wallet-api";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
-import { capturePhoto, selectPhoto, uriToBlob, getFileExtension } from "@/lib/image-picker-utils";mage-picker-utils";
+import { capturePhoto, selectPhoto, uriToBlob, getFileExtension } from "@/lib/image-picker-utils";
 
 type MenuItem = {
   id: string;
