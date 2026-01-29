@@ -603,104 +603,31 @@ export default function MarketplaceScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Modern Filter Pills - Minimal & Bold */}
+        {/* Single Row Navigation Pills with Icons */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           className="mb-6"
           contentContainerStyle={{ gap: 12, paddingRight: 16 }}
         >
-          <TouchableOpacity
-            onPress={() => setSelectedFilter("all")}
-            className={`px-5 py-2.5 rounded-full ${
-              selectedFilter === "all" 
-                ? "bg-primary" 
-                : "bg-white border-2 border-gray-200"
-            }`}
-          >
-            <Text
-              className={`font-bold text-base ${
-                selectedFilter === "all" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              All
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedFilter("popular")}
-            className={`px-5 py-2.5 rounded-full ${
-              selectedFilter === "popular" 
-                ? "bg-primary" 
-                : "bg-white border-2 border-gray-200"
-            }`}
-          >
-            <Text
-              className={`font-bold text-base ${
-                selectedFilter === "popular" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Popular
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedFilter("recent")}
-            className={`px-5 py-2.5 rounded-full ${
-              selectedFilter === "recent" 
-                ? "bg-primary" 
-                : "bg-white border-2 border-gray-200"
-            }`}
-          >
-            <Text
-              className={`font-bold text-base ${
-                selectedFilter === "recent" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Recent
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedFilter("featured")}
-            className={`px-5 py-2.5 rounded-full ${
-              selectedFilter === "featured" 
-                ? "bg-primary" 
-                : "bg-white border-2 border-gray-200"
-            }`}
-          >
-            <Text
-              className={`font-bold text-base ${
-                selectedFilter === "featured" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Featured
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-
-        {/* Category Pills */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mb-6"
-          contentContainerStyle={{ gap: 10, paddingRight: 16 }}
-        >
           {CATEGORIES.map((category) => (
             <TouchableOpacity
               key={category.key}
               onPress={() => setSelectedCategory(category.key)}
-              className={`px-5 py-3 rounded-xl flex-row items-center gap-2 ${
+              className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
                 selectedCategory === category.key
                   ? "bg-primary"
-                  : "bg-surface border border-border"
+                  : "bg-white border-2 border-gray-200"
               }`}
             >
               <IconSymbol
                 name={category.icon}
-                size={16}
-                color={selectedCategory === category.key ? "#fff" : colors.foreground}
+                size={18}
+                color={selectedCategory === category.key ? "#fff" : "#1f2937"}
               />
               <Text
-                className={`font-semibold text-sm ${
-                  selectedCategory === category.key ? "text-white" : "text-foreground"
+                className={`font-bold text-base ${
+                  selectedCategory === category.key ? "text-white" : "text-gray-900"
                 }`}
               >
                 {category.label}

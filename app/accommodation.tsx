@@ -571,7 +571,7 @@ export default function AccommodationScreen() {
           )}
         </View>
 
-        {/* Modern Filter Pills - Minimal & Bold */}
+        {/* Single Row Navigation Pills with Icons */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -579,71 +579,131 @@ export default function AccommodationScreen() {
           contentContainerStyle={{ gap: 12, paddingRight: 16 }}
         >
           <TouchableOpacity
-            onPress={() => setSelectedFilter("all")}
-            className={`px-5 py-2.5 rounded-full ${
-              selectedFilter === "all" 
-                ? "bg-primary" 
+            onPress={() => setSelectedType("All")}
+            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+              selectedType === "All"
+                ? "bg-primary"
                 : "bg-white border-2 border-gray-200"
             }`}
           >
+            <IconSymbol
+              name="square.grid.2x2"
+              size={18}
+              color={selectedType === "All" ? "#fff" : "#1f2937"}
+            />
             <Text
               className={`font-bold text-base ${
-                selectedFilter === "all" ? "text-white" : "text-gray-900"
+                selectedType === "All" ? "text-white" : "text-gray-900"
               }`}
             >
               All
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setSelectedFilter("favorites")}
-            className={`px-5 py-2.5 rounded-full ${
-              selectedFilter === "favorites" 
-                ? "bg-primary" 
+            onPress={() => setSelectedType("apartment")}
+            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+              selectedType === "apartment"
+                ? "bg-primary"
                 : "bg-white border-2 border-gray-200"
             }`}
           >
+            <IconSymbol
+              name="building.2.fill"
+              size={18}
+              color={selectedType === "apartment" ? "#fff" : "#1f2937"}
+            />
             <Text
-              className={`font-bold text-base ${
-                selectedFilter === "favorites" ? "text-white" : "text-gray-900"
+              className={`font-bold text-base capitalize ${
+                selectedType === "apartment" ? "text-white" : "text-gray-900"
               }`}
             >
-              Favorites
+              Apartment
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => router.push("/my-accommodations")}
-            className="px-5 py-2.5 rounded-full bg-white border-2 border-gray-200"
+            onPress={() => setSelectedType("room")}
+            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+              selectedType === "room"
+                ? "bg-primary"
+                : "bg-white border-2 border-gray-200"
+            }`}
           >
-            <Text className="font-bold text-base text-gray-900">
-              My Listings
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-
-        {/* Property Type Pills */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mb-6"
-          contentContainerStyle={{ gap: 10, paddingRight: 16 }}
-        >
-          {TYPES.map((type) => (
-            <TouchableOpacity
-              key={type}
-              onPress={() => setSelectedType(type)}
-              className={`px-5 py-3 rounded-xl ${
-                selectedType === type ? "bg-primary" : "bg-surface border border-border"
+            <IconSymbol
+              name="door.left.hand.open"
+              size={18}
+              color={selectedType === "room" ? "#fff" : "#1f2937"}
+            />
+            <Text
+              className={`font-bold text-base capitalize ${
+                selectedType === "room" ? "text-white" : "text-gray-900"
               }`}
             >
-              <Text
-                className={`font-semibold text-sm capitalize ${
-                  selectedType === type ? "text-white" : "text-foreground"
-                }`}
-              >
-                {type}
-              </Text>
-            </TouchableOpacity>
-          ))}
+              Room
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSelectedType("studio")}
+            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+              selectedType === "studio"
+                ? "bg-primary"
+                : "bg-white border-2 border-gray-200"
+            }`}
+          >
+            <IconSymbol
+              name="house.fill"
+              size={18}
+              color={selectedType === "studio" ? "#fff" : "#1f2937"}
+            />
+            <Text
+              className={`font-bold text-base capitalize ${
+                selectedType === "studio" ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Studio
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSelectedType("house")}
+            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+              selectedType === "house"
+                ? "bg-primary"
+                : "bg-white border-2 border-gray-200"
+            }`}
+          >
+            <IconSymbol
+              name="house.fill"
+              size={18}
+              color={selectedType === "house" ? "#fff" : "#1f2937"}
+            />
+            <Text
+              className={`font-bold text-base capitalize ${
+                selectedType === "house" ? "text-white" : "text-gray-900"
+              }`}
+            >
+              House
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSelectedType("dormitory")}
+            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+              selectedType === "dormitory"
+                ? "bg-primary"
+                : "bg-white border-2 border-gray-200"
+            }`}
+          >
+            <IconSymbol
+              name="building.fill"
+              size={18}
+              color={selectedType === "dormitory" ? "#fff" : "#1f2937"}
+            />
+            <Text
+              className={`font-bold text-base capitalize ${
+                selectedType === "dormitory" ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Dormitory
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
 
         {/* Stats */}
