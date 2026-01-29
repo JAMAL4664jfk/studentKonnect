@@ -581,12 +581,14 @@ export default function AccommodationScreen() {
           <TouchableOpacity
             onPress={() => setSelectedFilter("all")}
             className={`px-5 py-2.5 rounded-full ${
-              selectedFilter === "all" ? "bg-foreground" : "bg-surface"
+              selectedFilter === "all" 
+                ? "bg-primary" 
+                : "bg-white border-2 border-gray-200"
             }`}
           >
             <Text
               className={`font-bold text-base ${
-                selectedFilter === "all" ? "text-background" : "text-foreground"
+                selectedFilter === "all" ? "text-white" : "text-gray-900"
               }`}
             >
               All
@@ -595,12 +597,14 @@ export default function AccommodationScreen() {
           <TouchableOpacity
             onPress={() => setSelectedFilter("favorites")}
             className={`px-5 py-2.5 rounded-full ${
-              selectedFilter === "favorites" ? "bg-foreground" : "bg-surface"
+              selectedFilter === "favorites" 
+                ? "bg-primary" 
+                : "bg-white border-2 border-gray-200"
             }`}
           >
             <Text
               className={`font-bold text-base ${
-                selectedFilter === "favorites" ? "text-background" : "text-foreground"
+                selectedFilter === "favorites" ? "text-white" : "text-gray-900"
               }`}
             >
               Favorites
@@ -608,9 +612,9 @@ export default function AccommodationScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.push("/my-accommodations")}
-            className="px-5 py-2.5 rounded-full bg-surface"
+            className="px-5 py-2.5 rounded-full bg-white border-2 border-gray-200"
           >
-            <Text className="font-bold text-base text-foreground">
+            <Text className="font-bold text-base text-gray-900">
               My Listings
             </Text>
           </TouchableOpacity>

@@ -613,12 +613,14 @@ export default function MarketplaceScreen() {
           <TouchableOpacity
             onPress={() => setSelectedFilter("all")}
             className={`px-5 py-2.5 rounded-full ${
-              selectedFilter === "all" ? "bg-foreground" : "bg-surface"
+              selectedFilter === "all" 
+                ? "bg-primary" 
+                : "bg-white border-2 border-gray-200"
             }`}
           >
             <Text
               className={`font-bold text-base ${
-                selectedFilter === "all" ? "text-background" : "text-foreground"
+                selectedFilter === "all" ? "text-white" : "text-gray-900"
               }`}
             >
               All
@@ -627,12 +629,14 @@ export default function MarketplaceScreen() {
           <TouchableOpacity
             onPress={() => setSelectedFilter("popular")}
             className={`px-5 py-2.5 rounded-full ${
-              selectedFilter === "popular" ? "bg-foreground" : "bg-surface"
+              selectedFilter === "popular" 
+                ? "bg-primary" 
+                : "bg-white border-2 border-gray-200"
             }`}
           >
             <Text
               className={`font-bold text-base ${
-                selectedFilter === "popular" ? "text-background" : "text-foreground"
+                selectedFilter === "popular" ? "text-white" : "text-gray-900"
               }`}
             >
               Popular
@@ -641,12 +645,14 @@ export default function MarketplaceScreen() {
           <TouchableOpacity
             onPress={() => setSelectedFilter("recent")}
             className={`px-5 py-2.5 rounded-full ${
-              selectedFilter === "recent" ? "bg-foreground" : "bg-surface"
+              selectedFilter === "recent" 
+                ? "bg-primary" 
+                : "bg-white border-2 border-gray-200"
             }`}
           >
             <Text
               className={`font-bold text-base ${
-                selectedFilter === "recent" ? "text-background" : "text-foreground"
+                selectedFilter === "recent" ? "text-white" : "text-gray-900"
               }`}
             >
               Recent
@@ -655,12 +661,14 @@ export default function MarketplaceScreen() {
           <TouchableOpacity
             onPress={() => setSelectedFilter("featured")}
             className={`px-5 py-2.5 rounded-full ${
-              selectedFilter === "featured" ? "bg-foreground" : "bg-surface"
+              selectedFilter === "featured" 
+                ? "bg-primary" 
+                : "bg-white border-2 border-gray-200"
             }`}
           >
             <Text
               className={`font-bold text-base ${
-                selectedFilter === "featured" ? "text-background" : "text-foreground"
+                selectedFilter === "featured" ? "text-white" : "text-gray-900"
               }`}
             >
               Featured
