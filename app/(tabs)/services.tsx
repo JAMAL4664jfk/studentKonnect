@@ -125,7 +125,7 @@ export default function ServicesScreen() {
 
   const handleServicePress = (serviceId: string) => {
     const routes: Record<string, string> = {
-      "my-account": "/",
+      "my-account": "/wallet-login",
       chat: "/chat",
       "campus-entertainment": "/campus-entertainment",
       marketplace: "/marketplace",

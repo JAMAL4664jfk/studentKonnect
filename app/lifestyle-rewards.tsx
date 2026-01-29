@@ -12,7 +12,6 @@ export default function LifestyleRewardsScreen() {
   const [selectedTab, setSelectedTab] = useState("rewards");
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const useWalletAPI = process.env.EXPO_PUBLIC_USE_WALLET_API === 'true';
 
   // Load vouchers from Wallet API
   useEffect(() => {
@@ -20,23 +19,22 @@ export default function LifestyleRewardsScreen() {
   }, []);
 
   const loadVouchers = async () => {
-    if (!useWalletAPI) {
-      setIsLoading(false);
-      return;
-    }
-
     try {
       setIsLoading(true);
       const data = await walletAPI.getVouchers();
       setVouchers(data);
     } catch (error) {
       console.error('Error loading vouchers:', error);
+      // If unauthorized, redirect to login
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        router.replace('/wallet-login');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Mock data
+  // Stats from API (can be extended later)
   const stats = {
     points: 2450,
     badges: 12,
@@ -44,58 +42,15 @@ export default function LifestyleRewardsScreen() {
     level: 5,
   };
 
-  // Convert API vouchers to rewards format or use mock data
-  const rewards = useWalletAPI && vouchers.length > 0
-    ? vouchers.map((v, i) => ({
-        id: v.id,
-        title: v.title,
-        points: v.points,
-        icon: getVoucherIcon(v.title),
-        color: getVoucherColor(i),
-        available: v.status === 'active',
-      }))
-    : [
-        {
-          id: "1",
-          title: "Free Coffee",
-          points: 500,
-          icon: "cup.and.saucer.fill",
-          color: "#8B5CF6",
-          available: true,
-        },
-        {
-          id: "2",
-          title: "10% Bookstore Discount",
-          points: 750,
-          icon: "book.fill",
-          color: "#3B82F6",
-          available: true,
-        },
-        {
-          id: "3",
-          title: "Free Gym Day Pass",
-          points: 1000,
-          icon: "figure.run",
-          color: "#10B981",
-          available: true,
-        },
-        {
-          id: "4",
-          title: "Premium Account (1 Month)",
-          points: 2000,
-          icon: "star.fill",
-          color: "#F59E0B",
-          available: true,
-        },
-        {
-          id: "5",
-          title: "Free Movie Ticket",
-          points: 3000,
-          icon: "film.fill",
-          color: "#EF4444",
-          available: false,
-        },
-      ];
+  // Convert API vouchers to rewards format
+  const rewards = vouchers.map((v, i) => ({
+    id: v.id,
+    title: v.title,
+    points: v.points || 0,
+    icon: getVoucherIcon(v.title),
+    color: getVoucherColor(i),
+    available: v.status === 'active',
+  }));
 
   const getVoucherIcon = (title: string) => {
     const lower = title.toLowerCase();

@@ -22,7 +22,6 @@ export default function FinancialAnalyticsScreen() {
   });
 
   const periods = ["Week", "Month", "Year"];
-  const useWalletAPI = process.env.EXPO_PUBLIC_USE_WALLET_API === 'true';
 
   // Load transactions from Wallet API
   useEffect(() => {
@@ -30,18 +29,6 @@ export default function FinancialAnalyticsScreen() {
   }, [selectedPeriod]);
 
   const loadTransactions = async () => {
-    if (!useWalletAPI) {
-      // Use mock data if API is disabled
-      setStats({
-        income: 4500,
-        expenses: 1254.50,
-        savings: 3245.50,
-        transactions: 42,
-      });
-      setIsLoading(false);
-      return;
-    }
-
     try {
       setIsLoading(true);
       const data = await walletAPI.getTransactions(100, 0);
@@ -49,13 +36,10 @@ export default function FinancialAnalyticsScreen() {
       calculateStats(data);
     } catch (error) {
       console.error('Error loading transactions:', error);
-      // Fallback to mock data on error
-      setStats({
-        income: 4500,
-        expenses: 1254.50,
-        savings: 3245.50,
-        transactions: 42,
-      });
+      // If unauthorized, redirect to login
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        router.replace('/wallet-login');
+      }
     } finally {
       setIsLoading(false);
     }
