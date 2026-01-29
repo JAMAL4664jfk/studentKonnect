@@ -177,8 +177,20 @@ class WalletAPIService {
       console.log('📡 Response Status:', response.status);
       console.log('📡 Response OK:', response.ok);
 
-      const data: WalletLoginResponse = await response.json();
-      console.log('📦 Response Data:', JSON.stringify(data, null, 2));
+      // Get raw response text first
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      // Try to parse JSON
+      let data: WalletLoginResponse;
+      try {
+        data = responseText ? JSON.parse(responseText) : { success: false, messages: 'Empty response' };
+        console.log('📦 Parsed Data:', JSON.stringify(data, null, 2));
+      } catch (parseError) {
+        console.error('❌ JSON Parse Error:', parseError);
+        console.error('Response was:', responseText);
+        throw new Error(`Invalid JSON response: ${responseText}`);
+      }
 
       if (data.success && data.data) {
         await this.storeTokens(
