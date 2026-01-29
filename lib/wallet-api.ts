@@ -75,6 +75,12 @@ class WalletAPIService {
     this.baseUrl = API_CONFIG.baseUrl;
     this.clientKey = API_CONFIG.clientKey;
     this.clientPass = API_CONFIG.clientPass;
+    
+    // Log configuration on initialization
+    console.log('💼 Wallet API Service Initialized:');
+    console.log('Base URL:', this.baseUrl);
+    console.log('Has Client Key:', !!this.clientKey, '(length:', this.clientKey?.length || 0, ')');
+    console.log('Has Client Pass:', !!this.clientPass, '(length:', this.clientPass?.length || 0, ')');
   }
 
   /**
