@@ -149,16 +149,29 @@ class WalletAPIService {
    */
   async login(phoneNumber: string, pin: string): Promise<WalletLoginResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}customer/login`, {
-        method: 'POST',
-        headers: await this.getHeaders(false),
-        body: JSON.stringify({
-          phone_number: phoneNumber,
-          pin: pin,
-        }),
+      const url = `${this.baseUrl}customer/login`;
+      const headers = await this.getHeaders(false);
+      const body = JSON.stringify({
+        phone_number: phoneNumber,
+        pin: pin,
       });
 
+      console.log('🔐 Wallet API Login Request:');
+      console.log('URL:', url);
+      console.log('Headers:', JSON.stringify(headers, null, 2));
+      console.log('Body:', body);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: body,
+      });
+
+      console.log('📡 Response Status:', response.status);
+      console.log('📡 Response OK:', response.ok);
+
       const data: WalletLoginResponse = await response.json();
+      console.log('📦 Response Data:', JSON.stringify(data, null, 2));
 
       if (data.success && data.data) {
         await this.storeTokens(
