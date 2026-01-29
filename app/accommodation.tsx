@@ -749,7 +749,7 @@ export default function AccommodationScreen() {
                 tintColor={colors.primary}
               />
             }
-            contentContainerStyle={{ paddingBottom: 20 }}
+            contentContainerStyle={{ paddingTop: 16, paddingBottom: 20 }}
           />
         )}
 

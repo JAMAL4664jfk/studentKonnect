@@ -667,7 +667,7 @@ export default function MarketplaceScreen() {
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
-            contentContainerStyle={{ paddingBottom: 20 }}
+            contentContainerStyle={{ paddingTop: 16, paddingBottom: 20 }}
           />
         )}
 
