@@ -28,11 +28,16 @@ const config: ExpoConfig = {
   scheme: env.scheme,
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
-      "extra": {
-      "eas": {
-        "projectId": "05ef86e3-9d89-47c3-b0e5-647a2490a3bd"
-      }
+  extra: {
+    eas: {
+      projectId: "05ef86e3-9d89-47c3-b0e5-647a2490a3bd"
     },
+    // Wallet API Configuration
+    EXPO_PUBLIC_WALLET_API_URL: process.env.EXPO_PUBLIC_WALLET_API_URL || "https://api.wallet.example.com/",
+    EXPO_PUBLIC_WALLET_CLIENT_KEY: process.env.EXPO_PUBLIC_WALLET_CLIENT_KEY || "",
+    EXPO_PUBLIC_WALLET_CLIENT_PASS: process.env.EXPO_PUBLIC_WALLET_CLIENT_PASS || "",
+    EXPO_PUBLIC_USE_WALLET_API: process.env.EXPO_PUBLIC_USE_WALLET_API || "false",
+  },
   ios: {
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,

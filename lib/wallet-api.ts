@@ -4,12 +4,13 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
-// API Configuration
+// API Configuration - Read from expo-constants for runtime access
 const API_CONFIG = {
-  baseUrl: process.env.EXPO_PUBLIC_WALLET_API_URL || 'https://api.wallet.example.com/',
-  clientKey: process.env.EXPO_PUBLIC_WALLET_CLIENT_KEY || '',
-  clientPass: process.env.EXPO_PUBLIC_WALLET_CLIENT_PASS || '',
+  baseUrl: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_API_URL || process.env.EXPO_PUBLIC_WALLET_API_URL || 'https://api.wallet.example.com/',
+  clientKey: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_CLIENT_KEY || process.env.EXPO_PUBLIC_WALLET_CLIENT_KEY || '',
+  clientPass: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_CLIENT_PASS || process.env.EXPO_PUBLIC_WALLET_CLIENT_PASS || '',
 };
 
 // Storage keys
