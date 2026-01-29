@@ -719,6 +719,24 @@ export default function AccommodationScreen() {
           </TouchableOpacity>
         </ScrollView>
 
+        {/* Action Buttons */}
+        <View className="flex-row gap-3 mb-4">
+          <TouchableOpacity
+            className="flex-1 bg-primary px-5 py-3.5 rounded-xl flex-row items-center justify-center gap-2"
+            onPress={() => router.push("/create-accommodation")}
+          >
+            <IconSymbol name="plus.circle.fill" size={20} color="#fff" />
+            <Text className="text-white font-bold text-base">Post Your Listing</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1 bg-white border-2 border-primary px-5 py-3.5 rounded-xl flex-row items-center justify-center gap-2"
+            onPress={() => router.push("/my-accommodation-listings")}
+          >
+            <IconSymbol name="list.bullet" size={20} color={colors.primary} />
+            <Text className="text-primary font-bold text-base">Manage Listings</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Stats */}
         <View className="flex-row items-center gap-2 mb-4">
           <Text className="text-sm font-medium text-foreground">
