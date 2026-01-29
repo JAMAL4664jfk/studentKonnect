@@ -2,10 +2,25 @@ import "react-native-url-polyfill/auto";
 import { createClient } from "@supabase/supabase-js";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 
-// Supabase configuration - NEW DATABASE
-const SUPABASE_URL = "https://ortjjekmexmyvkkotioo.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydGpqZWttZXhteXZra290aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwOTkyODAsImV4cCI6MjA4NDY3NTI4MH0.__lyxX1wdkAkO7xUj5cBuc1x9ae_h-cggfVl_yXby6A";
+// Supabase configuration - Read from expo-constants for runtime access
+// Falls back to hardcoded values if not available in config
+const SUPABASE_URL = 
+  Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL || 
+  process.env.EXPO_PUBLIC_SUPABASE_URL || 
+  "https://ortjjekmexmyvkkotioo.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY = 
+  Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY || 
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydGpqZWttZXhteXZra290aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwOTkyODAsImV4cCI6MjA4NDY3NTI4MH0.__lyxX1wdkAkO7xUj5cBuc1x9ae_h-cggfVl_yXby6A";
+
+// Log configuration on initialization (helps debug APK issues)
+console.log('🔌 Supabase Client Initialized:');
+console.log('URL:', SUPABASE_URL);
+console.log('Has Anon Key:', !!SUPABASE_PUBLISHABLE_KEY, '(length:', SUPABASE_PUBLISHABLE_KEY?.length || 0, ')');
+console.log('Platform:', Platform.OS);
 
 /**
  * Custom storage adapter using expo-secure-store for secure session persistence

@@ -32,6 +32,10 @@ const config: ExpoConfig = {
     eas: {
       projectId: "05ef86e3-9d89-47c3-b0e5-647a2490a3bd"
     },
+    // Supabase Configuration (Hardcoded for production builds)
+    // These values ensure Supabase works in APK builds
+    EXPO_PUBLIC_SUPABASE_URL: "https://ortjjekmexmyvkkotioo.supabase.co",
+    EXPO_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydGpqZWttZXhteXZra290aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwOTkyODAsImV4cCI6MjA4NDY3NTI4MH0.__lyxX1wdkAkO7xUj5cBuc1x9ae_h-cggfVl_yXby6A",
     // Wallet API Configuration (Hardcoded for QA Testing)
     // TODO: Fix .env loading and remove hardcoded values
     EXPO_PUBLIC_WALLET_API_URL: "https://api.payelio.com/v3/",
