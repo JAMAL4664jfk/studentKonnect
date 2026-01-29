@@ -166,9 +166,13 @@ class WalletAPIService {
           data.data.refresh_token,
           data.data.access_token_expires_in
         );
+        return data;
+      } else {
+        // API returned error response
+        const error: any = new Error(data.messages || 'Login failed');
+        error.response = data;
+        throw error;
       }
-
-      return data;
     } catch (error) {
       console.error('Wallet API login error:', error);
       throw error;

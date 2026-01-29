@@ -64,10 +64,19 @@ export default function WalletLoginScreen() {
       router.replace("/my-account");
     } catch (error: any) {
       console.error("Login error:", error);
+      
+      // Extract error message from API response
+      let errorMessage = "Invalid phone number or PIN";
+      if (error.response) {
+        errorMessage = error.response.messages || error.response.message || errorMessage;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       Toast.show({
         type: "error",
         text1: "Login Failed",
-        text2: error.message || "Invalid phone number or PIN",
+        text2: errorMessage,
       });
     } finally {
       setLoading(false);
