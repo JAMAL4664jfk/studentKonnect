@@ -607,8 +607,8 @@ export default function MarketplaceScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="mb-6"
-          contentContainerStyle={{ gap: 12, paddingRight: 16 }}
+          className="mb-8"
+          contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 8 }}
         >
           {CATEGORIES.map((category) => (
             <TouchableOpacity

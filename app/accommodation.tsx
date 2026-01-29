@@ -575,8 +575,8 @@ export default function AccommodationScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="mb-6"
-          contentContainerStyle={{ gap: 12, paddingRight: 16 }}
+          className="mb-8"
+          contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 8 }}
         >
           <TouchableOpacity
             onPress={() => setSelectedType("All")}
