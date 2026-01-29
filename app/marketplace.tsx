@@ -502,49 +502,31 @@ export default function MarketplaceScreen() {
             </View>
 
             {/* Seller Info */}
-            <View className="mb-6">
-              <Text className="text-xl font-bold text-foreground mb-3">Seller Information</Text>
-              <View className="bg-surface rounded-2xl p-4 flex-row items-center gap-3">
+            <View className="bg-surface rounded-2xl p-5 mb-6">
+              <Text className="text-lg font-bold text-foreground mb-4">Seller Information</Text>
+              <View className="flex-row items-center gap-3 mb-4">
                 <View className="w-12 h-12 rounded-full bg-primary items-center justify-center">
                   <Text className="text-xl font-bold text-primary-foreground">S</Text>
                 </View>
                 <View className="flex-1">
-                  <Text className="text-base font-semibold text-foreground">Student</Text>
-                  <Text className="text-sm text-muted-foreground">
-                    Posted {new Date(selectedItem.createdAt).toLocaleDateString()}
-                  </Text>
+                  <Text className="text-base font-bold text-foreground">Student Seller</Text>
+                  <Text className="text-sm text-muted-foreground">Verified Student</Text>
                 </View>
               </View>
             </View>
 
             {/* Action Buttons */}
-            {/* Seller Information */}
-            <View className="bg-surface rounded-2xl p-4 mb-4 border border-border">
-              <Text className="text-base font-bold text-foreground mb-3">Seller Information</Text>
-              <View className="flex-row items-center gap-3">
-                <View className="w-12 h-12 rounded-full bg-primary items-center justify-center">
-                  <IconSymbol name="person.fill" size={24} color="white" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-base font-semibold text-foreground">Student Seller</Text>
-                  <Text className="text-sm text-muted">User ID: {selectedItem.userId}</Text>
-                </View>
-              </View>
-            </View>
-
             <TouchableOpacity
-              className="bg-primary py-4 rounded-2xl items-center active:opacity-80 mb-3 flex-row justify-center gap-2"
+              className="bg-primary py-4 rounded-2xl items-center active:opacity-80 mb-3"
               onPress={() => {
                 Toast.show({
-                  type: "success",
-                  text1: "Opening Chat",
-                  text2: "Contact seller via chat",
+                  type: "info",
+                  text1: "Chat Feature",
+                  text2: "Chat functionality coming soon!",
                 });
-                router.push(`/chat?userId=${selectedItem.userId}` as any);
               }}
             >
-              <IconSymbol name="message.fill" size={20} color="#fff" />
-              <Text className="text-white font-bold text-lg">Contact Seller</Text>
+              <Text className="text-primary-foreground font-bold text-lg">Contact Seller</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -569,30 +551,29 @@ export default function MarketplaceScreen() {
   return (
     <ScreenContainer>
       <View className="flex-1">
-        {/* Header */}
-        <View className="mb-6 pt-2">
-          <View className="flex-row items-center justify-between mb-2">
+        {/* Modern Header - Bold & Confident */}
+        <View className="mb-8">
+          <View className="flex-row items-center justify-between mb-6">
             <View className="flex-1">
-              <View className="flex-row items-center gap-2 mb-1">
-                <Text className="text-4xl font-bold text-primary">{FEATURE_DESCRIPTIONS.features.marketplace.title}</Text>
-                <Text className="text-lg">{FEATURE_DESCRIPTIONS.features.marketplace.badge}</Text>
-              </View>
-              <Text className="text-sm text-muted-foreground">
-                {FEATURE_DESCRIPTIONS.features.marketplace.description}
+              <Text className="text-5xl font-black text-foreground mb-2 tracking-tight">
+                Marketplace
+              </Text>
+              <Text className="text-base text-muted-foreground font-medium">
+                Buy and sell with fellow students
               </Text>
             </View>
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-surface items-center justify-center ml-3"
+              className="w-12 h-12 rounded-2xl bg-surface items-center justify-center ml-4"
             >
-              <IconSymbol name="xmark" size={20} color={colors.foreground} />
+              <IconSymbol name="xmark" size={22} color={colors.foreground} />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Search Bar */}
         <View
-          className="bg-surface rounded-2xl px-4 py-3.5 flex-row items-center gap-3 mb-4"
+          className="bg-surface rounded-2xl px-5 py-4 flex-row items-center gap-3 mb-6"
           style={{
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 2 },
@@ -614,31 +595,30 @@ export default function MarketplaceScreen() {
             </TouchableOpacity>
           )}
           <TouchableOpacity
-            className="bg-primary px-3 py-2 rounded-xl flex-row items-center gap-1"
+            className="bg-primary px-4 py-2.5 rounded-xl flex-row items-center gap-1.5"
             onPress={() => router.push("/create-marketplace")}
           >
-            <IconSymbol name="plus" size={16} color="#fff" />
-            <Text className="text-primary-foreground font-semibold text-sm">Post</Text>
+            <IconSymbol name="plus" size={18} color="#fff" />
+            <Text className="text-primary-foreground font-bold text-sm">Post</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Filter Tabs */}
+        {/* Modern Filter Pills - Minimal & Bold */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="mb-4"
-          contentContainerStyle={{ gap: 10, paddingRight: 16 }}
+          className="mb-6"
+          contentContainerStyle={{ gap: 12, paddingRight: 16 }}
         >
           <TouchableOpacity
             onPress={() => setSelectedFilter("all")}
-            className={`px-5 py-2.5 rounded-full ${
-              selectedFilter === "all" ? "bg-primary" : "bg-surface border border-border"
+            className={`px-6 py-3.5 rounded-2xl ${
+              selectedFilter === "all" ? "bg-foreground" : "bg-surface"
             }`}
-            style={{ minWidth: 70 }}
           >
             <Text
-              className={`font-semibold text-center ${
-                selectedFilter === "all" ? "text-white" : "text-foreground"
+              className={`font-bold text-base ${
+                selectedFilter === "all" ? "text-background" : "text-foreground"
               }`}
             >
               All
@@ -646,19 +626,13 @@ export default function MarketplaceScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedFilter("popular")}
-            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
-              selectedFilter === "popular" ? "bg-primary" : "bg-surface border border-border"
+            className={`px-6 py-3.5 rounded-2xl ${
+              selectedFilter === "popular" ? "bg-foreground" : "bg-surface"
             }`}
-            style={{ minWidth: 110 }}
           >
-            <IconSymbol
-              name="chart.bar.fill"
-              size={16}
-              color={selectedFilter === "popular" ? "#fff" : colors.foreground}
-            />
             <Text
-              className={`font-semibold ${
-                selectedFilter === "popular" ? "text-white" : "text-foreground"
+              className={`font-bold text-base ${
+                selectedFilter === "popular" ? "text-background" : "text-foreground"
               }`}
             >
               Popular
@@ -666,19 +640,13 @@ export default function MarketplaceScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedFilter("recent")}
-            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
-              selectedFilter === "recent" ? "bg-primary" : "bg-surface border border-border"
+            className={`px-6 py-3.5 rounded-2xl ${
+              selectedFilter === "recent" ? "bg-foreground" : "bg-surface"
             }`}
-            style={{ minWidth: 100 }}
           >
-            <IconSymbol
-              name="clock.fill"
-              size={16}
-              color={selectedFilter === "recent" ? "#fff" : colors.foreground}
-            />
             <Text
-              className={`font-semibold ${
-                selectedFilter === "recent" ? "text-white" : "text-foreground"
+              className={`font-bold text-base ${
+                selectedFilter === "recent" ? "text-background" : "text-foreground"
               }`}
             >
               Recent
@@ -686,92 +654,65 @@ export default function MarketplaceScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedFilter("featured")}
-            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
-              selectedFilter === "featured" ? "bg-primary" : "bg-surface border border-border"
+            className={`px-6 py-3.5 rounded-2xl ${
+              selectedFilter === "featured" ? "bg-foreground" : "bg-surface"
             }`}
-            style={{ minWidth: 115 }}
           >
-            <IconSymbol
-              name="star.fill"
-              size={16}
-              color={selectedFilter === "featured" ? "#fff" : colors.foreground}
-            />
             <Text
-              className={`font-semibold ${
-                selectedFilter === "featured" ? "text-white" : "text-foreground"
+              className={`font-bold text-base ${
+                selectedFilter === "featured" ? "text-background" : "text-foreground"
               }`}
             >
               Featured
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => router.push("/my-marketplace")}
-            className="px-5 py-2.5 rounded-full flex-row items-center gap-2 bg-surface border border-border"
-            style={{ minWidth: 115 }}
-          >
-            <IconSymbol
-              name="list.bullet"
-              size={16}
-              color={colors.foreground}
-            />
-            <Text className="font-semibold text-foreground">
-              My Items
-            </Text>
-          </TouchableOpacity>
         </ScrollView>
 
-        {/* Category Filter */}
+        {/* Category Pills */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="mb-4"
+          className="mb-6"
           contentContainerStyle={{ gap: 10, paddingRight: 16 }}
         >
-          {CATEGORIES.map((cat) => (
+          {CATEGORIES.map((category) => (
             <TouchableOpacity
-              key={cat.key}
-              onPress={() => setSelectedCategory(cat.key)}
-              className={`px-5 py-2 rounded-full flex-row items-center gap-2 ${
-                selectedCategory === cat.key
+              key={category.key}
+              onPress={() => setSelectedCategory(category.key)}
+              className={`px-5 py-3 rounded-xl flex-row items-center gap-2 ${
+                selectedCategory === category.key
                   ? "bg-primary"
                   : "bg-surface border border-border"
               }`}
-              style={{ minWidth: 120 }}
             >
               <IconSymbol
-                name={cat.icon}
+                name={category.icon}
                 size={16}
-                color={selectedCategory === cat.key ? "#fff" : colors.foreground}
+                color={selectedCategory === category.key ? "#fff" : colors.foreground}
               />
               <Text
-                className={`font-semibold ${
-                  selectedCategory === cat.key ? "text-white" : "text-foreground"
+                className={`font-semibold text-sm ${
+                  selectedCategory === category.key ? "text-white" : "text-foreground"
                 }`}
-                numberOfLines={1}
               >
-                {cat.label}
+                {category.label}
               </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        {/* Stats */}
-        <View className="flex-row items-center gap-2 mb-4">
-          <Text className="text-sm font-medium text-foreground">
-            {filteredItems.length} {filteredItems.length === 1 ? "item" : "items"}
-          </Text>
-        </View>
-
-        {/* Grid Listings */}
+        {/* Items Grid */}
         {loading ? (
           <View className="flex-1 items-center justify-center">
             <Text className="text-muted-foreground">Loading items...</Text>
           </View>
         ) : filteredItems.length === 0 ? (
-          <View className="flex-1 items-center justify-center">
-            <IconSymbol name="bag" size={64} color={colors.mutedForeground} />
-            <Text className="text-lg text-muted-foreground mt-4">No items found</Text>
-            <Text className="text-sm text-muted-foreground mt-2">Try adjusting your filters</Text>
+          <View className="flex-1 items-center justify-center px-8">
+            <IconSymbol name="tray" size={64} color={colors.mutedForeground} />
+            <Text className="text-xl font-bold text-foreground mt-4 mb-2">No items found</Text>
+            <Text className="text-base text-muted-foreground text-center">
+              Try adjusting your filters or search query
+            </Text>
           </View>
         ) : (
           <FlatList
@@ -779,14 +720,10 @@ export default function MarketplaceScreen() {
             renderItem={renderItem}
             keyExtractor={(item) => item.id.toString()}
             numColumns={2}
-            columnWrapperStyle={{ gap: 16 }}
+            columnWrapperStyle={{ justifyContent: "space-between" }}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor={colors.primary}
-              />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
             contentContainerStyle={{ paddingBottom: 20 }}
           />

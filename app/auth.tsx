@@ -412,15 +412,22 @@ export default function AuthScreen() {
                     </TouchableOpacity>
                   </View>
 
+                  <View className="flex-row items-center my-4">
+                    <View className="flex-1 h-px bg-gray-300" />
+                    <Text className="mx-4 text-gray-500 text-sm">or</Text>
+                    <View className="flex-1 h-px bg-gray-300" />
+                  </View>
+
                   <TouchableOpacity
                     onPress={() => router.replace("/(tabs)/services")}
-                    className="border-2 border-gray-300 rounded-xl py-4 items-center mt-3"
+                    className="bg-gray-900 rounded-xl py-4 items-center"
                   >
                     <View className="flex-row items-center">
-                      <IconSymbol name="person.fill" size={20} color="#6b7280" />
-                      <Text className="text-gray-700 font-semibold text-base ml-2">Continue as Guest</Text>
+                      <IconSymbol name="person.fill" size={20} color="#ffffff" />
+                      <Text className="text-white font-bold text-base ml-2">Continue as Guest</Text>
                     </View>
                   </TouchableOpacity>
+                  <Text className="text-gray-600 text-xs text-center mt-2">Explore the app without creating an account</Text>
                 </View>
               )}
 
