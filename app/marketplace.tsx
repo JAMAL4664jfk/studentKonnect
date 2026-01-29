@@ -612,7 +612,7 @@ export default function MarketplaceScreen() {
         >
           <TouchableOpacity
             onPress={() => setSelectedFilter("all")}
-            className={`px-6 py-3.5 rounded-2xl ${
+            className={`px-5 py-2.5 rounded-full ${
               selectedFilter === "all" ? "bg-foreground" : "bg-surface"
             }`}
           >
@@ -626,7 +626,7 @@ export default function MarketplaceScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedFilter("popular")}
-            className={`px-6 py-3.5 rounded-2xl ${
+            className={`px-5 py-2.5 rounded-full ${
               selectedFilter === "popular" ? "bg-foreground" : "bg-surface"
             }`}
           >
@@ -640,7 +640,7 @@ export default function MarketplaceScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedFilter("recent")}
-            className={`px-6 py-3.5 rounded-2xl ${
+            className={`px-5 py-2.5 rounded-full ${
               selectedFilter === "recent" ? "bg-foreground" : "bg-surface"
             }`}
           >
@@ -654,7 +654,7 @@ export default function MarketplaceScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedFilter("featured")}
-            className={`px-6 py-3.5 rounded-2xl ${
+            className={`px-5 py-2.5 rounded-full ${
               selectedFilter === "featured" ? "bg-foreground" : "bg-surface"
             }`}
           >

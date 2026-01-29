@@ -580,7 +580,7 @@ export default function AccommodationScreen() {
         >
           <TouchableOpacity
             onPress={() => setSelectedFilter("all")}
-            className={`px-6 py-3.5 rounded-2xl ${
+            className={`px-5 py-2.5 rounded-full ${
               selectedFilter === "all" ? "bg-foreground" : "bg-surface"
             }`}
           >
@@ -594,7 +594,7 @@ export default function AccommodationScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedFilter("favorites")}
-            className={`px-6 py-3.5 rounded-2xl ${
+            className={`px-5 py-2.5 rounded-full ${
               selectedFilter === "favorites" ? "bg-foreground" : "bg-surface"
             }`}
           >
@@ -608,7 +608,7 @@ export default function AccommodationScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.push("/my-accommodations")}
-            className="px-6 py-3.5 rounded-2xl bg-surface"
+            className="px-5 py-2.5 rounded-full bg-surface"
           >
             <Text className="font-bold text-base text-foreground">
               My Listings
