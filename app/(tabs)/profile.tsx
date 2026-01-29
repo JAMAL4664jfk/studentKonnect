@@ -6,6 +6,7 @@ import { useColors } from "@/hooks/use-colors";
 import { useWallet } from "@/contexts/WalletContext";
 import { supabase } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
+import { useRouter } from "expo-router";
 import { capturePhoto, selectPhoto, uriToBlob, getFileExtension } from "@/lib/image-picker-utils";
 
 type MenuItem = {
@@ -17,6 +18,7 @@ type MenuItem = {
 };
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const colors = useColors();
   const { balance } = useWallet();
   const [showImageOptions, setShowImageOptions] = useState(false);
@@ -157,28 +159,28 @@ export default function ProfileScreen() {
       title: "Financial Analytics",
       icon: "chart.bar.fill",
       color: colors.primary,
-      action: () => {},
+      action: () => router.push("/financial-analytics"),
     },
     {
       id: "rewards",
       title: "Lifestyle Rewards",
       icon: "heart.fill",
       color: "#FF6B9D",
-      action: () => {},
+      action: () => router.push("/lifestyle-rewards"),
     },
     {
       id: "notifications",
       title: "Notifications",
       icon: "bell.fill",
       color: colors.warning,
-      action: () => {},
+      action: () => router.push("/notifications"),
     },
     {
       id: "settings",
       title: "Settings",
       icon: "gear",
       color: colors.muted,
-      action: () => {},
+      action: () => router.push("/settings"),
     },
   ];
 
