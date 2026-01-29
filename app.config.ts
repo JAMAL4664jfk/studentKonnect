@@ -32,11 +32,12 @@ const config: ExpoConfig = {
     eas: {
       projectId: "05ef86e3-9d89-47c3-b0e5-647a2490a3bd"
     },
-    // Wallet API Configuration
-    EXPO_PUBLIC_WALLET_API_URL: process.env.EXPO_PUBLIC_WALLET_API_URL || "https://api.wallet.example.com/",
-    EXPO_PUBLIC_WALLET_CLIENT_KEY: process.env.EXPO_PUBLIC_WALLET_CLIENT_KEY || "",
-    EXPO_PUBLIC_WALLET_CLIENT_PASS: process.env.EXPO_PUBLIC_WALLET_CLIENT_PASS || "",
-    EXPO_PUBLIC_USE_WALLET_API: process.env.EXPO_PUBLIC_USE_WALLET_API || "false",
+    // Wallet API Configuration (Hardcoded for QA Testing)
+    // TODO: Fix .env loading and remove hardcoded values
+    EXPO_PUBLIC_WALLET_API_URL: "https://api.payelio.com/v3/",
+    EXPO_PUBLIC_WALLET_CLIENT_KEY: "b154e7-b21b2f-f0a14d-96affa-6d3fb9",
+    EXPO_PUBLIC_WALLET_CLIENT_PASS: "mwDv794ZLsTi0ezF3EBK4ZMsHtAWH1cR",
+    EXPO_PUBLIC_USE_WALLET_API: "true",
   },
   ios: {
     supportsTablet: true,
