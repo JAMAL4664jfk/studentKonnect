@@ -43,9 +43,10 @@ All combinations return:
 
 ## ✅ API Configuration (Fixed)
 
-**Correct API URL:** `https://api.payelio.com/v3/qa/`
+**Correct API URL:** `https://api.payelio.com/v3/`
 - ❌ **Wrong:** `https://apin.payelio.com/v3/qa/` (DNS does not resolve)
-- ✅ **Correct:** `https://api.payelio.com/v3/qa/` (API responds)
+- ❌ **Wrong:** `https://api.payelio.com/v3/qa/` (Returns 403)
+- ✅ **Correct:** `https://api.payelio.com/v3/` (VERIFIED WORKING in Postman)
 
 **Client Credentials:**
 ```
