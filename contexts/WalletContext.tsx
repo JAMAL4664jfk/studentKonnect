@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase, type Wallet, type Transaction } from "@/lib/supabase";
+import { walletAPI } from "@/lib/wallet-api";
 import Toast from "react-native-toast-message";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
@@ -25,6 +26,9 @@ interface WalletContextType {
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
+// Check if Wallet API is enabled
+const useWalletAPI = process.env.EXPO_PUBLIC_USE_WALLET_API === 'true';
+
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [balance, setBalance] = useState(0);
   const [walletId, setWalletId] = useState<string | null>(null);
@@ -33,6 +37,22 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const fetchWalletBalance = async () => {
     try {
       setIsLoading(true);
+
+      // Use Wallet API if enabled
+      if (useWalletAPI) {
+        try {
+          const balanceData = await walletAPI.getBalance();
+          setBalance(balanceData.available_balance);
+          setWalletId('wallet_api'); // Placeholder ID for Wallet API
+          setIsLoading(false);
+          return;
+        } catch (error) {
+          console.error("Wallet API error, falling back to Supabase:", error);
+          // Fall through to Supabase if API fails
+        }
+      }
+
+      // Fallback to Supabase
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -243,42 +263,44 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   useEffect(() => {
     fetchWalletBalance();
 
-    // Set up real-time subscription for wallet updates
-    let channel: RealtimeChannel | null = null;
+    // Set up real-time subscription for wallet updates (Supabase only)
+    if (!useWalletAPI) {
+      let channel: RealtimeChannel | null = null;
 
-    const setupRealtimeSubscription = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const setupRealtimeSubscription = async () => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      if (user && walletId) {
-        channel = supabase
-          .channel(`wallet:${walletId}`)
-          .on(
-            "postgres_changes",
-            {
-              event: "UPDATE",
-              schema: "public",
-              table: "wallets",
-              filter: `id=eq.${walletId}`,
-            },
-            (payload: any) => {
-              if (payload.new && payload.new.balance !== undefined) {
-                setBalance(Number(payload.new.balance));
+        if (user && walletId) {
+          channel = supabase
+            .channel(`wallet:${walletId}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "wallets",
+                filter: `id=eq.${walletId}`,
+              },
+              (payload: any) => {
+                if (payload.new && payload.new.balance !== undefined) {
+                  setBalance(Number(payload.new.balance));
+                }
               }
-            }
-          )
-          .subscribe();
-      }
-    };
+            )
+            .subscribe();
+        }
+      };
 
-    setupRealtimeSubscription();
+      setupRealtimeSubscription();
 
-    return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-    };
+      return () => {
+        if (channel) {
+          supabase.removeChannel(channel);
+        }
+      };
+    }
   }, [walletId]);
 
   return (

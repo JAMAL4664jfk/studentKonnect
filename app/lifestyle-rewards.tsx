@@ -1,14 +1,40 @@
-import { ScrollView, Text, View, TouchableOpacity } from "react-native";
-import { useState } from "react";
+import { ScrollView, Text, View, TouchableOpacity, ActivityIndicator } from "react-native";
+import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
+import { walletAPI, type Voucher } from "@/lib/wallet-api";
 
 export default function LifestyleRewardsScreen() {
   const router = useRouter();
   const colors = useColors();
   const [selectedTab, setSelectedTab] = useState("rewards");
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const useWalletAPI = process.env.EXPO_PUBLIC_USE_WALLET_API === 'true';
+
+  // Load vouchers from Wallet API
+  useEffect(() => {
+    loadVouchers();
+  }, []);
+
+  const loadVouchers = async () => {
+    if (!useWalletAPI) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const data = await walletAPI.getVouchers();
+      setVouchers(data);
+    } catch (error) {
+      console.error('Error loading vouchers:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Mock data
   const stats = {
@@ -18,48 +44,73 @@ export default function LifestyleRewardsScreen() {
     level: 5,
   };
 
-  const rewards = [
-    {
-      id: 1,
-      title: "Free Coffee",
-      points: 500,
-      icon: "cup.and.saucer.fill",
-      color: "#8B5CF6",
-      available: true,
-    },
-    {
-      id: 2,
-      title: "10% Bookstore Discount",
-      points: 750,
-      icon: "book.fill",
-      color: "#3B82F6",
-      available: true,
-    },
-    {
-      id: 3,
-      title: "Free Gym Day Pass",
-      points: 1000,
-      icon: "figure.run",
-      color: "#10B981",
-      available: true,
-    },
-    {
-      id: 4,
-      title: "Premium Account (1 Month)",
-      points: 2000,
-      icon: "star.fill",
-      color: "#F59E0B",
-      available: true,
-    },
-    {
-      id: 5,
-      title: "Free Movie Ticket",
-      points: 3000,
-      icon: "film.fill",
-      color: "#EF4444",
-      available: false,
-    },
-  ];
+  // Convert API vouchers to rewards format or use mock data
+  const rewards = useWalletAPI && vouchers.length > 0
+    ? vouchers.map((v, i) => ({
+        id: v.id,
+        title: v.title,
+        points: v.points,
+        icon: getVoucherIcon(v.title),
+        color: getVoucherColor(i),
+        available: v.status === 'active',
+      }))
+    : [
+        {
+          id: "1",
+          title: "Free Coffee",
+          points: 500,
+          icon: "cup.and.saucer.fill",
+          color: "#8B5CF6",
+          available: true,
+        },
+        {
+          id: "2",
+          title: "10% Bookstore Discount",
+          points: 750,
+          icon: "book.fill",
+          color: "#3B82F6",
+          available: true,
+        },
+        {
+          id: "3",
+          title: "Free Gym Day Pass",
+          points: 1000,
+          icon: "figure.run",
+          color: "#10B981",
+          available: true,
+        },
+        {
+          id: "4",
+          title: "Premium Account (1 Month)",
+          points: 2000,
+          icon: "star.fill",
+          color: "#F59E0B",
+          available: true,
+        },
+        {
+          id: "5",
+          title: "Free Movie Ticket",
+          points: 3000,
+          icon: "film.fill",
+          color: "#EF4444",
+          available: false,
+        },
+      ];
+
+  const getVoucherIcon = (title: string) => {
+    const lower = title.toLowerCase();
+    if (lower.includes('coffee')) return 'cup.and.saucer.fill';
+    if (lower.includes('book')) return 'book.fill';
+    if (lower.includes('gym') || lower.includes('fitness')) return 'figure.run';
+    if (lower.includes('movie') || lower.includes('film')) return 'film.fill';
+    if (lower.includes('premium') || lower.includes('star')) return 'star.fill';
+    return 'gift.fill';
+  };
+
+  const getVoucherColor = (index: number) => {
+    const colors = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#FF6B9D'];
+    return colors[index % colors.length];
+  };
 
   const badges = [
     { name: "Early Bird", icon: "sunrise.fill", color: "#F59E0B" },

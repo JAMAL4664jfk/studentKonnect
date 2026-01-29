@@ -1,13 +1,14 @@
-import { ScrollView, Text, View, TouchableOpacity, Image, Modal, ActivityIndicator } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, Image, Modal } from "react-native";
 import { useState, useEffect } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useWallet } from "@/contexts/WalletContext";
 import { supabase } from "@/lib/supabase";
+import { walletAPI } from "@/lib/wallet-api";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
-import { capturePhoto, selectPhoto, uriToBlob, getFileExtension } from "@/lib/image-picker-utils";
+import { capturePhoto, selectPhoto, uriToBlob, getFileExtension } from "@/lib/image-picker-utils";mage-picker-utils";
 
 type MenuItem = {
   id: string;
@@ -34,6 +35,25 @@ export default function ProfileScreen() {
 
   const loadUserProfile = async () => {
     try {
+      const useWalletAPI = process.env.EXPO_PUBLIC_USE_WALLET_API === 'true';
+
+      // Try Wallet API first if enabled
+      if (useWalletAPI) {
+        try {
+          const profile = await walletAPI.getProfile();
+          setUserName(profile.name || "Student Account");
+          setUserEmail(profile.email || "scholar@student.ac.za");
+          if (profile.avatar_url) {
+            setProfilePicture(profile.avatar_url);
+          }
+          return;
+        } catch (error) {
+          console.error('Wallet API profile error, falling back to Supabase:', error);
+          // Fall through to Supabase
+        }
+      }
+
+      // Fallback to Supabase
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
