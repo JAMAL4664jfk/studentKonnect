@@ -527,22 +527,28 @@ export default function AccommodationScreen() {
     <ScreenContainer>
       <View className="flex-1">
         {/* Header */}
-        <View className="mb-6 pt-2">
+        <View className="mb-6 -mx-4 -mt-4 px-4 pt-6 pb-8 rounded-b-3xl overflow-hidden"
+          style={{
+            backgroundColor: '#0ea5e9',
+            backgroundImage: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)'
+          }}
+        >
           <View className="flex-row items-center justify-between mb-2">
             <View className="flex-1 items-center">
               <View className="flex-row items-center gap-2 mb-1">
-                <Text className="text-4xl font-bold text-primary">{FEATURE_DESCRIPTIONS.features.accommodation.title}</Text>
+                <Text className="text-4xl font-bold text-white" style={{ textShadowColor: 'rgba(0,0,0,0.1)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4 }}>{FEATURE_DESCRIPTIONS.features.accommodation.title}</Text>
                 <Text className="text-lg">{FEATURE_DESCRIPTIONS.features.accommodation.badge}</Text>
               </View>
-              <Text className="text-sm text-muted-foreground">
+              <Text className="text-sm text-white" style={{ opacity: 0.9 }}>
                 {FEATURE_DESCRIPTIONS.features.accommodation.description}
               </Text>
             </View>
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-surface items-center justify-center absolute right-0"
+              className="w-10 h-10 rounded-full items-center justify-center absolute right-0"
+              style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
             >
-              <IconSymbol name="xmark" size={20} color={colors.foreground} />
+              <IconSymbol name="xmark" size={20} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
@@ -575,8 +581,8 @@ export default function AccommodationScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="mb-8"
-          contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 8 }}
+          className="mb-12"
+          contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 12 }}
         >
           <TouchableOpacity
             onPress={() => setSelectedType("All")}

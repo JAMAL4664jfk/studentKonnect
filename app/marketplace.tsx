@@ -552,21 +552,27 @@ export default function MarketplaceScreen() {
     <ScreenContainer>
       <View className="flex-1">
         {/* Modern Header - Bold & Confident */}
-        <View className="mb-8">
+        <View className="mb-8 -mx-4 -mt-4 px-4 pt-6 pb-8 rounded-b-3xl overflow-hidden"
+          style={{
+            backgroundColor: '#8b5cf6',
+            backgroundImage: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)'
+          }}
+        >
           <View className="flex-row items-center justify-between mb-6">
             <View className="flex-1 items-center">
-              <Text className="text-5xl font-black text-foreground mb-2 tracking-tight">
+              <Text className="text-5xl font-black text-white mb-2 tracking-tight" style={{ textShadowColor: 'rgba(0,0,0,0.1)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4 }}>
                 Marketplace
               </Text>
-              <Text className="text-base text-muted-foreground font-medium">
+              <Text className="text-base text-white font-medium" style={{ opacity: 0.9 }}>
                 Buy and sell with fellow students
               </Text>
             </View>
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-12 h-12 rounded-2xl bg-surface items-center justify-center absolute right-0"
+              className="w-12 h-12 rounded-2xl items-center justify-center absolute right-0"
+              style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
             >
-              <IconSymbol name="xmark" size={22} color={colors.foreground} />
+              <IconSymbol name="xmark" size={22} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
@@ -607,8 +613,8 @@ export default function MarketplaceScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="mb-8"
-          contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 8 }}
+          className="mb-12"
+          contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 12 }}
         >
           {CATEGORIES.map((category) => (
             <TouchableOpacity
