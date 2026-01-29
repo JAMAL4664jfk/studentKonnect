@@ -526,6 +526,7 @@ export default function AccommodationScreen() {
   return (
     <ScreenContainer>
       <View className="flex-1">
+        <View>
         {/* Header */}
         <View className="mb-6 -mx-4 -mt-4 px-4 pt-6 pb-8 rounded-b-3xl overflow-hidden"
           style={{
@@ -723,6 +724,7 @@ export default function AccommodationScreen() {
           <Text className="text-sm font-medium text-foreground">
             Found {filteredAccommodations.length} accommodations
           </Text>
+        </View>
         </View>
 
         {/* Listings */}

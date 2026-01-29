@@ -551,6 +551,7 @@ export default function MarketplaceScreen() {
   return (
     <ScreenContainer>
       <View className="flex-1">
+        <View>
         {/* Modern Header - Bold & Confident */}
         <View className="mb-8 -mx-4 -mt-4 px-4 pt-6 pb-8 rounded-b-3xl overflow-hidden"
           style={{
@@ -642,6 +643,7 @@ export default function MarketplaceScreen() {
             </TouchableOpacity>
           ))}
         </ScrollView>
+        </View>
 
         {/* Items Grid */}
         {loading ? (
