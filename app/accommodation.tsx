@@ -529,7 +529,7 @@ export default function AccommodationScreen() {
         {/* Header */}
         <View className="mb-6 pt-2">
           <View className="flex-row items-center justify-between mb-2">
-            <View className="flex-1">
+            <View className="flex-1 items-center">
               <View className="flex-row items-center gap-2 mb-1">
                 <Text className="text-4xl font-bold text-primary">{FEATURE_DESCRIPTIONS.features.accommodation.title}</Text>
                 <Text className="text-lg">{FEATURE_DESCRIPTIONS.features.accommodation.badge}</Text>
@@ -540,7 +540,7 @@ export default function AccommodationScreen() {
             </View>
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-surface items-center justify-center ml-3"
+              className="w-10 h-10 rounded-full bg-surface items-center justify-center absolute right-0"
             >
               <IconSymbol name="xmark" size={20} color={colors.foreground} />
             </TouchableOpacity>
@@ -580,11 +580,12 @@ export default function AccommodationScreen() {
         >
           <TouchableOpacity
             onPress={() => setSelectedType("All")}
-            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+            className={`px-5 rounded-full flex-row items-center gap-2 ${
               selectedType === "All"
                 ? "bg-primary"
                 : "bg-white border-2 border-gray-200"
             }`}
+            style={{ height: 42, minHeight: 42, maxHeight: 42 }}
           >
             <IconSymbol
               name="square.grid.2x2"
@@ -601,11 +602,12 @@ export default function AccommodationScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedType("apartment")}
-            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+            className={`px-5 rounded-full flex-row items-center gap-2 ${
               selectedType === "apartment"
                 ? "bg-primary"
                 : "bg-white border-2 border-gray-200"
             }`}
+            style={{ height: 42, minHeight: 42, maxHeight: 42 }}
           >
             <IconSymbol
               name="building.2.fill"
@@ -622,11 +624,12 @@ export default function AccommodationScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedType("room")}
-            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+            className={`px-5 rounded-full flex-row items-center gap-2 ${
               selectedType === "room"
                 ? "bg-primary"
                 : "bg-white border-2 border-gray-200"
             }`}
+            style={{ height: 42, minHeight: 42, maxHeight: 42 }}
           >
             <IconSymbol
               name="door.left.hand.open"
@@ -643,11 +646,12 @@ export default function AccommodationScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedType("studio")}
-            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+            className={`px-5 rounded-full flex-row items-center gap-2 ${
               selectedType === "studio"
                 ? "bg-primary"
                 : "bg-white border-2 border-gray-200"
             }`}
+            style={{ height: 42, minHeight: 42, maxHeight: 42 }}
           >
             <IconSymbol
               name="house.fill"
@@ -664,11 +668,12 @@ export default function AccommodationScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedType("house")}
-            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+            className={`px-5 rounded-full flex-row items-center gap-2 ${
               selectedType === "house"
                 ? "bg-primary"
                 : "bg-white border-2 border-gray-200"
             }`}
+            style={{ height: 42, minHeight: 42, maxHeight: 42 }}
           >
             <IconSymbol
               name="house.fill"
@@ -685,11 +690,12 @@ export default function AccommodationScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSelectedType("dormitory")}
-            className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+            className={`px-5 rounded-full flex-row items-center gap-2 ${
               selectedType === "dormitory"
                 ? "bg-primary"
                 : "bg-white border-2 border-gray-200"
             }`}
+            style={{ height: 42, minHeight: 42, maxHeight: 42 }}
           >
             <IconSymbol
               name="building.fill"

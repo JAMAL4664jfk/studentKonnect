@@ -554,7 +554,7 @@ export default function MarketplaceScreen() {
         {/* Modern Header - Bold & Confident */}
         <View className="mb-8">
           <View className="flex-row items-center justify-between mb-6">
-            <View className="flex-1">
+            <View className="flex-1 items-center">
               <Text className="text-5xl font-black text-foreground mb-2 tracking-tight">
                 Marketplace
               </Text>
@@ -564,7 +564,7 @@ export default function MarketplaceScreen() {
             </View>
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-12 h-12 rounded-2xl bg-surface items-center justify-center ml-4"
+              className="w-12 h-12 rounded-2xl bg-surface items-center justify-center absolute right-0"
             >
               <IconSymbol name="xmark" size={22} color={colors.foreground} />
             </TouchableOpacity>
@@ -614,11 +614,12 @@ export default function MarketplaceScreen() {
             <TouchableOpacity
               key={category.key}
               onPress={() => setSelectedCategory(category.key)}
-              className={`px-5 py-2.5 rounded-full flex-row items-center gap-2 ${
+              className={`px-5 rounded-full flex-row items-center gap-2 ${
                 selectedCategory === category.key
                   ? "bg-primary"
                   : "bg-white border-2 border-gray-200"
               }`}
+              style={{ height: 42, minHeight: 42, maxHeight: 42 }}
             >
               <IconSymbol
                 name={category.icon}
