@@ -411,6 +411,16 @@ export default function AuthScreen() {
                       <Text className="text-blue-600 font-semibold">Sign Up</Text>
                     </TouchableOpacity>
                   </View>
+
+                  <TouchableOpacity
+                    onPress={() => router.replace("/(tabs)/services")}
+                    className="border-2 border-gray-300 rounded-xl py-4 items-center mt-3"
+                  >
+                    <View className="flex-row items-center">
+                      <IconSymbol name="person.fill" size={20} color="#6b7280" />
+                      <Text className="text-gray-700 font-semibold text-base ml-2">Continue as Guest</Text>
+                    </View>
+                  </TouchableOpacity>
                 </View>
               )}
 
