@@ -99,6 +99,34 @@ export interface CheckCustomerResponse {
   data?: any;
 }
 
+export interface VerifyCustomerResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  messages: string;
+  result_code: string;
+  data: {
+    id: string;
+    customerId: string;
+    first_name: string;
+    last_name: string;
+    email: string | null;
+    identity_number: string;
+    msisdn: string;
+    industry: string | null;
+    occupation: string | null;
+    occupation_other: string | null;
+    source_of_funds: string | null;
+    dateOfBirth: string;
+    gender: string;
+    date_created: string;
+    registration_type: string;
+    wallet_type: string;
+    account_number: string;
+  };
+}
+
 export interface WalletBalance {
   available_balance: number;
   ledger_balance: number;
@@ -488,6 +516,78 @@ class WalletAPIService {
       return data;
     } catch (error: any) {
       console.error('❌ Wallet API check customer error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify customer and get full profile details
+   * Uses GET request with customer_id query parameter
+   */
+  async verifyCustomer(customerId: string): Promise<VerifyCustomerResponse> {
+    try {
+      // Note: This is a GET request, not POST
+      const url = this.getApiUrl(`customer/verify?customer_id=${customerId}`);
+      const headers = await this.getHeaders(false);
+
+      console.log('✅ Wallet API Verify Customer Request:');
+      console.log('URL:', url);
+      console.log('Method: GET');
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      let data: VerifyCustomerResponse;
+      try {
+        data = responseText ? JSON.parse(responseText) : {
+          success: false,
+          messages: 'Empty response',
+          statusCode: response.status,
+          endpoint: '',
+          environment: '',
+          result_code: 'ERROR',
+          data: {
+            id: '',
+            customerId: '',
+            first_name: '',
+            last_name: '',
+            email: null,
+            identity_number: '',
+            msisdn: '',
+            industry: null,
+            occupation: null,
+            occupation_other: null,
+            source_of_funds: null,
+            dateOfBirth: '',
+            gender: '',
+            date_created: '',
+            registration_type: '',
+            wallet_type: '',
+            account_number: ''
+          }
+        };
+        console.log('📦 Parsed Data:', JSON.stringify(data, null, 2));
+      } catch (parseError) {
+        console.error('❌ JSON Parse Error:', parseError);
+        throw new Error(`Invalid JSON response: ${responseText}`);
+      }
+
+      if (data.success) {
+        return data;
+      } else {
+        const error: any = new Error(data.messages || 'Customer verification failed');
+        error.response = data;
+        throw error;
+      }
+    } catch (error: any) {
+      console.error('❌ Wallet API verify customer error:', error);
       throw error;
     }
   }

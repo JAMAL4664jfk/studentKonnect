@@ -55,7 +55,50 @@ This document explains the proper sequence of API calls for wallet registration 
 
 ---
 
-### Step 2: Check Customer
+### Step 2: Verify Customer (Get Full Profile)
+**Endpoint:** `GET /customer/verify?customer_id={customerId}`
+
+**Purpose:** Retrieve complete customer profile details
+
+**Request:**
+```
+GET /customer/verify?customer_id=31827954
+```
+
+**Response:**
+```json
+{
+  "endpoint": "/v3/qa/customer/verify?customer_id=31827954",
+  "statusCode": 200,
+  "environment": "qa",
+  "success": true,
+  "messages": "Customer Verification",
+  "result_code": "0",
+  "data": {
+    "id": "306",
+    "customerId": "31827954",
+    "first_name": "Ignatius",
+    "last_name": "Mutizwa",
+    "email": null,
+    "identity_number": "8bf645a90e6efa31b44dc507305bc82597202d124dfcbb3e419368f9c88b16ca4c0b2a91a009094305",
+    "msisdn": "+27836624434",
+    "industry": null,
+    "occupation": null,
+    "occupation_other": null,
+    "source_of_funds": null,
+    "dateOfBirth": "19811120",
+    "gender": "Male",
+    "date_created": "2025-10-15 17:20:35",
+    "registration_type": "customer",
+    "wallet_type": "2",
+    "account_number": "6821947"
+  }
+}
+```
+
+---
+
+### Step 3: Check Customer
 **Endpoint:** `POST /customer/check_customer`
 
 **Purpose:** Validate that ID number and phone number match
@@ -86,7 +129,7 @@ This document explains the proper sequence of API calls for wallet registration 
 
 ---
 
-### Step 3: Register Customer
+### Step 4: Register Customer
 **Endpoint:** `POST /customer/register`
 
 **Purpose:** Create new customer account or update existing
@@ -129,7 +172,7 @@ This document explains the proper sequence of API calls for wallet registration 
 
 ---
 
-### Step 4: Create PIN (Next Endpoint Needed)
+### Step 5: Create PIN (Next Endpoint Needed)
 After registration, user needs to create a PIN to complete account setup.
 
 ---
@@ -170,13 +213,15 @@ After registration, user needs to create a PIN to complete account setup.
 ### ✅ Implemented Endpoints
 
 1. **verifyMobile(phoneNumber)** - Check if user exists and has PIN
-2. **checkCustomer(idNumber, phoneNumber)** - Validate ID and phone match
-3. **register(registrationData)** - Create/update customer account
-4. **login(phoneNumber, pin)** - Authenticate user
+2. **verifyCustomer(customerId)** - Get full customer profile (GET request)
+3. **checkCustomer(idNumber, phoneNumber)** - Validate ID and phone match
+4. **register(registrationData)** - Create/update customer account
+5. **login(phoneNumber, pin)** - Authenticate user
 
 ### ⏳ Pending Endpoints
 
-1. **Create PIN** - Set initial PIN for new users
+1. **verifyCustomer(customerId)** - ✅ Get full customer profile
+2. **Create PIN** - Set initial PIN for new users
 2. **Reset PIN** - Change existing PIN
 3. **Verify OTP** - Confirm phone number ownership
 4. **Get Profile** - Retrieve customer details
@@ -203,11 +248,13 @@ After registration, user needs to create a PIN to complete account setup.
    ↓
 6. If valid, call register()
    ↓
-7. Show "Create PIN" screen
+7. Call verifyCustomer() with returned customerId
    ↓
-8. Call createPin() (needs implementation)
+8. Show "Create PIN" screen with customer details
    ↓
-9. Navigate to wallet dashboard
+9. Call createPin() (needs implementation)
+   ↓
+10. Navigate to wallet dashboard
 ```
 
 ### Existing User (No PIN):
@@ -218,12 +265,15 @@ After registration, user needs to create a PIN to complete account setup.
 2. Call verifyMobile()
    ↓
 3. If result_code = "2001" (no PIN):
-   → Show customer data (first_name, last_name)
+   → Extract customerId from response
+   ↓
+4. Call verifyCustomer(customerId)
+   → Show full customer profile
    → Show "Create PIN" screen
    ↓
-4. Call createPin()
+5. Call createPin()
    ↓
-5. Navigate to wallet dashboard
+6. Navigate to wallet dashboard
 ```
 
 ### Existing User (With PIN):
@@ -314,6 +364,9 @@ import { walletAPI } from '@/lib/wallet-api';
 
 // Registration flow
 const verifyResult = await walletAPI.verifyMobile(phoneNumber);
+if (verifyResult.data?.customerId) {
+  const customerProfile = await walletAPI.verifyCustomer(verifyResult.data.customerId);
+}
 const checkResult = await walletAPI.checkCustomer(idNumber, phoneNumber);
 const registerResult = await walletAPI.register(registrationData);
 
