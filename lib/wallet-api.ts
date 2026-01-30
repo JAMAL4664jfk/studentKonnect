@@ -66,6 +66,39 @@ export interface WalletRegistrationResponse {
   };
 }
 
+export interface VerifyMobileRequest {
+  phone_number: string;
+}
+
+export interface VerifyMobileResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  messages: string;
+  result_code: string;
+  data?: {
+    customerId: string;
+    first_name: string;
+    last_name: string;
+  };
+}
+
+export interface CheckCustomerRequest {
+  id_number: string;
+  phone_number: string;
+}
+
+export interface CheckCustomerResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  messages: string;
+  result_code: string;
+  data?: any;
+}
+
 export interface WalletBalance {
   available_balance: number;
   ledger_balance: number;
@@ -356,6 +389,105 @@ class WalletAPIService {
         throw fetchError;
       }
       
+      throw error;
+    }
+  }
+
+  /**
+   * Verify mobile phone number
+   * Checks if customer exists and if they have a PIN set
+   */
+  async verifyMobile(phoneNumber: string): Promise<VerifyMobileResponse> {
+    try {
+      const url = this.getApiUrl('customer/verify_mobile');
+      const headers = await this.getHeaders(false);
+      const body = JSON.stringify({ phone_number: phoneNumber });
+
+      console.log('📱 Wallet API Verify Mobile Request:');
+      console.log('URL:', url);
+      console.log('Body:', body);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: body,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      let data: VerifyMobileResponse;
+      try {
+        data = responseText ? JSON.parse(responseText) : {
+          success: false,
+          messages: 'Empty response',
+          statusCode: response.status,
+          endpoint: '',
+          environment: '',
+          result_code: 'ERROR'
+        };
+        console.log('📦 Parsed Data:', JSON.stringify(data, null, 2));
+      } catch (parseError) {
+        console.error('❌ JSON Parse Error:', parseError);
+        throw new Error(`Invalid JSON response: ${responseText}`);
+      }
+
+      // Return data even if success is false - the result_code tells us what to do next
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API verify mobile error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if customer exists with given ID and phone number
+   */
+  async checkCustomer(idNumber: string, phoneNumber: string): Promise<CheckCustomerResponse> {
+    try {
+      const url = this.getApiUrl('customer/check_customer');
+      const headers = await this.getHeaders(false);
+      const body = JSON.stringify({
+        id_number: idNumber,
+        phone_number: phoneNumber
+      });
+
+      console.log('🔍 Wallet API Check Customer Request:');
+      console.log('URL:', url);
+      console.log('Body:', body);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: body,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      let data: CheckCustomerResponse;
+      try {
+        data = responseText ? JSON.parse(responseText) : {
+          success: false,
+          messages: 'Empty response',
+          statusCode: response.status,
+          endpoint: '',
+          environment: '',
+          result_code: 'ERROR'
+        };
+        console.log('📦 Parsed Data:', JSON.stringify(data, null, 2));
+      } catch (parseError) {
+        console.error('❌ JSON Parse Error:', parseError);
+        throw new Error(`Invalid JSON response: ${responseText}`);
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API check customer error:', error);
       throw error;
     }
   }
