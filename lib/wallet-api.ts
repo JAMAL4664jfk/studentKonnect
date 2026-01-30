@@ -8,10 +8,11 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 // API Configuration - Read from expo-constants for runtime access
+// Updated with correct Payelio QA environment URL
 const API_CONFIG = {
-  baseUrl: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_API_URL || process.env.EXPO_PUBLIC_WALLET_API_URL || 'https://api.wallet.example.com/',
-  clientKey: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_CLIENT_KEY || process.env.EXPO_PUBLIC_WALLET_CLIENT_KEY || '',
-  clientPass: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_CLIENT_PASS || process.env.EXPO_PUBLIC_WALLET_CLIENT_PASS || '',
+  baseUrl: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_API_URL || process.env.EXPO_PUBLIC_WALLET_API_URL || 'https://apin.payelio.com/v3/qa/',
+  clientKey: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_CLIENT_KEY || process.env.EXPO_PUBLIC_WALLET_CLIENT_KEY || 'b154e7-b21b2f-f0a14d-96affa-6d3fb9',
+  clientPass: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_CLIENT_PASS || process.env.EXPO_PUBLIC_WALLET_CLIENT_PASS || 'mwDv794ZLsT0ezF3EBK4ZMsHtAWH1cR',
 };
 
 // Storage keys
@@ -32,6 +33,36 @@ export interface WalletLoginResponse {
     access_token_expires_in: number;
     refresh_token: string;
     refresh_token_expires_in: number;
+  };
+}
+
+export interface WalletRegistrationRequest {
+  id_number: string;
+  phone_number: string;
+  first_name: string;
+  last_name: string;
+  middle_name?: string;
+  privacy: boolean;
+  gtc: boolean;
+  registration_step: string;
+  registration_type: string;
+  referrer_id?: string;
+}
+
+export interface WalletRegistrationResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  messages: string;
+  result_code: string;
+  data: {
+    first_name: string;
+    last_name: string;
+    middle_name: string;
+    version: string;
+    registration_step: string;
+    otp_verified: number;
   };
 }
 
@@ -80,9 +111,11 @@ class WalletAPIService {
     
     // Log configuration on initialization
     console.log('💼 Wallet API Service Initialized:');
+    console.log('Platform:', Platform.OS);
     console.log('Base URL:', this.baseUrl);
     console.log('Has Client Key:', !!this.clientKey, '(length:', this.clientKey?.length || 0, ')');
     console.log('Has Client Pass:', !!this.clientPass, '(length:', this.clientPass?.length || 0, ')');
+    console.log('Config Source:', Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_API_URL ? 'expo-constants' : process.env.EXPO_PUBLIC_WALLET_API_URL ? 'process.env' : 'fallback');
   }
 
   /**
@@ -156,12 +189,16 @@ class WalletAPIService {
    * Get API URL - use proxy on web to bypass CORS
    */
   private getApiUrl(endpoint: string): string {
+    let url: string;
     if (Platform.OS === 'web') {
       // Use backend proxy on web to bypass CORS
-      return `http://localhost:3000/api/wallet-proxy/${endpoint}`;
+      url = `http://localhost:3000/api/wallet-proxy/${endpoint}`;
+    } else {
+      // Direct API call on native platforms (APK/iOS)
+      url = `${this.baseUrl}${endpoint}`;
     }
-    // Direct API call on native platforms
-    return `${this.baseUrl}${endpoint}`;
+    console.log(`🌐 API URL for ${endpoint}:`, url);
+    return url;
   }
 
   /**
@@ -218,8 +255,107 @@ class WalletAPIService {
         error.response = data;
         throw error;
       }
-    } catch (error) {
-      console.error('Wallet API login error:', error);
+    } catch (error: any) {
+      console.error('❌ Wallet API login error:', error);
+      console.error('Error type:', error.constructor.name);
+      console.error('Error message:', error.message);
+      
+      // Enhanced error handling for network issues
+      if (error.message && error.message.includes('Network request failed')) {
+        const networkError: any = new Error('Network connection failed. Please check your internet connection and try again.');
+        networkError.response = { success: false, messages: 'Network error', result_code: 'NETWORK_ERROR' };
+        throw networkError;
+      }
+      
+      if (error.message && error.message.includes('fetch')) {
+        const fetchError: any = new Error('Unable to connect to wallet service. Please check your internet connection.');
+        fetchError.response = { success: false, messages: 'Connection error', result_code: 'CONNECTION_ERROR' };
+        throw fetchError;
+      }
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Register a new customer
+   */
+  async register(registrationData: WalletRegistrationRequest): Promise<WalletRegistrationResponse> {
+    try {
+      const url = this.getApiUrl('customer/register');
+      const headers = await this.getHeaders(false);
+      const body = JSON.stringify(registrationData);
+
+      console.log('📝 Wallet API Registration Request:');
+      console.log('URL:', url);
+      console.log('Headers:', JSON.stringify(headers, null, 2));
+      console.log('Body:', body);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: body,
+      });
+
+      console.log('📡 Response Status:', response.status);
+      console.log('📡 Response OK:', response.ok);
+
+      // Get raw response text first
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      // Try to parse JSON
+      let data: WalletRegistrationResponse;
+      try {
+        data = responseText ? JSON.parse(responseText) : { 
+          success: false, 
+          messages: 'Empty response',
+          statusCode: response.status,
+          endpoint: '',
+          environment: '',
+          result_code: 'ERROR',
+          data: {
+            first_name: '',
+            last_name: '',
+            middle_name: '',
+            version: '',
+            registration_step: '',
+            otp_verified: 0
+          }
+        };
+        console.log('📦 Parsed Data:', JSON.stringify(data, null, 2));
+      } catch (parseError) {
+        console.error('❌ JSON Parse Error:', parseError);
+        console.error('Response was:', responseText);
+        throw new Error(`Invalid JSON response: ${responseText}`);
+      }
+
+      if (data.success) {
+        return data;
+      } else {
+        // API returned error response
+        const error: any = new Error(data.messages || 'Registration failed');
+        error.response = data;
+        throw error;
+      }
+    } catch (error: any) {
+      console.error('❌ Wallet API registration error:', error);
+      console.error('Error type:', error.constructor.name);
+      console.error('Error message:', error.message);
+      
+      // Enhanced error handling for network issues
+      if (error.message && error.message.includes('Network request failed')) {
+        const networkError: any = new Error('Network connection failed. Please check your internet connection and try again.');
+        networkError.response = { success: false, messages: 'Network error', result_code: 'NETWORK_ERROR' };
+        throw networkError;
+      }
+      
+      if (error.message && error.message.includes('fetch')) {
+        const fetchError: any = new Error('Unable to connect to wallet service. Please check your internet connection.');
+        fetchError.response = { success: false, messages: 'Connection error', result_code: 'CONNECTION_ERROR' };
+        throw fetchError;
+      }
+      
       throw error;
     }
   }

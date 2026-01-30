@@ -37,10 +37,10 @@ const config: ExpoConfig = {
     EXPO_PUBLIC_SUPABASE_URL: "https://ortjjekmexmyvkkotioo.supabase.co",
     EXPO_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydGpqZWttZXhteXZra290aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwOTkyODAsImV4cCI6MjA4NDY3NTI4MH0.__lyxX1wdkAkO7xUj5cBuc1x9ae_h-cggfVl_yXby6A",
     // Wallet API Configuration (Hardcoded for QA Testing)
-    // TODO: Fix .env loading and remove hardcoded values
-    EXPO_PUBLIC_WALLET_API_URL: "https://api.payelio.com/v3/",
+    // Updated from Postman collection variables
+    EXPO_PUBLIC_WALLET_API_URL: "https://apin.payelio.com/v3/qa/",
     EXPO_PUBLIC_WALLET_CLIENT_KEY: "b154e7-b21b2f-f0a14d-96affa-6d3fb9",
-    EXPO_PUBLIC_WALLET_CLIENT_PASS: "mwDv794ZLsTi0ezF3EBK4ZMsHtAWH1cR",
+    EXPO_PUBLIC_WALLET_CLIENT_PASS: "mwDv794ZLsT0ezF3EBK4ZMsHtAWH1cR",
     EXPO_PUBLIC_USE_WALLET_API: "true",
   },
   ios: {

@@ -186,6 +186,16 @@ export default function WalletLoginScreen() {
               </View>
             </View>
 
+            {/* Register Link */}
+            <TouchableOpacity
+              onPress={() => router.push("/wallet-register")}
+              className="items-center py-4"
+            >
+              <Text className="text-sm text-muted">
+                Don't have an account? <Text className="text-primary font-semibold">Register</Text>
+              </Text>
+            </TouchableOpacity>
+
             {/* Back to Guest Mode */}
             <TouchableOpacity
               onPress={() => router.back()}
