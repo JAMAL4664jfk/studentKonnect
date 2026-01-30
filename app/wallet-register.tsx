@@ -114,13 +114,52 @@ export default function WalletRegisterScreen() {
       Toast.show({
         type: "success",
         text1: "Registration Successful",
-        text2: response.messages || "Your account has been created",
+        text2: "Now let's create your PIN",
       });
 
-      // Navigate to login or next step
-      setTimeout(() => {
-        router.replace("/wallet-login");
-      }, 1500);
+      // First verify mobile to get customerId
+      try {
+        const verifyResult = await walletAPI.verifyMobile(formData.phone_number);
+        
+        let customerId = verifyResult.data?.customerId;
+        
+        // If customerId not in verifyMobile response, try to extract from registration
+        if (!customerId) {
+          // Navigate to Create PIN with phone number, will need to get customerId there
+          setTimeout(() => {
+            router.replace({
+              pathname: "/wallet-create-pin",
+              params: {
+                phoneNumber: formData.phone_number,
+                customerName: `${formData.first_name} ${formData.last_name}`,
+              },
+            });
+          }, 1500);
+        } else {
+          // Navigate to Create PIN with customerId
+          setTimeout(() => {
+            router.replace({
+              pathname: "/wallet-create-pin",
+              params: {
+                customerId: customerId,
+                customerName: `${formData.first_name} ${formData.last_name}`,
+              },
+            });
+          }, 1500);
+        }
+      } catch (verifyError) {
+        console.error("Error getting customerId:", verifyError);
+        // Still navigate to Create PIN, will handle customerId lookup there
+        setTimeout(() => {
+          router.replace({
+            pathname: "/wallet-create-pin",
+            params: {
+              phoneNumber: formData.phone_number,
+              customerName: `${formData.first_name} ${formData.last_name}`,
+            },
+          });
+        }, 1500);
+      }
     } catch (error: any) {
       console.error("Registration error:", error);
 

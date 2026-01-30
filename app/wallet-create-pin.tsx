@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -21,14 +21,47 @@ export default function WalletCreatePinScreen() {
   const params = useLocalSearchParams();
   
   // Get customer data from route params
-  const customerId = params.customerId as string;
+  const phoneNumber = params.phoneNumber as string;
   const customerName = params.customerName as string;
   
   const [loading, setLoading] = useState(false);
+  const [fetchingCustomerId, setFetchingCustomerId] = useState(false);
+  const [customerId, setCustomerId] = useState(params.customerId as string || "");
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [showPin, setShowPin] = useState(false);
   const [showConfirmPin, setShowConfirmPin] = useState(false);
+  
+  // Fetch customerId if not provided
+  React.useEffect(() => {
+    const fetchCustomerId = async () => {
+      if (!customerId && phoneNumber) {
+        setFetchingCustomerId(true);
+        try {
+          const verifyResult = await walletAPI.verifyMobile(phoneNumber);
+          if (verifyResult.data?.customerId) {
+            setCustomerId(verifyResult.data.customerId);
+          } else {
+            Toast.show({
+              type: "error",
+              text1: "Error",
+              text2: "Could not retrieve customer ID. Please try again.",
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching customerId:", error);
+          Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: "Could not retrieve customer information.",
+          });
+        } finally {
+          setFetchingCustomerId(false);
+        }
+      }
+    };
+    fetchCustomerId();
+  }, [phoneNumber, customerId]);
 
   const validatePin = (): boolean => {
     // Validate PIN length (4-6 digits)
@@ -137,6 +170,14 @@ export default function WalletCreatePinScreen() {
               Set a secure PIN to protect your wallet
             </Text>
           </View>
+
+          {/* Loading Indicator */}
+          {fetchingCustomerId && (
+            <View className="items-center mb-4">
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text className="text-sm text-muted mt-2">Loading customer information...</Text>
+            </View>
+          )}
 
           {/* PIN Creation Form */}
           <View className="gap-4">
