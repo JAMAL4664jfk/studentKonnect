@@ -127,6 +127,20 @@ export interface VerifyCustomerResponse {
   };
 }
 
+export interface CreatePinRequest {
+  customer_id: string;
+  pin: string;
+}
+
+export interface CreatePinResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  messages: string;
+  result_code: string;
+}
+
 export interface WalletBalance {
   available_balance: number;
   ledger_balance: number;
@@ -588,6 +602,63 @@ class WalletAPIService {
       }
     } catch (error: any) {
       console.error('❌ Wallet API verify customer error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create PIN for customer account
+   * Uses POST request with security_type=PIN query parameter
+   */
+  async createPin(customerId: string, pin: string): Promise<CreatePinResponse> {
+    try {
+      const url = this.getApiUrl('customer/account_security?security_type=PIN');
+      const headers = await this.getHeaders(false);
+      const body = JSON.stringify({
+        customer_id: customerId,
+        pin: pin
+      });
+
+      console.log('🔐 Wallet API Create PIN Request:');
+      console.log('URL:', url);
+      console.log('Body:', JSON.stringify({ customer_id: customerId, pin: '****' })); // Hide PIN in logs
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: body,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      let data: CreatePinResponse;
+      try {
+        data = responseText ? JSON.parse(responseText) : {
+          success: false,
+          messages: 'Empty response',
+          statusCode: response.status,
+          endpoint: '',
+          environment: '',
+          result_code: 'ERROR'
+        };
+        console.log('📦 Parsed Data:', JSON.stringify(data, null, 2));
+      } catch (parseError) {
+        console.error('❌ JSON Parse Error:', parseError);
+        throw new Error(`Invalid JSON response: ${responseText}`);
+      }
+
+      if (data.success) {
+        return data;
+      } else {
+        const error: any = new Error(data.messages || 'PIN creation failed');
+        error.response = data;
+        throw error;
+      }
+    } catch (error: any) {
+      console.error('❌ Wallet API create PIN error:', error);
       throw error;
     }
   }

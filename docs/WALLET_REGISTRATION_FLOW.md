@@ -172,8 +172,35 @@ GET /customer/verify?customer_id=31827954
 
 ---
 
-### Step 5: Create PIN (Next Endpoint Needed)
-After registration, user needs to create a PIN to complete account setup.
+### Step 5: Create PIN
+**Endpoint:** `POST /customer/account_security?security_type=PIN`
+
+**Purpose:** Set user's wallet PIN for authentication
+
+**Request:**
+```json
+{
+  "customer_id": "31827954",
+  "pin": "56789"
+}
+```
+
+**Response:**
+```json
+{
+  "endpoint": "/v3/qa/customer/account_security?security_type=PIN",
+  "statusCode": 200,
+  "environment": "qa",
+  "success": true,
+  "messages": "Pin has been created",
+  "result_code": "0"
+}
+```
+
+**Notes:**
+- PIN is set by the user (4-6 digits recommended)
+- Uses POST method with query parameter `security_type=PIN`
+- PIN should be validated client-side before sending
 
 ---
 
@@ -216,13 +243,12 @@ After registration, user needs to create a PIN to complete account setup.
 2. **verifyCustomer(customerId)** - Get full customer profile (GET request)
 3. **checkCustomer(idNumber, phoneNumber)** - Validate ID and phone match
 4. **register(registrationData)** - Create/update customer account
-5. **login(phoneNumber, pin)** - Authenticate user
+5. **createPin(customerId, pin)** - Set user's wallet PIN
+6. **login(phoneNumber, pin)** - Authenticate user
 
 ### ⏳ Pending Endpoints
 
-1. **verifyCustomer(customerId)** - ✅ Get full customer profile
-2. **Create PIN** - Set initial PIN for new users
-2. **Reset PIN** - Change existing PIN
+1. **Reset PIN** - Change existing PIN
 3. **Verify OTP** - Confirm phone number ownership
 4. **Get Profile** - Retrieve customer details
 5. **Get Balance** - Check wallet balance
@@ -252,7 +278,7 @@ After registration, user needs to create a PIN to complete account setup.
    ↓
 8. Show "Create PIN" screen with customer details
    ↓
-9. Call createPin() (needs implementation)
+9. Call createPin(customerId, userPin)
    ↓
 10. Navigate to wallet dashboard
 ```
@@ -271,7 +297,7 @@ After registration, user needs to create a PIN to complete account setup.
    → Show full customer profile
    → Show "Create PIN" screen
    ↓
-5. Call createPin()
+5. Call createPin(customerId, userPin)
    ↓
 6. Navigate to wallet dashboard
 ```
@@ -362,13 +388,16 @@ After registration, user needs to create a PIN to complete account setup.
 // Wallet API Service
 import { walletAPI } from '@/lib/wallet-api';
 
-// Registration flow
+// Complete registration flow
 const verifyResult = await walletAPI.verifyMobile(phoneNumber);
 if (verifyResult.data?.customerId) {
   const customerProfile = await walletAPI.verifyCustomer(verifyResult.data.customerId);
 }
 const checkResult = await walletAPI.checkCustomer(idNumber, phoneNumber);
 const registerResult = await walletAPI.register(registrationData);
+
+// Create PIN (user sets their own PIN)
+const pinResult = await walletAPI.createPin(customerId, userPin);
 
 // Login
 const loginResult = await walletAPI.login(phoneNumber, pin);
