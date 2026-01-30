@@ -39,8 +39,8 @@ const config: ExpoConfig = {
     // Wallet API Configuration (Hardcoded for QA Testing)
     // Updated from Postman collection variables
     EXPO_PUBLIC_WALLET_API_URL: "https://apin.payelio.com/v3/qa/",
-    EXPO_PUBLIC_WALLET_CLIENT_KEY: "b154e7-b21b2f-f0a14d-96affa-6d3fb9",
-    EXPO_PUBLIC_WALLET_CLIENT_PASS: "mwDv794ZLsT0ezF3EBK4ZMsHtAWH1cR",
+    EXPO_PUBLIC_WALLET_CLIENT_KEY: "1ecd3691-75c0-4b5f-9d43-0d434ac91443",
+    EXPO_PUBLIC_WALLET_CLIENT_PASS: "i9lyOcSX0GjK6MPEoWsbzwt1dLu5V3DA",
     EXPO_PUBLIC_USE_WALLET_API: "true",
   },
   ios: {

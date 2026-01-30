@@ -11,8 +11,8 @@ import { Platform } from 'react-native';
 // Updated with correct Payelio QA environment URL
 const API_CONFIG = {
   baseUrl: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_API_URL || process.env.EXPO_PUBLIC_WALLET_API_URL || 'https://apin.payelio.com/v3/qa/',
-  clientKey: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_CLIENT_KEY || process.env.EXPO_PUBLIC_WALLET_CLIENT_KEY || 'b154e7-b21b2f-f0a14d-96affa-6d3fb9',
-  clientPass: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_CLIENT_PASS || process.env.EXPO_PUBLIC_WALLET_CLIENT_PASS || 'mwDv794ZLsT0ezF3EBK4ZMsHtAWH1cR',
+  clientKey: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_CLIENT_KEY || process.env.EXPO_PUBLIC_WALLET_CLIENT_KEY || '1ecd3691-75c0-4b5f-9d43-0d434ac91443',
+  clientPass: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_CLIENT_PASS || process.env.EXPO_PUBLIC_WALLET_CLIENT_PASS || 'i9lyOcSX0GjK6MPEoWsbzwt1dLu5V3DA',
 };
 
 // Storage keys
