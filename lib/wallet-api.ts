@@ -8,9 +8,10 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 // API Configuration - Read from expo-constants for runtime access
-// Updated with correct Payelio QA environment URL
+// Updated with correct Payelio QA environment URLs
 const API_CONFIG = {
   baseUrl: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_API_URL || process.env.EXPO_PUBLIC_WALLET_API_URL || 'https://apin.payelio.com/v3/qa/',
+  paymentUrl: Constants.expoConfig?.extra?.EXPO_PUBLIC_PAYMENT_API_URL || process.env.EXPO_PUBLIC_PAYMENT_API_URL || 'https://securen.payelio.com/qa/',
   clientKey: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_CLIENT_KEY || process.env.EXPO_PUBLIC_WALLET_CLIENT_KEY || '1ecd3691-75c0-4b5f-9d43-0d434ac91443',
   clientPass: Constants.expoConfig?.extra?.EXPO_PUBLIC_WALLET_CLIENT_PASS || process.env.EXPO_PUBLIC_WALLET_CLIENT_PASS || 'i9lyOcSX0GjK6MPEoWsbzwt1dLu5V3DA',
 };
@@ -379,7 +380,7 @@ export interface CustomerProfile {
   avatar_url?: string;
 }
 
-class WalletAPIService {
+export class WalletAPIService {
   private baseUrl: string;
   private clientKey: string;
   private clientPass: string;
@@ -470,12 +471,21 @@ class WalletAPIService {
    */
   private getApiUrl(endpoint: string): string {
     let url: string;
+    
+    // Payment endpoints use different base URL (no /v3/)
+    const paymentEndpoints = ['orders/', 'funding/', 'cashout/', 'notification/'];
+    const isPaymentEndpoint = paymentEndpoints.some(prefix => endpoint.startsWith(prefix));
+    
     if (Platform.OS === 'web') {
       // Use backend proxy on web to bypass CORS
       url = `http://localhost:3000/api/wallet-proxy/${endpoint}`;
     } else {
       // Direct API call on native platforms (APK/iOS)
-      url = `${this.baseUrl}${endpoint}`;
+      if (isPaymentEndpoint) {
+        url = `${API_CONFIG.paymentUrl}${endpoint}`;
+      } else {
+        url = `${this.baseUrl}${endpoint}`;
+      }
     }
     console.log(`🌐 API URL for ${endpoint}:`, url);
     return url;
@@ -2845,3 +2855,6 @@ class WalletAPIService {
 
 // Export singleton instance
 export const walletAPI = new WalletAPIService();
+
+// Export class alias for compatibility
+export { WalletAPIService as WalletAPI };
