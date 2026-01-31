@@ -2350,6 +2350,79 @@ export class WalletAPIService {
   }
 
   /**
+   * Get shopping lists (deals/offers)
+   */
+  async getShoppingLists(): Promise<any> {
+    try {
+      const url = this.getApiUrl('features/get_content/shopping_list');
+      const headers = await this.getHeaders(true);
+
+      console.log('🛍️ Wallet API Get Shopping Lists Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({}),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (data.statusCode !== 200 && !data.success) {
+        throw new Error(data.messages || 'Failed to fetch shopping lists');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get shopping lists error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get shopping list coupons by list ID
+   */
+  async getShoppingListCoupons(listId: string | number): Promise<any> {
+    try {
+      const url = this.getApiUrl(`features/get_shopping_list_coupons/${listId}`);
+      const headers = await this.getHeaders(true);
+
+      console.log('🎟️ Wallet API Get Shopping Coupons Request:');
+      console.log('URL:', url);
+      console.log('List ID:', listId);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({}),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (data.statusCode !== 200 && !data.success) {
+        throw new Error(data.messages || 'Failed to fetch shopping coupons');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get shopping coupons error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Wallet top-up (External funding)
    */
   async walletTopUp(amount: number): Promise<any> {
