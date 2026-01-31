@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Image, Alert, ActivityIndicator } from 'r
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { ScreenContainer } from '@/components/screen-container';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { colors } from '@/constants/Colors';
 import { WalletAPI } from '@/lib/wallet-api';
 
