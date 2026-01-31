@@ -412,14 +412,26 @@ export class WalletAPIService {
     if (includeAuth) {
       // Check if token is expired and refresh if needed
       const isExpired = await this.isTokenExpired();
+      console.log('🔍 Token expiry check:', isExpired ? 'EXPIRED' : 'VALID');
+      
       if (isExpired) {
-        console.log('🔄 Token expired, refreshing...');
-        await this.refreshAccessToken();
+        console.log('🔄 Token expired, attempting refresh...');
+        try {
+          await this.refreshAccessToken();
+          console.log('✅ Token refresh successful');
+        } catch (error) {
+          console.error('❌ Token refresh failed:', error);
+          // Don't throw here - let the API call fail with 401
+          // This allows the user to see the error and re-login
+        }
       }
       
       const token = await this.getAccessToken();
       if (token) {
         headers['authorization'] = `Bearer ${token}`;
+        console.log('🔑 Using token:', token.substring(0, 20) + '...');
+      } else {
+        console.warn('⚠️ No access token available');
       }
     }
 
@@ -447,12 +459,19 @@ export class WalletAPIService {
     expiresIn: number
   ): Promise<void> {
     try {
-      const expiryTime = Date.now() + expiresIn * 1000;
+      // If expiresIn is not provided or invalid, default to 1 hour
+      const validExpiresIn = expiresIn && expiresIn > 0 ? expiresIn : 3600;
+      const expiryTime = Date.now() + validExpiresIn * 1000;
+      
+      console.log(`💾 Storing tokens with expiry: ${validExpiresIn}s (${Math.floor(validExpiresIn / 60)} minutes)`);
+      
       await AsyncStorage.multiSet([
         [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
         [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
         [STORAGE_KEYS.TOKEN_EXPIRY, expiryTime.toString()],
       ]);
+      
+      console.log('✅ Tokens stored successfully');
     } catch (error) {
       console.error('Error storing tokens:', error);
     }
@@ -479,13 +498,21 @@ export class WalletAPIService {
   private async isTokenExpired(): Promise<boolean> {
     try {
       const expiryTimeStr = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY);
-      if (!expiryTimeStr) return true;
+      if (!expiryTimeStr) {
+        console.log('📅 No expiry time stored, considering token expired');
+        return true;
+      }
       
       const expiryTime = parseInt(expiryTimeStr, 10);
       const now = Date.now();
       
       // Consider token expired if less than 5 minutes remaining
       const bufferTime = 5 * 60 * 1000; // 5 minutes
+      const timeRemaining = expiryTime - now;
+      const minutesRemaining = Math.floor(timeRemaining / 60000);
+      
+      console.log(`🕒 Token time remaining: ${minutesRemaining} minutes`);
+      
       return now >= (expiryTime - bufferTime);
     } catch (error) {
       console.error('Error checking token expiry:', error);
