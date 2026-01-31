@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColors } from '@/hooks/use-colors';
+import { walletAPI } from '@/lib/wallet-api';
+import Toast from 'react-native-toast-message';
 
 const QUICK_AMOUNTS = ['50', '100', '200', '500', '1000'];
 
@@ -12,8 +14,9 @@ export default function WalletSendMoneyScreen() {
   const [recipientPhone, setRecipientPhone] = useState('');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSendMoney = () => {
+  const handleSendMoney = async () => {
     if (!recipientPhone || recipientPhone.length < 10) {
       Alert.alert('Error', 'Please enter a valid phone number');
       return;
@@ -23,27 +26,51 @@ export default function WalletSendMoneyScreen() {
       return;
     }
 
-    Alert.alert(
-      'Confirm Transfer',
-      `Send R${parseFloat(amount).toFixed(2)} to ${recipientPhone}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Send',
-          onPress: () => {
-            // Navigate to PIN confirmation
-            router.push({
-              pathname: '/wallet-send-money-confirm',
-              params: {
-                recipientPhone,
-                amount,
-                note,
-              },
-            });
-          },
+    setLoading(true);
+
+    try {
+      // Create P2P payment intent
+      const intentResponse = await walletAPI.createP2PIntent(
+        parseFloat(amount),
+        recipientPhone,
+        note || 'P2P Transfer'
+      );
+
+      console.log('P2P Intent Response:', intentResponse);
+
+      // Navigate to PIN confirmation with intent data
+      router.push({
+        pathname: '/wallet-send-money-confirm',
+        params: {
+          recipientPhone,
+          amount,
+          note,
+          intentData: JSON.stringify(intentResponse.data),
         },
-      ]
-    );
+      });
+    } catch (error: any) {
+      console.error('P2P Intent Error:', error);
+      
+      // Check if it's insufficient funds error
+      if (error.message?.includes('Insufficient Funds')) {
+        Alert.alert(
+          'Insufficient Funds',
+          'You do not have enough balance to complete this transfer. Please deposit funds first.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Deposit', onPress: () => router.push('/wallet-deposit') },
+          ]
+        );
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Transfer Failed',
+          text2: error.message || 'Unable to initiate transfer',
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -153,12 +180,16 @@ export default function WalletSendMoneyScreen() {
           {/* Send Button */}
           <TouchableOpacity
             onPress={handleSendMoney}
-            disabled={!recipientPhone || !amount}
+            disabled={!recipientPhone || !amount || loading}
             className={`bg-primary rounded-2xl p-4 items-center ${
-              !recipientPhone || !amount ? 'opacity-50' : ''
+              !recipientPhone || !amount || loading ? 'opacity-50' : ''
             }`}
           >
-            <Text className="text-white font-semibold text-lg">Continue</Text>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="text-white font-semibold text-lg">Continue</Text>
+            )}
           </TouchableOpacity>
 
           {/* Recent Recipients */}

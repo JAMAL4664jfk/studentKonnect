@@ -1877,6 +1877,101 @@ class WalletAPIService {
   }
 
   /**
+   * Create P2P payment intent
+   */
+  async createP2PIntent(
+    amount: number,
+    toWallet: string,
+    description?: string
+  ): Promise<any> {
+    try {
+      const url = this.getApiUrl('orders/intent?q=p2p');
+      const headers = await this.getHeaders(true);
+
+      console.log('💸 Wallet API P2P Intent Request:');
+      console.log('URL:', url);
+      console.log('Amount:', amount);
+      console.log('To Wallet:', toWallet);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          amount,
+          to_wallet: toWallet,
+          description: description || 'P2P Transfer',
+        }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (data.statusCode !== 200) {
+        throw new Error(data.messages || 'P2P intent creation failed');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API P2P intent error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create group payment intent
+   */
+  async createGroupPaymentIntent(
+    amount: number,
+    toWallet: string,
+    fromWallet: string,
+    type: 'fund' | 'withdraw' = 'fund'
+  ): Promise<any> {
+    try {
+      const url = this.getApiUrl('orders/intent?q=group_payment');
+      const headers = await this.getHeaders(true);
+
+      console.log('👥 Wallet API Group Payment Intent Request:');
+      console.log('URL:', url);
+      console.log('Amount:', amount);
+      console.log('To Wallet:', toWallet);
+      console.log('From Wallet:', fromWallet);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          amount,
+          to_wallet: toWallet,
+          from_wallet: fromWallet,
+          type,
+        }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (data.statusCode !== 200) {
+        throw new Error(data.messages || 'Group payment intent creation failed');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API group payment intent error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Wallet top-up (External funding)
    */
   async walletTopUp(amount: number): Promise<any> {
