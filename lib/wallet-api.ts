@@ -2090,7 +2090,8 @@ class WalletAPIService {
       const data = JSON.parse(responseText);
       console.log('📦 Parsed Data:', data);
 
-      if (data.statusCode !== 200) {
+      // Check for success - statusCode 200 or success flag
+      if (data.statusCode && data.statusCode !== 200 && !data.success) {
         throw new Error(data.messages || 'Failed to fetch VAS vouchers');
       }
 

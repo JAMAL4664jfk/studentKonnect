@@ -50,13 +50,79 @@ export default function WalletBuyAirtimeScreen() {
       
       if (response.data) {
         setProviders(response.data);
+      } else {
+        // Fallback to mock data if API returns no data
+        console.warn('No data from API, using fallback');
+        setProviders({
+          eeziairtime: {
+            info: {
+              provider_id: '1',
+              name: 'eeziAirtime',
+              logo: 'assets/images/merchant_logos/eeziairtime.png',
+            },
+            vouchers: [
+              {
+                id: '1',
+                product_code: '420',
+                product_name: 'Vodacom Airtime',
+                minimum_amount: '200',
+                maximum_amount: '99900',
+                product_group: 'Cellular',
+                vas_type: 'prepaid_airtime',
+                logo: 'assets/images/merchant_logos/vodacom.png',
+              },
+              {
+                id: '2',
+                product_code: '421',
+                product_name: 'MTN Airtime',
+                minimum_amount: '200',
+                maximum_amount: '99900',
+                product_group: 'Cellular',
+                vas_type: 'prepaid_airtime',
+                logo: 'assets/images/merchant_logos/mtn.png',
+              },
+            ],
+          },
+        });
       }
     } catch (error: any) {
       console.error('Error fetching cellular vouchers:', error);
       Toast.show({
         type: 'error',
         text1: 'Failed to Load',
-        text2: 'Unable to fetch airtime options',
+        text2: error.message || 'Unable to fetch airtime options. Using fallback data.',
+      });
+      // Use fallback data on error
+      setProviders({
+        eeziairtime: {
+          info: {
+            provider_id: '1',
+            name: 'eeziAirtime',
+            logo: 'assets/images/merchant_logos/eeziairtime.png',
+          },
+          vouchers: [
+            {
+              id: '1',
+              product_code: '420',
+              product_name: 'Vodacom Airtime',
+              minimum_amount: '200',
+              maximum_amount: '99900',
+              product_group: 'Cellular',
+              vas_type: 'prepaid_airtime',
+              logo: 'assets/images/merchant_logos/vodacom.png',
+            },
+            {
+              id: '2',
+              product_code: '421',
+              product_name: 'MTN Airtime',
+              minimum_amount: '200',
+              maximum_amount: '99900',
+              product_group: 'Cellular',
+              vas_type: 'prepaid_airtime',
+              logo: 'assets/images/merchant_logos/mtn.png',
+            },
+          ],
+        },
       });
     } finally {
       setLoading(false);
