@@ -173,13 +173,19 @@ export default function WalletDashboardScreen() {
                 <IconSymbol name="arrow.down.circle.fill" size={24} color="white" />
                 <Text className="text-white text-xs mt-1">Deposit</Text>
               </TouchableOpacity>
-              <TouchableOpacity className="flex-1 bg-white/20 rounded-xl py-3 items-center">
+              <TouchableOpacity
+                onPress={() => router.push('/wallet-withdraw')}
+                className="flex-1 bg-white/20 rounded-xl py-3 items-center"
+              >
                 <IconSymbol name="arrow.up.circle.fill" size={24} color="white" />
-                <Text className="text-white text-xs mt-1">Send</Text>
+                <Text className="text-white text-xs mt-1">Withdraw</Text>
               </TouchableOpacity>
-              <TouchableOpacity className="flex-1 bg-white/20 rounded-xl py-3 items-center">
+              <TouchableOpacity
+                onPress={() => router.push('/wallet-withdraw')}
+                className="flex-1 bg-white/20 rounded-xl py-3 items-center"
+              >
                 <IconSymbol name="arrow.left.arrow.right.circle.fill" size={24} color="white" />
-                <Text className="text-white text-xs mt-1">Transfer</Text>
+                <Text className="text-white text-xs mt-1">Withdraw</Text>
               </TouchableOpacity>
             </View>
           </View>
