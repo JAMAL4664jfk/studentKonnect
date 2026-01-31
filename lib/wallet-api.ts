@@ -607,10 +607,25 @@ export class WalletAPIService {
       const data = await response.json();
       
       if (data.success && data.data) {
+        // Decode base64 tokens if needed
+        let accessToken = data.data.access_token;
+        let newRefreshToken = data.data.refresh_token;
+        
+        try {
+          const decodedAccess = atob(accessToken);
+          const decodedRefresh = atob(newRefreshToken);
+          accessToken = decodedAccess;
+          newRefreshToken = decodedRefresh;
+          console.log('🔓 Decoded refreshed tokens');
+        } catch (decodeError) {
+          console.log('ℹ️ Refresh tokens not base64 encoded');
+        }
+        
         await this.storeTokens(
-          data.data.access_token,
-          data.data.refresh_token,
-          data.data.access_token_expires_in
+          accessToken,
+          newRefreshToken,
+          data.data.access_token_expires_in,
+          data.data.refresh_token_expires_in || 2592000
         );
         console.log('✅ Token refreshed successfully');
       } else {
@@ -698,10 +713,28 @@ export class WalletAPIService {
           await AsyncStorage.setItem('wallet_user_id', userId.toString());
         }
         
-        // Store tokens with phone number and customer ID for database storage
+        // Decode base64 tokens to get actual token values
+        let accessToken = data.data.access_token;
+        let refreshToken = data.data.refresh_token;
+        
+        try {
+          // Check if tokens are base64 encoded (they usually are from this API)
+          const decodedAccess = atob(accessToken);
+          const decodedRefresh = atob(refreshToken);
+          
+          console.log('🔓 Decoded access token:', decodedAccess.substring(0, 20) + '...');
+          console.log('🔓 Decoded refresh token:', decodedRefresh.substring(0, 20) + '...');
+          
+          accessToken = decodedAccess;
+          refreshToken = decodedRefresh;
+        } catch (decodeError) {
+          console.log('ℹ️ Tokens are not base64 encoded, using as-is');
+        }
+        
+        // Store decoded tokens with phone number and customer ID for database storage
         await this.storeTokens(
-          data.data.access_token,
-          data.data.refresh_token,
+          accessToken,
+          refreshToken,
           data.data.access_token_expires_in,
           data.data.refresh_token_expires_in,
           phoneNumber,
