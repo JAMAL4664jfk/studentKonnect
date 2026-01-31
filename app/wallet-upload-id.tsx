@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Image,
   Alert,
+  ScrollView,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -16,7 +17,9 @@ import Toast from "react-native-toast-message";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 
-export default function WalletUploadSelfieScreen() {
+type IDType = "IDENTITYBOOK" | "IDENTITYCARD";
+
+export default function WalletUploadIDScreen() {
   const colors = useColors();
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -24,6 +27,7 @@ export default function WalletUploadSelfieScreen() {
   const customerId = params.customerId as string;
   
   const [loading, setLoading] = useState(false);
+  const [idType, setIdType] = useState<IDType | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
 
@@ -32,7 +36,7 @@ export default function WalletUploadSelfieScreen() {
     if (status !== "granted") {
       Alert.alert(
         "Permission Required",
-        "Camera permission is required to take a selfie. Please enable it in your device settings.",
+        "Camera permission is required to take a photo. Please enable it in your device settings.",
         [{ text: "OK" }]
       );
       return false;
@@ -58,7 +62,8 @@ export default function WalletUploadSelfieScreen() {
       const base64 = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
-      return base64;
+      // Add data URI prefix for API
+      return `data:image/jpeg;base64,${base64}`;
     } catch (error) {
       console.error("Error converting image to base64:", error);
       throw new Error("Failed to process image");
@@ -66,6 +71,15 @@ export default function WalletUploadSelfieScreen() {
   };
 
   const handleTakePhoto = async () => {
+    if (!idType) {
+      Toast.show({
+        type: "error",
+        text1: "Select ID Type",
+        text2: "Please select your ID type first",
+      });
+      return;
+    }
+
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) return;
 
@@ -73,15 +87,15 @@ export default function WalletUploadSelfieScreen() {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
+        aspect: [4, 3],
+        quality: 0.9,
       });
 
       if (!result.canceled && result.assets[0]) {
         const uri = result.assets[0].uri;
         setImageUri(uri);
         
-        // Convert to base64
+        // Convert to base64 with data URI prefix
         const base64 = await convertImageToBase64(uri);
         setImageBase64(base64);
       }
@@ -96,6 +110,15 @@ export default function WalletUploadSelfieScreen() {
   };
 
   const handleChooseFromGallery = async () => {
+    if (!idType) {
+      Toast.show({
+        type: "error",
+        text1: "Select ID Type",
+        text2: "Please select your ID type first",
+      });
+      return;
+    }
+
     const hasPermission = await requestGalleryPermission();
     if (!hasPermission) return;
 
@@ -103,15 +126,15 @@ export default function WalletUploadSelfieScreen() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
+        aspect: [4, 3],
+        quality: 0.9,
       });
 
       if (!result.canceled && result.assets[0]) {
         const uri = result.assets[0].uri;
         setImageUri(uri);
         
-        // Convert to base64
+        // Convert to base64 with data URI prefix
         const base64 = await convertImageToBase64(uri);
         setImageBase64(base64);
       }
@@ -126,11 +149,20 @@ export default function WalletUploadSelfieScreen() {
   };
 
   const handleSubmit = async () => {
+    if (!idType) {
+      Toast.show({
+        type: "error",
+        text1: "Select ID Type",
+        text2: "Please select your ID type first",
+      });
+      return;
+    }
+
     if (!imageBase64) {
       Toast.show({
         type: "error",
         text1: "No Photo Selected",
-        text2: "Please take a selfie or choose a photo from your gallery",
+        text2: "Please take a photo or choose one from your gallery",
       });
       return;
     }
@@ -149,8 +181,8 @@ export default function WalletUploadSelfieScreen() {
     try {
       const documentData = {
         customer_id: customerId,
-        image_type: "FACIAL_PHOTO",
-        identity_type: "SELFIE",
+        image_type: "NATIONAL_IDENTITY",
+        identity_type: idType,
         side: "FRONT",
         image: imageBase64,
       };
@@ -159,21 +191,18 @@ export default function WalletUploadSelfieScreen() {
 
       Toast.show({
         type: "success",
-        text1: "Selfie Uploaded",
-        text2: "Now let's upload your ID document",
+        text1: "ID Uploaded",
+        text2: response.messages || "Your ID has been uploaded successfully",
       });
 
-      // Navigate to ID upload
+      // Navigate to dashboard
       setTimeout(() => {
-        router.push({
-          pathname: "/wallet-upload-id",
-          params: { customerId: customerId }
-        });
+        router.replace("/wallet-dashboard");
       }, 1500);
     } catch (error: any) {
-      console.error("Upload selfie error:", error);
+      console.error("Upload ID error:", error);
 
-      let errorMessage = "Failed to upload selfie. Please try again.";
+      let errorMessage = "Failed to upload ID. Please try again.";
       if (error.response) {
         errorMessage = error.response.messages || error.response.message || errorMessage;
       } else if (error.message) {
@@ -192,24 +221,88 @@ export default function WalletUploadSelfieScreen() {
 
   return (
     <ScreenContainer>
-      <View className="flex-1 px-6 pt-12">
+      <ScrollView className="flex-1 px-6 pt-12">
         {/* Header */}
         <View className="items-center mb-8">
           <View className="w-20 h-20 rounded-full bg-primary/10 items-center justify-center mb-4">
-            <IconSymbol name="camera.fill" size={48} color={colors.primary} />
+            <IconSymbol name="doc.text.fill" size={48} color={colors.primary} />
           </View>
           <Text className="text-3xl font-bold text-foreground mb-2">
-            Upload Your Selfie
+            Upload Your ID
           </Text>
           <Text className="text-base text-muted text-center">
-            Take a clear photo of your face for identity verification
+            Upload a clear photo of your ID document (front side)
           </Text>
+        </View>
+
+        {/* ID Type Selection */}
+        <View className="mb-6">
+          <Text className="text-sm font-medium text-foreground mb-3">
+            Select ID Type *
+          </Text>
+          <View className="flex-row gap-3">
+            <TouchableOpacity
+              onPress={() => {
+                setIdType("IDENTITYBOOK");
+                setImageUri(null);
+                setImageBase64(null);
+              }}
+              className={`flex-1 py-4 px-4 rounded-xl border-2 ${
+                idType === "IDENTITYBOOK"
+                  ? "border-primary bg-primary/10"
+                  : "border-border bg-card"
+              }`}
+            >
+              <View className="items-center">
+                <IconSymbol
+                  name="book.fill"
+                  size={32}
+                  color={idType === "IDENTITYBOOK" ? colors.primary : colors.muted}
+                />
+                <Text
+                  className={`text-center font-medium mt-2 ${
+                    idType === "IDENTITYBOOK" ? "text-primary" : "text-muted"
+                  }`}
+                >
+                  ID Book
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setIdType("IDENTITYCARD");
+                setImageUri(null);
+                setImageBase64(null);
+              }}
+              className={`flex-1 py-4 px-4 rounded-xl border-2 ${
+                idType === "IDENTITYCARD"
+                  ? "border-primary bg-primary/10"
+                  : "border-border bg-card"
+              }`}
+            >
+              <View className="items-center">
+                <IconSymbol
+                  name="creditcard.fill"
+                  size={32}
+                  color={idType === "IDENTITYCARD" ? colors.primary : colors.muted}
+                />
+                <Text
+                  className={`text-center font-medium mt-2 ${
+                    idType === "IDENTITYCARD" ? "text-primary" : "text-muted"
+                  }`}
+                >
+                  ID Card
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Photo Preview */}
         {imageUri ? (
-          <View className="items-center mb-8">
-            <View className="w-64 h-64 rounded-3xl overflow-hidden bg-card border-2 border-primary mb-4">
+          <View className="items-center mb-6">
+            <View className="w-full aspect-[4/3] rounded-2xl overflow-hidden bg-card border-2 border-primary mb-4">
               <Image
                 source={{ uri: imageUri }}
                 className="w-full h-full"
@@ -228,17 +321,19 @@ export default function WalletUploadSelfieScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-          <View className="items-center mb-8">
-            <View className="w-64 h-64 rounded-3xl bg-muted/20 border-2 border-dashed border-muted items-center justify-center mb-4">
-              <IconSymbol name="person.crop.circle" size={80} color={colors.muted} />
-              <Text className="text-muted text-sm mt-4">No photo selected</Text>
+          <View className="items-center mb-6">
+            <View className="w-full aspect-[4/3] rounded-2xl bg-muted/20 border-2 border-dashed border-muted items-center justify-center mb-4">
+              <IconSymbol name="doc.text" size={64} color={colors.muted} />
+              <Text className="text-muted text-sm mt-4">
+                {idType ? "No photo selected" : "Select ID type first"}
+              </Text>
             </View>
           </View>
         )}
 
         {/* Action Buttons */}
         <View className="gap-3 mb-6">
-          {!imageUri && (
+          {!imageUri && idType && (
             <>
               <TouchableOpacity
                 onPress={handleTakePhoto}
@@ -247,7 +342,7 @@ export default function WalletUploadSelfieScreen() {
               >
                 <IconSymbol name="camera.fill" size={20} color="white" />
                 <Text className="text-white font-semibold text-base ml-2">
-                  Take Selfie
+                  Take Photo
                 </Text>
               </TouchableOpacity>
 
@@ -275,7 +370,7 @@ export default function WalletUploadSelfieScreen() {
                 <ActivityIndicator color="white" />
               ) : (
                 <Text className="text-white font-semibold text-base">
-                  Upload Selfie
+                  Upload ID
                 </Text>
               )}
             </TouchableOpacity>
@@ -289,10 +384,11 @@ export default function WalletUploadSelfieScreen() {
             <Text className="text-foreground font-semibold ml-2">Photo Tips</Text>
           </View>
           <View className="ml-7 gap-1">
-            <Text className="text-muted text-xs">• Face the camera directly</Text>
-            <Text className="text-muted text-xs">• Ensure good lighting</Text>
-            <Text className="text-muted text-xs">• Remove glasses and hats</Text>
-            <Text className="text-muted text-xs">• Keep a neutral expression</Text>
+            <Text className="text-muted text-xs">• Capture the entire ID document</Text>
+            <Text className="text-muted text-xs">• Ensure all text is readable</Text>
+            <Text className="text-muted text-xs">• Use good lighting (no glare)</Text>
+            <Text className="text-muted text-xs">• Place on a flat, dark surface</Text>
+            <Text className="text-muted text-xs">• Take photo from directly above</Text>
           </View>
         </View>
 
@@ -300,11 +396,11 @@ export default function WalletUploadSelfieScreen() {
         <TouchableOpacity
           onPress={() => router.replace("/wallet-dashboard")}
           disabled={loading}
-          className="w-full py-4 items-center"
+          className="w-full py-4 items-center mb-8"
         >
           <Text className="text-muted text-sm">Skip for now</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </ScreenContainer>
   );
 }
