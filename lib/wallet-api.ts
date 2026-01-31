@@ -733,6 +733,16 @@ export class WalletAPIService {
           phoneNumber,
           null // customer ID not available in login response
         );
+        
+        // Verify token immediately after login
+        try {
+          console.log('🔍 [DEBUG] Verifying token with /auth/checkToken...');
+          const tokenCheck = await this.checkToken();
+          console.log('✅ [DEBUG] Token verification result:', tokenCheck);
+        } catch (checkError) {
+          console.error('❌ [DEBUG] Token verification failed:', checkError);
+        }
+        
         return data;
       } else {
         // API returned error response
