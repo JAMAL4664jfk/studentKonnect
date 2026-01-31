@@ -27,7 +27,8 @@ export default function WalletForgotPinScreen() {
 
     try {
       setLoading(true);
-      await walletAPI.resetPin(phoneNumber);
+      // Send OTP first
+      await walletAPI.sendOTP(phoneNumber, 'pin_reset');
       
       Alert.alert(
         'PIN Reset Initiated',

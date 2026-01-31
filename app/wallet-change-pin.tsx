@@ -47,9 +47,8 @@ export default function WalletChangePinScreen() {
     try {
       setLoading(true);
       
-      // First verify the old PIN by attempting login
-      // Then create the new PIN
-      await walletAPI.createPin(newPin);
+      // Use updatePin endpoint to change PIN
+      await walletAPI.updatePin(oldPin, newPin);
 
       Alert.alert(
         'Success',

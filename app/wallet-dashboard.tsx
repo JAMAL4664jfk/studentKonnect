@@ -153,6 +153,12 @@ export default function WalletDashboardScreen() {
             </View>
             <View className="flex-row gap-2">
               <TouchableOpacity
+                onPress={() => router.push('/wallet-notifications')}
+                className="w-10 h-10 rounded-full bg-muted/20 items-center justify-center"
+              >
+                <IconSymbol name="bell.fill" size={20} color={colors.muted} />
+              </TouchableOpacity>
+              <TouchableOpacity
                 onPress={() => router.push('/wallet-settings')}
                 className="w-10 h-10 rounded-full bg-muted/20 items-center justify-center"
               >
@@ -247,14 +253,25 @@ export default function WalletDashboardScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => router.push('/wallet-add-account')}
+                onPress={() => router.push('/wallet-bank-accounts')}
                 className="flex-1 min-w-[45%] bg-card rounded-2xl p-4 border border-border"
               >
                 <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mb-3">
                   <IconSymbol name="building.columns.fill" size={24} color={colors.primary} />
                 </View>
-                <Text className="text-foreground font-medium">Add Bank Account</Text>
-                <Text className="text-muted text-xs mt-1">Link your bank</Text>
+                <Text className="text-foreground font-medium">Bank Accounts</Text>
+                <Text className="text-muted text-xs mt-1">Manage accounts</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => router.push('/wallet-cashout-history')}
+                className="flex-1 min-w-[45%] bg-card rounded-2xl p-4 border border-border"
+              >
+                <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mb-3">
+                  <IconSymbol name="clock.arrow.circlepath" size={24} color={colors.primary} />
+                </View>
+                <Text className="text-foreground font-medium">Cashout History</Text>
+                <Text className="text-muted text-xs mt-1">View withdrawals</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -56,8 +56,8 @@ export default function WalletEditProfileScreen() {
     try {
       setSaving(true);
       
-      // Update profile using add_additional_info endpoint
-      await walletAPI.addAdditionalInfo({
+      // Update profile using updateProfile endpoint
+      await walletAPI.updateProfile({
         first_name: firstName,
         last_name: lastName,
         middle_name: middleName,
