@@ -61,7 +61,7 @@ export default function WalletLoginScreen() {
       });
 
       // Navigate to My Student Account
-      router.replace("/my-account");
+      router.replace("/wallet-dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
       
