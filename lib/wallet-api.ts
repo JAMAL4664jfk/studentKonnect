@@ -1553,6 +1553,90 @@ class WalletAPIService {
   }
 
   /**
+   * Fund wallet via PayFast
+   */
+  async fundViaPayFast(amount: string): Promise<any> {
+    try {
+      const url = this.getApiUrl('funding/payfast');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('💳 Wallet API PayFast Funding Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ amount }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.data?.checkoutUrl) {
+        throw new Error(data.messages || 'Failed to initiate PayFast funding');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API PayFast funding error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fund wallet via PayShap (Instant EFT)
+   */
+  async fundViaPayShap(amount: string, code: string, domain: string, identifier: string): Promise<any> {
+    try {
+      const url = this.getApiUrl('funding/payshap');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('🏦 Wallet API PayShap Funding Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ amount, code, domain, identifier }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API PayShap funding error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Reset PIN (Forgot PIN)
    */
   async resetPin(phoneNumber: string): Promise<any> {

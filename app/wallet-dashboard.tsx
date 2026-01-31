@@ -166,7 +166,10 @@ export default function WalletDashboardScreen() {
               R {balance !== null ? balance.toFixed(2) : "0.00"}
             </Text>
             <View className="flex-row gap-3">
-              <TouchableOpacity className="flex-1 bg-white/20 rounded-xl py-3 items-center">
+              <TouchableOpacity
+                onPress={() => router.push('/wallet-deposit')}
+                className="flex-1 bg-white/20 rounded-xl py-3 items-center"
+              >
                 <IconSymbol name="arrow.down.circle.fill" size={24} color="white" />
                 <Text className="text-white text-xs mt-1">Deposit</Text>
               </TouchableOpacity>
