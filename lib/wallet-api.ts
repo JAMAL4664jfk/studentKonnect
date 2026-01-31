@@ -284,6 +284,42 @@ export interface WalletBalance {
   currency: string;
 }
 
+export interface CustomerProfileData {
+  account_number: string;
+  customer_id: string;
+  date_created: string;
+  email: string | null;
+  first_name: string;
+  last_name: string;
+  identity_number: string;
+  msisdn: string;
+  status: string;
+  customer_image: string | null;
+  wl_name: string;
+  loyalty: any | null;
+  linked_accounts: any | null;
+  registration_type: string;
+  wallet_id: string;
+  wallet_acc_number: string;
+  fica_documents: string[];
+  device_info: boolean;
+  industry: string | null;
+  occupation: string | null;
+  occupation_other: string | null;
+  source_of_funds: string | null;
+  dateOfBirth: string;
+  gender: string;
+}
+
+export interface CustomerProfileResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  result_code: string;
+  data: CustomerProfileData;
+}
+
 export interface Transaction {
   id: string;
   amount: number;
@@ -292,6 +328,38 @@ export interface Transaction {
   date: string;
   category?: string;
   status: string;
+}
+
+export interface TransactionsResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  messages: string;
+  result_code: string;
+  data: {
+    transactions: Transaction[];
+    pagination: {
+      total_records: number;
+      total_pages: number;
+      current_page: number;
+      limit: number;
+    };
+  };
+}
+
+export interface SubscriptionResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  messages: string;
+  result_code: string;
+  data: {
+    subscription_id: string;
+    status: string;
+    total_amount: string;
+  };
 }
 
 export interface Voucher {
@@ -1193,7 +1261,7 @@ class WalletAPIService {
   /**
    * Get transaction history
    */
-  async getTransactions(limit: number = 50, offset: number = 0): Promise<any> {
+  async getTransactions(limit: number = 50, offset: number = 0): Promise<TransactionsResponse> {
     try {
       const url = this.getApiUrl('transactions/get_transactions');
       const headers = await this.getHeaders(true); // Requires auth token
@@ -1261,7 +1329,7 @@ class WalletAPIService {
   /**
    * Get customer profile
    */
-  async getProfile(): Promise<any> {
+  async getProfile(): Promise<CustomerProfileResponse> {
     try {
       const url = this.getApiUrl('customer/profile');
       const headers = await this.getHeaders(true); // Requires auth token
@@ -1305,7 +1373,7 @@ class WalletAPIService {
   /**
    * Check customer subscription status
    */
-  async checkSubscription(): Promise<any> {
+  async checkSubscription(): Promise<SubscriptionResponse> {
     try {
       const url = this.getApiUrl('customer/check_subscription');
       const headers = await this.getHeaders(true); // Requires auth token

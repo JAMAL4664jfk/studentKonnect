@@ -265,26 +265,41 @@ export default function WalletDashboardScreen() {
             )}
           </View>
 
-          {/* Account Info */}
+              {/* Account Information */}
           {profile && (
-            <View className="bg-card rounded-2xl border border-border p-4 mb-6">
-              <Text className="text-lg font-semibold text-foreground mb-3">Account Information</Text>
-              <View className="gap-2">
+            <View className="px-6 pb-6">
+              <Text className="text-lg font-semibold text-foreground mb-4">Account Information</Text>
+              <View className="bg-card rounded-2xl p-4 space-y-3">
                 <View className="flex-row justify-between">
                   <Text className="text-muted">Account Number</Text>
                   <Text className="text-foreground font-medium">{profile.account_number || "N/A"}</Text>
                 </View>
                 <View className="flex-row justify-between">
+                  <Text className="text-muted">Wallet Account</Text>
+                  <Text className="text-foreground font-medium">{profile.wallet_acc_number || "N/A"}</Text>
+                </View>
+                <View className="flex-row justify-between">
                   <Text className="text-muted">Customer ID</Text>
-                  <Text className="text-foreground font-medium">{profile.customerId || "N/A"}</Text>
+                  <Text className="text-foreground font-medium">{profile.customer_id || "N/A"}</Text>
                 </View>
                 <View className="flex-row justify-between">
                   <Text className="text-muted">Phone Number</Text>
                   <Text className="text-foreground font-medium">{profile.msisdn || "N/A"}</Text>
                 </View>
+                <View className="flex-row justify-between">
+                  <Text className="text-muted">Email</Text>
+                  <Text className="text-foreground font-medium">{profile.email || "Not set"}</Text>
+                </View>
+                <View className="flex-row justify-between">
+                  <Text className="text-muted">Status</Text>
+                  <View className="flex-row items-center">
+                    <View className={`w-2 h-2 rounded-full mr-2 ${profile.status === "1" ? "bg-green-500" : "bg-red-500"}`} />
+                    <Text className="text-foreground font-medium">{profile.status === "1" ? "Active" : "Inactive"}</Text>
+                  </View>
+                </View>
               </View>
             </View>
-          )}
+          )}}
         </View>
       </ScrollView>
     </ScreenContainer>
