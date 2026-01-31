@@ -231,6 +231,7 @@ export async function getCachedCustomerId(): Promise<string | null> {
 /**
  * Restore session on app startup
  * Returns session if valid, null if expired or not found
+ * Falls back to AsyncStorage if database is unavailable
  */
 export async function restoreSession(): Promise<WalletSession | null> {
   try {
@@ -242,19 +243,56 @@ export async function restoreSession(): Promise<WalletSession | null> {
       return null;
     }
 
-    const session = await getWalletSession(phoneNumber);
-    if (!session) {
-      console.log('ℹ️ [WalletSessionClient] No active session in database');
+    // Try database first
+    try {
+      const session = await getWalletSession(phoneNumber);
+      if (session && !session.isRefreshTokenExpired) {
+        console.log('✅ [WalletSessionClient] Session restored from database');
+        return session;
+      }
+    } catch (dbError) {
+      console.log('⚠️ [WalletSessionClient] Database unavailable, checking AsyncStorage...');
+    }
+
+    // Fallback to AsyncStorage
+    const accessToken = await AsyncStorage.getItem('wallet_access_token');
+    const refreshToken = await AsyncStorage.getItem('wallet_refresh_token');
+    const tokenExpiry = await AsyncStorage.getItem('wallet_token_expiry');
+    const refreshExpiry = await AsyncStorage.getItem('wallet_refresh_token_expiry');
+
+    if (!accessToken || !refreshToken) {
+      console.log('ℹ️ [WalletSessionClient] No tokens found in AsyncStorage');
       return null;
     }
 
-    if (session.isRefreshTokenExpired) {
+    // Check if refresh token is expired
+    const refreshExpiryTime = refreshExpiry ? parseInt(refreshExpiry, 10) : 0;
+    const isRefreshExpired = refreshExpiryTime > 0 && Date.now() >= refreshExpiryTime;
+
+    if (isRefreshExpired) {
       console.log('⚠️ [WalletSessionClient] Refresh token expired, session invalid');
       return null;
     }
 
-    console.log('✅ [WalletSessionClient] Session restored successfully');
-    return session;
+    // Check if access token is expired
+    const accessExpiryTime = tokenExpiry ? parseInt(tokenExpiry, 10) : 0;
+    const isAccessExpired = accessExpiryTime > 0 && Date.now() >= accessExpiryTime;
+
+    console.log('✅ [WalletSessionClient] Session restored from AsyncStorage');
+    console.log('📅 Access token expired:', isAccessExpired);
+    console.log('📅 Refresh token expired:', isRefreshExpired);
+
+    // Return session data (wallet-api will handle refresh if needed)
+    return {
+      phoneNumber,
+      customerId: await getCachedCustomerId(),
+      accessToken,
+      refreshToken,
+      accessTokenExpiresAt: new Date(accessExpiryTime).toISOString(),
+      refreshTokenExpiresAt: new Date(refreshExpiryTime).toISOString(),
+      isAccessTokenExpired: isAccessExpired,
+      isRefreshTokenExpired: isRefreshExpired,
+    };
   } catch (error) {
     console.error('❌ [WalletSessionClient] Restore error:', error);
     return null;

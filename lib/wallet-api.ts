@@ -501,11 +501,22 @@ export class WalletAPIService {
         console.warn('⚠️ Missing phone number or user ID, falling back to AsyncStorage');
         // Fallback to AsyncStorage if database storage fails
         const expiryTime = Date.now() + validExpiresIn * 1000;
-        await AsyncStorage.multiSet([
+        const refreshExpiryTime = Date.now() + refreshTokenExpiresIn * 1000;
+        
+        const storageItems = [
           [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
           [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
           [STORAGE_KEYS.TOKEN_EXPIRY, expiryTime.toString()],
-        ]);
+          ['wallet_refresh_token_expiry', refreshExpiryTime.toString()],
+        ];
+        
+        // Store phone number if available for session restoration
+        if (cachedPhone) {
+          storageItems.push(['wallet_phone_number', cachedPhone]);
+        }
+        
+        await AsyncStorage.multiSet(storageItems);
+        console.log('✅ Tokens stored in AsyncStorage with phone number for session restoration');
         return;
       }
       
@@ -526,11 +537,22 @@ export class WalletAPIService {
         console.warn('⚠️ Database storage failed, falling back to AsyncStorage');
         // Fallback to AsyncStorage
         const expiryTime = Date.now() + validExpiresIn * 1000;
-        await AsyncStorage.multiSet([
+        const refreshExpiryTime = Date.now() + refreshTokenExpiresIn * 1000;
+        
+        const storageItems = [
           [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
           [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
           [STORAGE_KEYS.TOKEN_EXPIRY, expiryTime.toString()],
-        ]);
+          ['wallet_refresh_token_expiry', refreshExpiryTime.toString()],
+        ];
+        
+        // Store phone number for session restoration
+        if (cachedPhone) {
+          storageItems.push(['wallet_phone_number', cachedPhone]);
+        }
+        
+        await AsyncStorage.multiSet(storageItems);
+        console.log('✅ Tokens stored in AsyncStorage with phone number for session restoration');
       }
     } catch (error) {
       console.error('Error storing tokens:', error);

@@ -14,6 +14,8 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { walletAPI } from "@/lib/wallet-api";
 import Toast from "react-native-toast-message";
+import { restoreSession } from "@/lib/wallet-session-client";
+import { useEffect } from "react";
 
 export default function WalletLoginScreen() {
   const colors = useColors();
@@ -22,6 +24,23 @@ export default function WalletLoginScreen() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [pin, setPin] = useState("");
   const [showPin, setShowPin] = useState(false);
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      try {
+        const session = await restoreSession();
+        if (session && !session.isRefreshTokenExpired) {
+          console.log('✅ [Login Screen] Valid session found, redirecting to dashboard...');
+          router.replace('/wallet-dashboard');
+        }
+      } catch (error) {
+        console.log('ℹ️ [Login Screen] No existing session, showing login form');
+      }
+    };
+    
+    checkExistingSession();
+  }, []);
 
   const validatePhoneNumber = (phone: string): boolean => {
     const cleaned = phone.replace(/\s/g, "");
