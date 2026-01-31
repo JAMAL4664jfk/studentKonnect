@@ -2495,6 +2495,299 @@ class WalletAPIService {
     }
   }
 
+  /**
+   * HIGH PRIORITY ENDPOINTS
+   */
+
+  /**
+   * Update customer profile
+   */
+  async updateProfile(profileData: any): Promise<any> {
+    try {
+      const url = this.getApiUrl('customer/update_profile');
+      const headers = await this.getHeaders(true);
+
+      console.log('👤 Wallet API Update Profile Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(profileData),
+      });
+
+      const responseText = await response.text();
+      const data = JSON.parse(responseText);
+
+      if (data.statusCode !== 200 && !data.success) {
+        throw new Error(data.messages || 'Failed to update profile');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API update profile error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update/Change PIN
+   */
+  async updatePin(oldPin: string, newPin: string): Promise<any> {
+    try {
+      const url = this.getApiUrl('customer/update_pin');
+      const headers = await this.getHeaders(true);
+
+      console.log('🔐 Wallet API Update PIN Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          old_pin: oldPin,
+          new_pin: newPin,
+        }),
+      });
+
+      const responseText = await response.text();
+      const data = JSON.parse(responseText);
+
+      if (data.statusCode !== 200 && !data.success) {
+        throw new Error(data.messages || 'Failed to update PIN');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API update PIN error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get list of bank accounts
+   */
+  async getBankAccounts(): Promise<any> {
+    try {
+      const url = this.getApiUrl('customer/get_accounts');
+      const headers = await this.getHeaders(true);
+
+      console.log('🏦 Wallet API Get Bank Accounts Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({}),
+      });
+
+      const responseText = await response.text();
+      const data = JSON.parse(responseText);
+
+      if (data.statusCode !== 200 && !data.success) {
+        throw new Error(data.messages || 'Failed to get bank accounts');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get bank accounts error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Remove bank account
+   */
+  async removeBankAccount(accountId: string): Promise<any> {
+    try {
+      const url = this.getApiUrl('customer/remove_account');
+      const headers = await this.getHeaders(true);
+
+      console.log('🗑️ Wallet API Remove Bank Account Request:');
+      console.log('URL:', url);
+      console.log('Account ID:', accountId);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ account_id: accountId }),
+      });
+
+      const responseText = await response.text();
+      const data = JSON.parse(responseText);
+
+      if (data.statusCode !== 200 && !data.success) {
+        throw new Error(data.messages || 'Failed to remove bank account');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API remove bank account error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get cashout history
+   */
+  async getCashoutHistory(): Promise<any> {
+    try {
+      const url = this.getApiUrl('cashout/history');
+      const headers = await this.getHeaders(true);
+
+      console.log('📜 Wallet API Get Cashout History Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      const responseText = await response.text();
+      const data = JSON.parse(responseText);
+
+      if (data.statusCode !== 200 && !data.success) {
+        throw new Error(data.messages || 'Failed to get cashout history');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get cashout history error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get notifications/messages
+   */
+  async getNotifications(): Promise<any> {
+    try {
+      const url = this.getApiUrl('notifications/get_messages');
+      const headers = await this.getHeaders(true);
+
+      console.log('🔔 Wallet API Get Notifications Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      const responseText = await response.text();
+      const data = JSON.parse(responseText);
+
+      if (data.statusCode !== 200 && !data.success) {
+        throw new Error(data.messages || 'Failed to get notifications');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get notifications error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add Firebase token for push notifications
+   */
+  async addFirebaseToken(token: string): Promise<any> {
+    try {
+      const url = this.getApiUrl('notifications');
+      const headers = await this.getHeaders(true);
+
+      console.log('🔥 Wallet API Add Firebase Token Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ firebase_token: token }),
+      });
+
+      const responseText = await response.text();
+      const data = JSON.parse(responseText);
+
+      if (data.statusCode !== 200 && !data.success) {
+        throw new Error(data.messages || 'Failed to add Firebase token');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API add Firebase token error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send OTP
+   */
+  async sendOTP(phoneNumber: string, purpose?: string): Promise<any> {
+    try {
+      const url = this.getApiUrl('otp/send_otp');
+      const headers = await this.getHeaders(false);
+
+      console.log('📧 Wallet API Send OTP Request:');
+      console.log('URL:', url);
+      console.log('Phone:', phoneNumber);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          phone_number: phoneNumber,
+          purpose: purpose || 'verification',
+        }),
+      });
+
+      const responseText = await response.text();
+      const data = JSON.parse(responseText);
+
+      if (data.statusCode !== 200 && !data.success) {
+        throw new Error(data.messages || 'Failed to send OTP');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API send OTP error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify OTP
+   */
+  async verifyOTP(phoneNumber: string, otp: string): Promise<any> {
+    try {
+      const url = this.getApiUrl('otp/verify_otp');
+      const headers = await this.getHeaders(false);
+
+      console.log('✅ Wallet API Verify OTP Request:');
+      console.log('URL:', url);
+      console.log('Phone:', phoneNumber);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          phone_number: phoneNumber,
+          otp: otp,
+        }),
+      });
+
+      const responseText = await response.text();
+      const data = JSON.parse(responseText);
+
+      if (data.statusCode !== 200 && !data.success) {
+        throw new Error(data.messages || 'Failed to verify OTP');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API verify OTP error:', error);
+      throw error;
+    }
+  }
+
   // Mock data methods for fallback
   private getMockTransactions(): Transaction[] {
     return [
