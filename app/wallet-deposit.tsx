@@ -14,6 +14,13 @@ const FUNDING_METHODS = [
     recommended: true,
   },
   {
+    id: 'ozow',
+    name: 'Ozow',
+    description: 'Instant EFT - Fast & Secure',
+    icon: 'bolt.circle.fill',
+    recommended: false,
+  },
+  {
     id: 'payshap',
     name: 'PayShap',
     description: 'Instant EFT from your bank',
@@ -46,6 +53,8 @@ export default function WalletDepositScreen() {
     // Navigate to selected funding method
     if (selectedMethod === 'payfast') {
       router.push(`/wallet-fund-payfast?amount=${amount}`);
+    } else if (selectedMethod === 'ozow') {
+      router.push(`/wallet-fund-ozow?amount=${amount}`);
     } else if (selectedMethod === 'payshap') {
       router.push(`/wallet-fund-payshap?amount=${amount}`);
     }

@@ -1597,6 +1597,86 @@ class WalletAPIService {
   }
 
   /**
+   * Fund wallet via Ozow
+   */
+  async fundViaOzow(amount: string): Promise<any> {
+    try {
+      const url = this.getApiUrl('funding/ozow');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('💵 Wallet API Ozow Funding Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ amount }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API Ozow funding error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Wallet top-up (External funding)
+   */
+  async walletTopUp(amount: number): Promise<any> {
+    try {
+      const url = this.getApiUrl('funding/wallet_topup');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('💰 Wallet API Top-up Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ amount }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API top-up error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Fund wallet via PayShap (Instant EFT)
    */
   async fundViaPayShap(amount: string, code: string, domain: string, identifier: string): Promise<any> {
