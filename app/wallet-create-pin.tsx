@@ -119,13 +119,40 @@ export default function WalletCreatePinScreen() {
       Toast.show({
         type: "success",
         text1: "PIN Created Successfully",
-        text2: response.messages || "You can now login with your PIN",
+        text2: "Logging you in...",
       });
 
-      // Navigate to login screen
-      setTimeout(() => {
-        router.replace("/wallet-login");
-      }, 1500);
+      // Automatically login after PIN creation
+      try {
+        console.log('🔐 Auto-login after PIN creation...');
+        const loginResponse = await walletAPI.login(phoneNumber, pin);
+        
+        if (loginResponse.success) {
+          console.log('✅ Auto-login successful');
+          Toast.show({
+            type: "success",
+            text1: "Welcome!",
+            text2: "Login successful",
+          });
+          
+          // Navigate to dashboard
+          setTimeout(() => {
+            router.replace("/wallet-dashboard");
+          }, 1000);
+        } else {
+          // Login failed, go to login screen
+          console.log('❌ Auto-login failed, redirecting to login');
+          setTimeout(() => {
+            router.replace("/wallet-login");
+          }, 1500);
+        }
+      } catch (loginError) {
+        console.error('❌ Auto-login error:', loginError);
+        // Login failed, go to login screen
+        setTimeout(() => {
+          router.replace("/wallet-login");
+        }, 1500);
+      }
     } catch (error: any) {
       console.error("Create PIN error:", error);
 
