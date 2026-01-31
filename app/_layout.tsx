@@ -25,6 +25,8 @@ import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 
 import { trpc, createTRPCClient } from "@/lib/trpc";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-runtime";
+import { restoreSession } from "@/lib/wallet-session-client";
+import { useRouter } from "expo-router";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -43,6 +45,32 @@ export default function RootLayout() {
   // Initialize Manus runtime for cookie injection from parent container
   useEffect(() => {
     initManusRuntime();
+  }, []);
+
+  // Restore wallet session on app startup
+  useEffect(() => {
+    const restoreWalletSession = async () => {
+      try {
+        console.log('🔄 [App Startup] Attempting to restore wallet session...');
+        const session = await restoreSession();
+        
+        if (session) {
+          console.log('✅ [App Startup] Session restored successfully');
+          console.log('📱 User phone:', session.phoneNumber);
+          console.log('🕒 Access token expires:', session.accessTokenExpiresAt);
+          console.log('🔄 Refresh token expires:', session.refreshTokenExpiresAt);
+          
+          // Session is valid, user stays logged in
+          // The wallet-api will use the stored tokens automatically
+        } else {
+          console.log('ℹ️ [App Startup] No valid session found, user needs to login');
+        }
+      } catch (error) {
+        console.error('❌ [App Startup] Session restoration error:', error);
+      }
+    };
+    
+    restoreWalletSession();
   }, []);
 
   const handleSafeAreaUpdate = useCallback((metrics: Metrics) => {

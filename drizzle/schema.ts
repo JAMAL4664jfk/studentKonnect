@@ -146,8 +146,30 @@ export const rewardCatalog = pgTable("rewardCatalog", {
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
+/**
+ * Wallet user sessions table
+ * Stores wallet authentication tokens for persistent sessions
+ */
+export const walletSessions = pgTable("walletSessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(), // Foreign key to users table
+  phoneNumber: varchar("phoneNumber", { length: 20 }).notNull().unique(), // Wallet phone number
+  customerId: varchar("customerId", { length: 255 }), // Wallet API customer ID
+  accessToken: text("accessToken").notNull(),
+  refreshToken: text("refreshToken").notNull(),
+  accessTokenExpiresAt: timestamp("accessTokenExpiresAt").notNull(),
+  refreshTokenExpiresAt: timestamp("refreshTokenExpiresAt").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  lastRefreshedAt: timestamp("lastRefreshedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
 export type RewardCatalogItem = typeof rewardCatalog.$inferSelect;
 export type InsertRewardCatalogItem = typeof rewardCatalog.$inferInsert;
+
+export type WalletSession = typeof walletSessions.$inferSelect;
+export type InsertWalletSession = typeof walletSessions.$inferInsert;
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -155,6 +177,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   marketplaceItems: many(marketplaceItems),
   rewards: many(rewards),
   rewardTransactions: many(rewardTransactions),
+  walletSessions: many(walletSessions),
 }));
 
 export const accommodationsRelations = relations(accommodations, ({ one }) => ({
@@ -181,6 +204,13 @@ export const rewardsRelations = relations(rewards, ({ one }) => ({
 export const rewardTransactionsRelations = relations(rewardTransactions, ({ one }) => ({
   user: one(users, {
     fields: [rewardTransactions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const walletSessionsRelations = relations(walletSessions, ({ one }) => ({
+  user: one(users, {
+    fields: [walletSessions.userId],
     references: [users.id],
   }),
 }));

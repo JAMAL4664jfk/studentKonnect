@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import cryptoRouter from "../crypto/crypto-router";
 import { initializeOnStartup } from "../crypto/startup";
 import walletProxyRouter from "../routes/wallet-proxy";
+import walletSessionRouter from "../routes/wallet-session";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -76,6 +77,9 @@ async function startServer() {
 
   // Register wallet proxy routes
   app.use("/api", walletProxyRouter);
+
+  // Register wallet session routes
+  app.use("/api", walletSessionRouter);
 
   // Initialize blockchain services
   initializeOnStartup().catch((error) => {

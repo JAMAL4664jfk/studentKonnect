@@ -6,6 +6,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import {
+  storeWalletSession,
+  getWalletSession,
+  updateAccessToken as updateAccessTokenInDB,
+  getCachedPhoneNumber,
+  getCachedUserId,
+  getCachedCustomerId,
+  logoutWalletSession,
+} from './wallet-session-client';
 
 // API Configuration - Read from expo-constants for runtime access
 // Updated with correct Payelio QA environment URLs
@@ -439,39 +448,90 @@ export class WalletAPIService {
   }
 
   /**
-   * Get stored access token
+   * Get stored access token from database or AsyncStorage fallback
    */
   private async getAccessToken(): Promise<string | null> {
     try {
+      // Try to get from database first
+      const phoneNumber = await getCachedPhoneNumber();
+      if (phoneNumber) {
+        const session = await getWalletSession(phoneNumber);
+        if (session && session.accessToken) {
+          return session.accessToken;
+        }
+      }
+      
+      // Fallback to AsyncStorage
       return await AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     } catch (error) {
       console.error('Error getting access token:', error);
-      return null;
+      // Fallback to AsyncStorage on error
+      try {
+        return await AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      } catch (fallbackError) {
+        console.error('Error getting access token from AsyncStorage:', fallbackError);
+        return null;
+      }
     }
   }
 
   /**
-   * Store access token
+   * Store access token in database
    */
   private async storeTokens(
     accessToken: string,
     refreshToken: string,
-    expiresIn: number
+    accessTokenExpiresIn: number,
+    refreshTokenExpiresIn: number = 2592000, // 30 days default
+    phoneNumber?: string,
+    customerId?: string | null
   ): Promise<void> {
     try {
       // If expiresIn is not provided or invalid, default to 1 hour
-      const validExpiresIn = expiresIn && expiresIn > 0 ? expiresIn : 3600;
-      const expiryTime = Date.now() + validExpiresIn * 1000;
+      const validExpiresIn = accessTokenExpiresIn && accessTokenExpiresIn > 0 ? accessTokenExpiresIn : 3600;
       
-      console.log(`💾 Storing tokens with expiry: ${validExpiresIn}s (${Math.floor(validExpiresIn / 60)} minutes)`);
+      console.log(`💾 Storing tokens in database with expiry: ${validExpiresIn}s (${Math.floor(validExpiresIn / 60)} minutes)`);
       
-      await AsyncStorage.multiSet([
-        [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
-        [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
-        [STORAGE_KEYS.TOKEN_EXPIRY, expiryTime.toString()],
-      ]);
+      // Get user info from cache or parameters
+      const cachedPhone = phoneNumber || await getCachedPhoneNumber();
+      const cachedUserId = await getCachedUserId();
+      const cachedCustomerId = customerId !== undefined ? customerId : await getCachedCustomerId();
       
-      console.log('✅ Tokens stored successfully');
+      if (!cachedPhone || !cachedUserId) {
+        console.warn('⚠️ Missing phone number or user ID, falling back to AsyncStorage');
+        // Fallback to AsyncStorage if database storage fails
+        const expiryTime = Date.now() + validExpiresIn * 1000;
+        await AsyncStorage.multiSet([
+          [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
+          [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
+          [STORAGE_KEYS.TOKEN_EXPIRY, expiryTime.toString()],
+        ]);
+        return;
+      }
+      
+      // Store in database
+      const success = await storeWalletSession(
+        cachedUserId,
+        cachedPhone,
+        cachedCustomerId,
+        {
+          accessToken,
+          refreshToken,
+          accessTokenExpiresIn: validExpiresIn,
+          refreshTokenExpiresIn,
+        }
+      );
+      
+      if (!success) {
+        console.warn('⚠️ Database storage failed, falling back to AsyncStorage');
+        // Fallback to AsyncStorage
+        const expiryTime = Date.now() + validExpiresIn * 1000;
+        await AsyncStorage.multiSet([
+          [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
+          [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
+          [STORAGE_KEYS.TOKEN_EXPIRY, expiryTime.toString()],
+        ]);
+      }
     } catch (error) {
       console.error('Error storing tokens:', error);
     }
@@ -594,7 +654,7 @@ export class WalletAPIService {
   /**
    * Login with phone number and PIN
    */
-  async login(phoneNumber: string, pin: string): Promise<WalletLoginResponse> {
+  async login(phoneNumber: string, pin: string, userId?: number): Promise<WalletLoginResponse> {
     try {
       const url = this.getApiUrl('customer/login');
       const headers = await this.getHeaders(false);
@@ -633,10 +693,19 @@ export class WalletAPIService {
       }
 
       if (data.success && data.data) {
+        // If userId provided, cache it for database storage
+        if (userId) {
+          await AsyncStorage.setItem('wallet_user_id', userId.toString());
+        }
+        
+        // Store tokens with phone number and customer ID for database storage
         await this.storeTokens(
           data.data.access_token,
           data.data.refresh_token,
-          data.data.access_token_expires_in
+          data.data.access_token_expires_in,
+          data.data.refresh_token_expires_in,
+          phoneNumber,
+          null // customer ID not available in login response
         );
         return data;
       } else {
