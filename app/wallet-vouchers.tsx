@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'reac
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 
 const VOUCHER_TYPES = [
   { id: 'gift', name: 'Gift Vouchers', icon: 'gift.fill', color: '#EC4899' },
@@ -13,6 +13,7 @@ const VOUCHER_TYPES = [
 ];
 
 export default function WalletVouchersScreen() {
+  const colors = useColors();
   const [voucherCode, setVoucherCode] = useState('');
   const [selectedType, setSelectedType] = useState('');
 

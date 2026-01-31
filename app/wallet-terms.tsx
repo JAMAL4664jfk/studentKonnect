@@ -3,9 +3,10 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 
 export default function WalletTermsScreen() {
+  const colors = useColors();
   return (
     <ScreenContainer>
       <ScrollView className="flex-1">

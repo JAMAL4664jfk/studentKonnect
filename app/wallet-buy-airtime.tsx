@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'reac
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 
 const NETWORKS = [
   { id: 'vodacom', name: 'Vodacom', color: '#E60000' },
@@ -15,6 +15,7 @@ const NETWORKS = [
 const QUICK_AMOUNTS = ['10', '20', '50', '100', '200', '500'];
 
 export default function WalletBuyAirtimeScreen() {
+  const colors = useColors();
   const [selectedNetwork, setSelectedNetwork] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [amount, setAmount] = useState('');

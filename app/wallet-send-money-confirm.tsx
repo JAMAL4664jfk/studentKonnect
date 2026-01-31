@@ -3,9 +3,10 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityInd
 import { router, useLocalSearchParams } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 
 export default function WalletSendMoneyConfirmScreen() {
+  const colors = useColors();
   const { recipientPhone, amount, note } = useLocalSearchParams();
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);

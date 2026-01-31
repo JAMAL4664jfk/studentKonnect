@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Linking } from 'react-native'
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 
 const FAQ_ITEMS = [
   {
@@ -29,6 +29,7 @@ const FAQ_ITEMS = [
 ];
 
 export default function WalletHelpScreen() {
+  const colors = useColors();
   const [expandedIndex, setExpandedIndex] = React.useState<number | null>(null);
 
   const handleContactSupport = () => {

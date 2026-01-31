@@ -3,10 +3,11 @@ import { View, Text, TouchableOpacity, ScrollView, Switch, Alert } from 'react-n
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 import Toast from 'react-native-toast-message';
 
 export default function Wallet2FAScreen() {
+  const colors = useColors();
   const [enabled, setEnabled] = useState(false);
   const [smsEnabled, setSmsEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(false);

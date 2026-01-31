@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'reac
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 
 const BILL_CATEGORIES = [
   { id: 'electricity', name: 'Electricity', icon: 'bolt.fill', color: '#F59E0B' },
@@ -15,6 +15,7 @@ const BILL_CATEGORIES = [
 ];
 
 export default function WalletPayBillsScreen() {
+  const colors = useColors();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [amount, setAmount] = useState('');

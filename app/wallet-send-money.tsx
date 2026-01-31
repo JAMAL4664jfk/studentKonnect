@@ -3,11 +3,12 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'reac
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 
 const QUICK_AMOUNTS = ['50', '100', '200', '500', '1000'];
 
 export default function WalletSendMoneyScreen() {
+  const colors = useColors();
   const [recipientPhone, setRecipientPhone] = useState('');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');

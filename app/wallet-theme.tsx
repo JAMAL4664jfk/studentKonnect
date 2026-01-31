@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 import Toast from 'react-native-toast-message';
 
 const THEMES = [
@@ -13,6 +13,7 @@ const THEMES = [
 ];
 
 export default function WalletThemeScreen() {
+  const colors = useColors();
   const [selectedTheme, setSelectedTheme] = useState('system');
 
   const handleSave = () => {

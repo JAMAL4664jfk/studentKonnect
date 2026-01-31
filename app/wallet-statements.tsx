@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 
 const STATEMENT_PERIODS = [
   { id: 'current', name: 'Current Month', description: 'January 2026' },
@@ -15,6 +15,7 @@ const STATEMENT_PERIODS = [
 ];
 
 export default function WalletStatementsScreen() {
+  const colors = useColors();
   const [selectedPeriod, setSelectedPeriod] = useState('');
 
   const handleDownload = () => {
