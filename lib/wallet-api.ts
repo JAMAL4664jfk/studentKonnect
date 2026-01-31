@@ -400,7 +400,7 @@ export class WalletAPIService {
   }
 
   /**
-   * Get default headers for API requests
+   * Get headers with authentication (auto-refreshes expired tokens)
    */
   private async getHeaders(includeAuth: boolean = true): Promise<HeadersInit> {
     const headers: HeadersInit = {
@@ -410,6 +410,13 @@ export class WalletAPIService {
     };
 
     if (includeAuth) {
+      // Check if token is expired and refresh if needed
+      const isExpired = await this.isTokenExpired();
+      if (isExpired) {
+        console.log('🔄 Token expired, refreshing...');
+        await this.refreshAccessToken();
+      }
+      
       const token = await this.getAccessToken();
       if (token) {
         headers['authorization'] = `Bearer ${token}`;
@@ -463,6 +470,72 @@ export class WalletAPIService {
       ]);
     } catch (error) {
       console.error('Error clearing tokens:', error);
+    }
+  }
+
+  /**
+   * Check if access token is expired
+   */
+  private async isTokenExpired(): Promise<boolean> {
+    try {
+      const expiryTimeStr = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY);
+      if (!expiryTimeStr) return true;
+      
+      const expiryTime = parseInt(expiryTimeStr, 10);
+      const now = Date.now();
+      
+      // Consider token expired if less than 5 minutes remaining
+      const bufferTime = 5 * 60 * 1000; // 5 minutes
+      return now >= (expiryTime - bufferTime);
+    } catch (error) {
+      console.error('Error checking token expiry:', error);
+      return true;
+    }
+  }
+
+  /**
+   * Refresh access token using refresh token
+   */
+  private async refreshAccessToken(): Promise<void> {
+    try {
+      const refreshToken = await AsyncStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+
+      const url = this.getApiUrl('auth/refreshToken');
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+        'client-key': this.clientKey,
+        'client-pass': this.clientPass,
+      };
+
+      console.log('🔄 Refreshing access token...');
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        await this.storeTokens(
+          data.data.access_token,
+          data.data.refresh_token,
+          data.data.access_token_expires_in
+        );
+        console.log('✅ Token refreshed successfully');
+      } else {
+        console.error('❌ Token refresh failed:', data.messages);
+        // Clear tokens and force re-login
+        await this.clearTokens();
+        throw new Error('Session expired. Please login again.');
+      }
+    } catch (error) {
+      console.error('❌ Token refresh error:', error);
+      await this.clearTokens();
+      throw error;
     }
   }
 
