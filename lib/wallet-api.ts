@@ -2065,6 +2065,94 @@ class WalletAPIService {
   }
 
   /**
+   * Get VAS vouchers by type
+   */
+  async getVASVouchers(type: string = 'online_shopping'): Promise<any> {
+    try {
+      const url = this.getApiUrl(`shopping/get_vas_vouchers?type=${type}`);
+      const headers = await this.getHeaders(true);
+
+      console.log('🎫 Wallet API Get VAS Vouchers Request:');
+      console.log('URL:', url);
+      console.log('Type:', type);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ notification_status: '200' }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (data.statusCode !== 200) {
+        throw new Error(data.messages || 'Failed to fetch VAS vouchers');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get VAS vouchers error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create VAS voucher payment intent
+   */
+  async createVASVoucherIntent(
+    providerId: string,
+    productCode: string,
+    voucherCode: string,
+    voucherValue: string,
+    mobileNumber: string
+  ): Promise<any> {
+    try {
+      const url = this.getApiUrl('orders/intent?q=vas_vouchers');
+      const headers = await this.getHeaders(true);
+
+      console.log('🎫 Wallet API VAS Voucher Intent Request:');
+      console.log('URL:', url);
+      console.log('Provider ID:', providerId);
+      console.log('Product Code:', productCode);
+      console.log('Voucher Value:', voucherValue);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          providerId,
+          productCode,
+          voucherCode,
+          voucherValue,
+          mobileNumber,
+        }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (data.statusCode !== 200) {
+        throw new Error(data.messages || 'VAS voucher purchase failed');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API VAS voucher intent error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Wallet top-up (External funding)
    */
   async walletTopUp(amount: number): Promise<any> {

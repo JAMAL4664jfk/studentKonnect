@@ -84,11 +84,22 @@ export default function WalletVouchersScreen() {
           {/* Purchase Vouchers */}
           <TouchableOpacity
             onPress={() => router.push('/wallet-vouchers-purchase')}
-            className="bg-primary rounded-2xl p-4 items-center mb-6"
+            className="bg-primary rounded-2xl p-4 items-center mb-3"
           >
             <View className="flex-row items-center">
               <IconSymbol name="cart.fill" size={20} color="#fff" />
               <Text className="text-white font-semibold text-lg ml-2">Purchase Vouchers</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* VAS Vouchers (Online Shopping) */}
+          <TouchableOpacity
+            onPress={() => router.push('/wallet-vas-vouchers')}
+            className="bg-card border border-primary rounded-2xl p-4 items-center mb-6"
+          >
+            <View className="flex-row items-center">
+              <IconSymbol name="bag.fill" size={20} color={colors.primary} />
+              <Text className="text-primary font-semibold text-lg ml-2">Online Shopping Vouchers</Text>
             </View>
           </TouchableOpacity>
 
