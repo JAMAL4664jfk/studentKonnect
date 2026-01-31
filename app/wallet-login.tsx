@@ -52,16 +52,29 @@ export default function WalletLoginScreen() {
 
     try {
       // Login with Wallet API
+      console.log('🔐 Attempting login for:', phoneNumber);
       const response = await walletAPI.login(phoneNumber, pin);
 
-      Toast.show({
-        type: "success",
-        text1: "Login Successful",
-        text2: `Welcome back!`,
-      });
+      // Verify login was successful and tokens were stored
+      if (response.success && response.data) {
+        console.log('✅ Login successful, tokens stored');
+        console.log('📊 Token expires in:', response.data.access_token_expires_in, 'seconds');
+        
+        Toast.show({
+          type: "success",
+          text1: "Login Successful",
+          text2: `Welcome back!`,
+        });
 
-      // Navigate to My Student Account
-      router.replace("/wallet-dashboard");
+        // Navigate to My Student Account
+        setTimeout(() => {
+          router.replace("/wallet-dashboard");
+        }, 1000);
+      } else {
+        // Login failed - should not reach here due to error handling in walletAPI
+        console.error('❌ Login failed:', response);
+        throw new Error(response.messages || 'Login failed');
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       
