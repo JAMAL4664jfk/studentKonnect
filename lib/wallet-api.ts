@@ -161,6 +161,23 @@ export interface AddAddressResponse {
   result_code: string;
 }
 
+export interface UploadDocumentRequest {
+  customer_id: string;
+  image_type: string; // "FACIAL_PHOTO", "ID_DOCUMENT", etc.
+  identity_type: string; // "SELFIE", "ID_CARD", "PASSPORT", etc.
+  side: string; // "FRONT", "BACK"
+  image: string; // Base64 encoded image
+}
+
+export interface UploadDocumentResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  messages: string;
+  result_code: string;
+}
+
 export interface WalletBalance {
   available_balance: number;
   ledger_balance: number;
@@ -731,6 +748,60 @@ class WalletAPIService {
       return data;
     } catch (error: any) {
       console.error('❌ Wallet API add address error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Upload customer document (selfie, ID, etc.)
+   */
+  async uploadDocument(documentData: UploadDocumentRequest): Promise<UploadDocumentResponse> {
+    try {
+      const url = this.getApiUrl('customer/documents');
+      const headers = await this.getHeaders(false);
+      const body = JSON.stringify(documentData);
+
+      console.log('📷 Wallet API Upload Document Request:');
+      console.log('URL:', url);
+      console.log('Document Type:', documentData.image_type);
+      console.log('Identity Type:', documentData.identity_type);
+      console.log('Image Length:', documentData.image.length, 'characters');
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: body,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      let data: UploadDocumentResponse;
+      try {
+        data = responseText ? JSON.parse(responseText) : {
+          success: false,
+          messages: 'Empty response',
+          statusCode: response.status,
+          endpoint: '',
+          environment: '',
+          result_code: '0',
+        };
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to upload document');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API upload document error:', error);
       throw error;
     }
   }

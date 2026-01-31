@@ -118,12 +118,15 @@ export default function WalletAddAddressScreen() {
       Toast.show({
         type: "success",
         text1: "Address Added",
-        text2: response.messages || "Your address has been saved successfully",
+        text2: "Now let's upload your selfie",
       });
 
-      // Navigate to dashboard
+      // Navigate to selfie upload
       setTimeout(() => {
-        router.replace("/wallet-dashboard");
+        router.push({
+          pathname: "/wallet-upload-selfie",
+          params: { customerId: customerId }
+        });
       }, 1500);
     } catch (error: any) {
       console.error("Add address error:", error);
