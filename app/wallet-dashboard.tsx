@@ -143,12 +143,20 @@ export default function WalletDashboardScreen() {
                 {profile?.first_name || "User"}
               </Text>
             </View>
-            <TouchableOpacity
-              onPress={handleLogout}
-              className="w-10 h-10 rounded-full bg-muted/20 items-center justify-center"
-            >
-              <IconSymbol name="rectangle.portrait.and.arrow.right" size={20} color={colors.muted} />
-            </TouchableOpacity>
+            <View className="flex-row gap-2">
+              <TouchableOpacity
+                onPress={() => router.push('/wallet-settings')}
+                className="w-10 h-10 rounded-full bg-muted/20 items-center justify-center"
+              >
+                <IconSymbol name="gearshape.fill" size={20} color={colors.muted} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleLogout}
+                className="w-10 h-10 rounded-full bg-muted/20 items-center justify-center"
+              >
+                <IconSymbol name="rectangle.portrait.and.arrow.right" size={20} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Balance Card */}
@@ -215,7 +223,7 @@ export default function WalletDashboardScreen() {
           <View className="mb-6">
             <View className="flex-row items-center justify-between mb-3">
               <Text className="text-lg font-semibold text-foreground">Recent Transactions</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/wallet-transaction-summary')}>
                 <Text className="text-primary text-sm">See All</Text>
               </TouchableOpacity>
             </View>
@@ -223,8 +231,9 @@ export default function WalletDashboardScreen() {
             {transactions.length > 0 ? (
               <View className="bg-card rounded-2xl border border-border overflow-hidden">
                 {transactions.map((transaction, index) => (
-                  <View
+                  <TouchableOpacity
                     key={transaction.id || index}
+                    onPress={() => router.push(`/wallet-transaction-details?id=${transaction.id || index}`)}
                     className={`flex-row items-center p-4 ${
                       index < transactions.length - 1 ? "border-b border-border" : ""
                     }`}
@@ -251,7 +260,7 @@ export default function WalletDashboardScreen() {
                     >
                       {transaction.type === "credit" ? "+" : "-"}R {transaction.amount.toFixed(2)}
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             ) : (
