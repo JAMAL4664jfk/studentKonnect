@@ -612,13 +612,15 @@ export class WalletAPIService {
         let newRefreshToken = data.data.refresh_token;
         
         try {
-          const decodedAccess = atob(accessToken);
-          const decodedRefresh = atob(newRefreshToken);
+          // Use Buffer for React Native compatibility
+          const decodedAccess = Buffer.from(accessToken, 'base64').toString('utf-8');
+          const decodedRefresh = Buffer.from(newRefreshToken, 'base64').toString('utf-8');
           accessToken = decodedAccess;
           newRefreshToken = decodedRefresh;
           console.log('🔓 Decoded refreshed tokens');
         } catch (decodeError) {
           console.log('ℹ️ Refresh tokens not base64 encoded');
+          console.error('Decode error:', decodeError);
         }
         
         await this.storeTokens(
@@ -719,8 +721,9 @@ export class WalletAPIService {
         
         try {
           // Check if tokens are base64 encoded (they usually are from this API)
-          const decodedAccess = atob(accessToken);
-          const decodedRefresh = atob(refreshToken);
+          // Use Buffer for React Native compatibility
+          const decodedAccess = Buffer.from(accessToken, 'base64').toString('utf-8');
+          const decodedRefresh = Buffer.from(refreshToken, 'base64').toString('utf-8');
           
           console.log('🔓 Decoded access token:', decodedAccess.substring(0, 20) + '...');
           console.log('🔓 Decoded refresh token:', decodedRefresh.substring(0, 20) + '...');
@@ -729,6 +732,7 @@ export class WalletAPIService {
           refreshToken = decodedRefresh;
         } catch (decodeError) {
           console.log('ℹ️ Tokens are not base64 encoded, using as-is');
+          console.error('Decode error:', decodeError);
         }
         
         // Store decoded tokens with phone number and customer ID for database storage
