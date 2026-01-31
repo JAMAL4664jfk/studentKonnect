@@ -400,7 +400,7 @@ export class WalletAPIService {
   }
 
   /**
-   * Get headers with authentication (auto-refreshes expired tokens)
+   * Get headers for API requests
    */
   private async getHeaders(includeAuth: boolean = true): Promise<HeadersInit> {
     const headers: HeadersInit = {
@@ -410,12 +410,12 @@ export class WalletAPIService {
     };
 
     if (includeAuth) {
-      // Check if token is expired and refresh if needed
+      // Always check server-side token validity by attempting refresh if local check shows expired
       const isExpired = await this.isTokenExpired();
       console.log('🔍 Token expiry check:', isExpired ? 'EXPIRED' : 'VALID');
       
       if (isExpired) {
-        console.log('🔄 Token expired, attempting refresh...');
+        console.log('🔄 Token expired locally, attempting refresh...');
         try {
           await this.refreshAccessToken();
           console.log('✅ Token refresh successful');
@@ -436,6 +436,39 @@ export class WalletAPIService {
     }
 
     return headers;
+  }
+
+  /**
+   * Make authenticated API request with automatic 401 retry
+   */
+  private async makeAuthenticatedRequest(
+    url: string,
+    method: string = 'GET',
+    body?: any,
+    retryOn401: boolean = true
+  ): Promise<Response> {
+    const headers = await this.getHeaders(true);
+    
+    const response = await fetch(url, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    // If 401 and we haven't retried yet, refresh token and retry
+    if (response.status === 401 && retryOn401) {
+      console.log('🔄 Got 401, refreshing token and retrying...');
+      try {
+        await this.refreshAccessToken();
+        // Retry with new token (set retryOn401 to false to prevent infinite loop)
+        return this.makeAuthenticatedRequest(url, method, body, false);
+      } catch (error) {
+        console.error('❌ Token refresh failed on 401:', error);
+        throw new Error('Session expired. Please login again.');
+      }
+    }
+
+    return response;
   }
 
   /**
@@ -1451,15 +1484,11 @@ export class WalletAPIService {
   async getTransactions(limit: number = 50, offset: number = 0): Promise<TransactionsResponse> {
     try {
       const url = this.getApiUrl('transactions/get_transactions');
-      const headers = await this.getHeaders(true); // Requires auth token
 
       console.log('📋 Wallet API Get Transactions Request:');
       console.log('URL:', url);
 
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: headers,
-      });
+      const response = await this.makeAuthenticatedRequest(url, 'GET');
 
       console.log('📡 Response Status:', response.status);
 
@@ -1663,15 +1692,11 @@ export class WalletAPIService {
   async getProfile(): Promise<CustomerProfileResponse> {
     try {
       const url = this.getApiUrl('customer/profile');
-      const headers = await this.getHeaders(true); // Requires auth token
 
       console.log('👤 Wallet API Get Profile Request:');
       console.log('URL:', url);
 
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: headers,
-      });
+      const response = await this.makeAuthenticatedRequest(url, 'GET');
 
       console.log('📡 Response Status:', response.status);
 
@@ -1934,16 +1959,11 @@ export class WalletAPIService {
   async fundViaPayFast(amount: string): Promise<any> {
     try {
       const url = this.getApiUrl('funding/payfast');
-      const headers = await this.getHeaders(true); // Requires auth token
 
       console.log('💳 Wallet API PayFast Funding Request:');
       console.log('URL:', url);
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({ amount }),
-      });
+      const response = await this.makeAuthenticatedRequest(url, 'POST', { amount });
 
       console.log('📡 Response Status:', response.status);
 
