@@ -78,6 +78,14 @@ export default function WalletDashboardScreen() {
     loadDashboardData();
   };
 
+  const showComingSoon = (feature: string) => {
+    Toast.show({
+      type: "info",
+      text1: "Coming Soon",
+      text2: `${feature} will be available in a future update!`,
+    });
+  };
+
   const handleLogout = async () => {
     try {
       await walletAPI.logout();
@@ -181,11 +189,11 @@ export default function WalletDashboardScreen() {
                 <Text className="text-white text-xs mt-1">Withdraw</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => router.push('/wallet-withdraw')}
+                onPress={() => router.push('/wallet-send-money')}
                 className="flex-1 bg-white/20 rounded-xl py-3 items-center"
               >
                 <IconSymbol name="arrow.left.arrow.right.circle.fill" size={24} color="white" />
-                <Text className="text-white text-xs mt-1">Withdraw</Text>
+                <Text className="text-white text-xs mt-1">Send Money</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -194,7 +202,10 @@ export default function WalletDashboardScreen() {
           <View className="mb-6">
             <Text className="text-lg font-semibold text-foreground mb-3">Quick Actions</Text>
             <View className="flex-row flex-wrap gap-3">
-              <TouchableOpacity className="flex-1 min-w-[45%] bg-card rounded-2xl p-4 border border-border">
+              <TouchableOpacity
+                onPress={() => router.push('/wallet-pay-bills')}
+                className="flex-1 min-w-[45%] bg-card rounded-2xl p-4 border border-border"
+              >
                 <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mb-3">
                   <IconSymbol name="creditcard.fill" size={24} color={colors.primary} />
                 </View>
@@ -202,7 +213,10 @@ export default function WalletDashboardScreen() {
                 <Text className="text-muted text-xs mt-1">Electricity, Water, etc.</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity className="flex-1 min-w-[45%] bg-card rounded-2xl p-4 border border-border">
+              <TouchableOpacity
+                onPress={() => router.push('/wallet-buy-airtime')}
+                className="flex-1 min-w-[45%] bg-card rounded-2xl p-4 border border-border"
+              >
                 <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mb-3">
                   <IconSymbol name="phone.fill" size={24} color={colors.primary} />
                 </View>
@@ -210,7 +224,10 @@ export default function WalletDashboardScreen() {
                 <Text className="text-muted text-xs mt-1">Buy airtime & data</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity className="flex-1 min-w-[45%] bg-card rounded-2xl p-4 border border-border">
+              <TouchableOpacity
+                onPress={() => router.push('/wallet-vouchers')}
+                className="flex-1 min-w-[45%] bg-card rounded-2xl p-4 border border-border"
+              >
                 <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mb-3">
                   <IconSymbol name="gift.fill" size={24} color={colors.primary} />
                 </View>
@@ -218,7 +235,10 @@ export default function WalletDashboardScreen() {
                 <Text className="text-muted text-xs mt-1">Redeem rewards</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity className="flex-1 min-w-[45%] bg-card rounded-2xl p-4 border border-border">
+              <TouchableOpacity
+                onPress={() => router.push('/wallet-statements')}
+                className="flex-1 min-w-[45%] bg-card rounded-2xl p-4 border border-border"
+              >
                 <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mb-3">
                   <IconSymbol name="doc.text.fill" size={24} color={colors.primary} />
                 </View>

@@ -151,6 +151,7 @@ export default function WalletSettingsScreen() {
             </View>
 
             <TouchableOpacity
+              onPress={() => router.push('/wallet-2fa')}
               className="flex-row items-center justify-between py-3"
             >
               <View className="flex-row items-center">
@@ -178,6 +179,7 @@ export default function WalletSettingsScreen() {
             </View>
 
             <TouchableOpacity
+              onPress={() => router.push('/wallet-language')}
               className="flex-row items-center justify-between py-3"
             >
               <View className="flex-row items-center">
@@ -191,6 +193,7 @@ export default function WalletSettingsScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              onPress={() => router.push('/wallet-theme')}
               className="flex-row items-center justify-between py-3"
             >
               <View className="flex-row items-center">
@@ -209,6 +212,7 @@ export default function WalletSettingsScreen() {
             <Text className="text-foreground font-semibold text-lg mb-4">Support</Text>
             
             <TouchableOpacity
+              onPress={() => router.push('/wallet-help')}
               className="flex-row items-center justify-between py-3"
             >
               <View className="flex-row items-center">
@@ -229,6 +233,7 @@ export default function WalletSettingsScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              onPress={() => router.push('/wallet-terms')}
               className="flex-row items-center justify-between py-3"
             >
               <View className="flex-row items-center">
@@ -239,6 +244,7 @@ export default function WalletSettingsScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              onPress={() => router.push('/wallet-privacy')}
               className="flex-row items-center justify-between py-3"
             >
               <View className="flex-row items-center">
