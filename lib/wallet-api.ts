@@ -195,6 +195,32 @@ export interface AddAdditionalInfoResponse {
   result_code: string;
 }
 
+export interface VerifyIDResponse {
+  FirstName: string;
+  LastName: string;
+  SmartCardIssued: boolean;
+  IDIssueDate: string;
+  IDSequenceNo: string;
+  DeadIndicator: boolean;
+  IDBlocked: boolean;
+  DateOfDeath: string | null;
+  MaritalStatus: string;
+  DateOfMarriage: string;
+  OnHANIS: boolean;
+  OnNPR: boolean;
+  BirthPlaceCountryCode: string;
+  FacialImageAvailable: boolean;
+  SAFPSListedFraudster: string | null;
+  SAFPSListedVictim: string | null;
+  SAFPSProtectiveRegistration: string | null;
+  TrackingNumber: string;
+  CachedResult: boolean;
+  CacheDate: string | null;
+  CRef: string;
+  Status: string;
+  Message: string;
+}
+
 export interface WalletBalance {
   available_balance: number;
   ledger_balance: number;
@@ -873,6 +899,73 @@ class WalletAPIService {
       return data;
     } catch (error: any) {
       console.error('❌ Wallet API add additional info error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify customer ID for KYC compliance
+   */
+  async verifyID(idNumber: string): Promise<VerifyIDResponse> {
+    try {
+      const url = this.getApiUrl(`customer/verify_id?id=${idNumber}`);
+      const headers = await this.getHeaders(false);
+
+      console.log('🔍 Wallet API Verify ID Request:');
+      console.log('URL:', url);
+      console.log('ID Number:', idNumber);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      let data: VerifyIDResponse;
+      try {
+        data = responseText ? JSON.parse(responseText) : {
+          Status: 'Failed',
+          Message: 'Empty response from server',
+          FirstName: '',
+          LastName: '',
+          SmartCardIssued: false,
+          IDIssueDate: '',
+          IDSequenceNo: '',
+          DeadIndicator: false,
+          IDBlocked: false,
+          DateOfDeath: null,
+          MaritalStatus: '',
+          DateOfMarriage: '',
+          OnHANIS: false,
+          OnNPR: false,
+          BirthPlaceCountryCode: '',
+          FacialImageAvailable: false,
+          SAFPSListedFraudster: null,
+          SAFPSListedVictim: null,
+          SAFPSProtectiveRegistration: null,
+          TrackingNumber: '',
+          CachedResult: false,
+          CacheDate: null,
+          CRef: '',
+        };
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+
+      console.log('📦 Parsed Data:', data);
+
+      if (data.Status !== 'Success') {
+        throw new Error(data.Message || 'ID verification failed');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API verify ID error:', error);
       throw error;
     }
   }

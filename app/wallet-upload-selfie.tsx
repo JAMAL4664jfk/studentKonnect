@@ -22,6 +22,7 @@ export default function WalletUploadSelfieScreen() {
   const params = useLocalSearchParams();
   
   const customerId = params.customerId as string;
+  const idNumber = params.idNumber as string;
   
   const [loading, setLoading] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -167,7 +168,7 @@ export default function WalletUploadSelfieScreen() {
       setTimeout(() => {
         router.push({
           pathname: "/wallet-upload-id",
-          params: { customerId: customerId }
+          params: { customerId: customerId, idNumber: idNumber }
         });
       }, 1500);
     } catch (error: any) {

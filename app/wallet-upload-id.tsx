@@ -25,6 +25,7 @@ export default function WalletUploadIDScreen() {
   const params = useLocalSearchParams();
   
   const customerId = params.customerId as string;
+  const idNumber = params.idNumber as string;
   
   const [loading, setLoading] = useState(false);
   const [idType, setIdType] = useState<IDType | null>(null);
@@ -199,7 +200,7 @@ export default function WalletUploadIDScreen() {
       setTimeout(() => {
         router.push({
           pathname: "/wallet-additional-info",
-          params: { customerId: customerId }
+          params: { customerId: customerId, idNumber: idNumber }
         });
       }, 1500);
     } catch (error: any) {

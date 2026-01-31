@@ -22,6 +22,7 @@ export default function WalletAddAddressScreen() {
   const params = useLocalSearchParams();
   
   const customerId = params.customerId as string;
+  const idNumber = params.idNumber as string;
   
   const [loading, setLoading] = useState(false);
   const [addressType, setAddressType] = useState("PHYSICAL");
@@ -125,7 +126,7 @@ export default function WalletAddAddressScreen() {
       setTimeout(() => {
         router.push({
           pathname: "/wallet-upload-selfie",
-          params: { customerId: customerId }
+          params: { customerId: customerId, idNumber: idNumber }
         });
       }, 1500);
     } catch (error: any) {

@@ -108,7 +108,7 @@ export default function WalletDashboardScreen() {
             <TouchableOpacity
               onPress={() => router.push({
                 pathname: "/wallet-add-address",
-                params: { customerId: profile.customerId }
+                params: { customerId: profile.customerId, idNumber: profile.identity_number }
               })}
               className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 mb-6 flex-row items-center"
             >

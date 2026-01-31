@@ -66,6 +66,7 @@ export default function WalletAdditionalInfoScreen() {
   const params = useLocalSearchParams();
   
   const customerId = params.customerId as string;
+  const idNumber = params.idNumber as string;
   
   const [loading, setLoading] = useState(false);
   const [industry, setIndustry] = useState("");
@@ -135,13 +136,16 @@ export default function WalletAdditionalInfoScreen() {
 
       Toast.show({
         type: "success",
-        text1: "Profile Complete!",
-        text2: response.messages || "Your profile has been completed successfully",
+        text1: "Information Saved",
+        text2: "Now let's verify your identity",
       });
 
-      // Navigate to dashboard
+      // Navigate to KYC verification
       setTimeout(() => {
-        router.replace("/wallet-dashboard");
+        router.push({
+          pathname: "/wallet-kyc-verify",
+          params: { idNumber: idNumber }
+        });
       }, 1500);
     } catch (error: any) {
       console.error("Add additional info error:", error);
