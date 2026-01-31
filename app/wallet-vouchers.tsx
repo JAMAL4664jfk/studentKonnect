@@ -1,68 +1,175 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, RefreshControl, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColors } from '@/hooks/use-colors';
+import { WalletAPI } from '@/lib/wallet-api';
+import Toast from 'react-native-toast-message';
 
-const VOUCHER_TYPES = [
-  { id: 'gift', name: 'Gift Vouchers', icon: 'gift.fill', color: '#EC4899' },
-  { id: 'shopping', name: 'Shopping', icon: 'cart.fill', color: '#F59E0B' },
-  { id: 'food', name: 'Food & Dining', icon: 'fork.knife', color: '#EF4444' },
-  { id: 'entertainment', name: 'Entertainment', icon: 'ticket.fill', color: '#8B5CF6' },
-];
+interface CustomerVoucher {
+  id: string;
+  code: string;
+  type: string;
+  name: string;
+  balance?: number;
+  status: number;
+  expiryDate?: string;
+  merchant?: string;
+}
 
 export default function WalletVouchersScreen() {
   const colors = useColors();
   const [voucherCode, setVoucherCode] = useState('');
-  const [selectedType, setSelectedType] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [checkingBalance, setCheckingBalance] = useState(false);
+  const [myVouchers, setMyVouchers] = useState<CustomerVoucher[]>([]);
+  const [selectedVoucher, setSelectedVoucher] = useState<CustomerVoucher | null>(null);
+  const walletAPI = new WalletAPI();
 
-  const handleRedeemVoucher = () => {
+  useEffect(() => {
+    fetchMyVouchers();
+  }, []);
+
+  const fetchMyVouchers = async () => {
+    try {
+      setLoading(true);
+      const response = await walletAPI.getCustomerVouchers();
+      
+      if (response.data && Array.isArray(response.data)) {
+        setMyVouchers(response.data);
+      } else if (response.success) {
+        const vouchers = response.data?.vouchers || response.vouchers || [];
+        setMyVouchers(vouchers);
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch vouchers:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: error.message || 'Failed to load vouchers',
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleCheckBalance = async (code: string) => {
+    try {
+      setCheckingBalance(true);
+      const response = await walletAPI.checkVoucherBalance(code, true);
+      
+      if (response.success && response.data) {
+        const balance = response.data.balance || 0;
+        const currencySymbol = response.data.currencySymbol || 'R';
+        const cardNumber = response.data.cardNumber || code;
+        const active = response.data.active;
+        
+        Alert.alert(
+          'Voucher Balance',
+          `Card: ${cardNumber}\nBalance: ${currencySymbol}${balance.toFixed(2)}\nStatus: ${active ? 'Active' : 'Inactive'}`,
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: error.message || 'Failed to check balance',
+      });
+    } finally {
+      setCheckingBalance(false);
+    }
+  };
+
+  const handleRedeemVoucher = async () => {
     if (!voucherCode) {
       Alert.alert('Error', 'Please enter a voucher code');
       return;
     }
 
-    Alert.alert(
-      'Redeem Voucher',
-      `Redeem voucher code: ${voucherCode}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Redeem',
-          onPress: () => {
-            Alert.alert('Success', 'Voucher redemption feature coming soon! This will redeem your voucher.');
-            setVoucherCode('');
-          },
-        },
-      ]
-    );
+    try {
+      setLoading(true);
+      const response = await walletAPI.getVoucherByCode(voucherCode);
+      
+      if (response.success && response.data) {
+        Alert.alert(
+          'Voucher Found',
+          `Voucher code ${voucherCode} is valid!\n\nWould you like to check the balance?`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Check Balance',
+              onPress: () => handleCheckBalance(voucherCode),
+            },
+          ]
+        );
+        setVoucherCode('');
+        fetchMyVouchers(); // Refresh list
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Invalid voucher code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchMyVouchers();
   };
 
   return (
     <ScreenContainer>
-      <ScrollView className="flex-1">
-        <View className="px-6 pt-12 pb-6">
+      <ScrollView 
+        style={{ flex: 1, backgroundColor: colors.background }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+        }
+      >
+        <View style={{ padding: 20, paddingTop: 60 }}>
           {/* Header */}
-          <View className="flex-row items-center mb-6">
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-muted/20 items-center justify-center mr-4"
+              style={{ marginRight: 16 }}
             >
-              <IconSymbol name="chevron.left" size={20} color={colors.foreground} />
+              <IconSymbol name="chevron.left" size={24} color={colors.text} />
             </TouchableOpacity>
-            <View>
-              <Text className="text-2xl font-bold text-foreground">Vouchers</Text>
-              <Text className="text-sm text-muted">Redeem & manage vouchers</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 28, fontWeight: '700', color: colors.text }}>
+                Vouchers
+              </Text>
+              <Text style={{ fontSize: 14, color: colors.muted, marginTop: 4 }}>
+                Redeem & manage vouchers
+              </Text>
             </View>
           </View>
 
           {/* Voucher Code Input */}
-          <View className="mb-6">
-            <Text className="text-foreground font-medium mb-2">Voucher Code</Text>
-            <View className="bg-card rounded-2xl border border-border overflow-hidden">
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 12 }}>
+              Redeem Voucher
+            </Text>
+            <View style={{
+              backgroundColor: colors.card,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: colors.border,
+              overflow: 'hidden',
+            }}>
               <TextInput
-                className="text-foreground py-4 px-4 text-center text-lg font-bold tracking-wider"
+                style={{
+                  color: colors.text,
+                  paddingVertical: 16,
+                  paddingHorizontal: 16,
+                  textAlign: 'center',
+                  fontSize: 18,
+                  fontWeight: '700',
+                  letterSpacing: 2,
+                }}
                 placeholder="XXXX-XXXX-XXXX"
                 placeholderTextColor={colors.muted}
                 value={voucherCode}
@@ -75,85 +182,172 @@ export default function WalletVouchersScreen() {
           {/* Redeem Button */}
           <TouchableOpacity
             onPress={handleRedeemVoucher}
-            disabled={!voucherCode}
-            className={`bg-primary rounded-2xl p-4 items-center mb-6 ${!voucherCode ? 'opacity-50' : ''}`}
+            disabled={!voucherCode || loading}
+            style={{
+              backgroundColor: colors.primary,
+              borderRadius: 16,
+              padding: 16,
+              alignItems: 'center',
+              marginBottom: 24,
+              opacity: (!voucherCode || loading) ? 0.5 : 1,
+            }}
           >
-            <Text className="text-white font-semibold text-lg">Redeem Voucher</Text>
-          </TouchableOpacity>
-
-          {/* Purchase Vouchers */}
-          <TouchableOpacity
-            onPress={() => router.push('/wallet-vouchers-purchase')}
-            className="bg-primary rounded-2xl p-4 items-center mb-3"
-          >
-            <View className="flex-row items-center">
-              <IconSymbol name="cart.fill" size={20} color="#fff" />
-              <Text className="text-white font-semibold text-lg ml-2">Purchase Vouchers</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* VAS Vouchers (Online Shopping) */}
-          <TouchableOpacity
-            onPress={() => router.push('/wallet-vas-vouchers')}
-            className="bg-card border border-primary rounded-2xl p-4 items-center mb-6"
-          >
-            <View className="flex-row items-center">
-              <IconSymbol name="bag.fill" size={20} color={colors.primary} />
-              <Text className="text-primary font-semibold text-lg ml-2">Online Shopping Vouchers</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Browse Vouchers */}
-          <View className="mb-6">
-            <Text className="text-lg font-semibold text-foreground mb-3">Browse Vouchers</Text>
-            <View className="flex-row flex-wrap gap-3">
-              {VOUCHER_TYPES.map((type) => (
-                <TouchableOpacity
-                  key={type.id}
-                  onPress={() => setSelectedType(type.id)}
-                  className="flex-1 min-w-[45%] bg-card rounded-2xl p-4 border border-border"
-                >
-                  <View
-                    className="w-12 h-12 rounded-full items-center justify-center mb-2"
-                    style={{ backgroundColor: `${type.color}20` }}
-                  >
-                    <IconSymbol name={type.icon} size={24} color={type.color} />
-                  </View>
-                  <Text className="text-foreground font-medium">{type.name}</Text>
-                  <Text className="text-muted text-xs mt-1">Coming soon</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* My Vouchers */}
-          <View className="mb-6">
-            <Text className="text-lg font-semibold text-foreground mb-3">My Vouchers</Text>
-            <View className="bg-card rounded-2xl p-6 border border-border items-center">
-              <IconSymbol name="ticket.fill" size={48} color={colors.muted} />
-              <Text className="text-foreground font-medium mt-3">No Vouchers Yet</Text>
-              <Text className="text-muted text-sm text-center mt-2">
-                Redeemed vouchers will appear here
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={{ color: 'white', fontSize: 16, fontWeight: '700' }}>
+                Redeem Voucher
               </Text>
-            </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Quick Action Buttons */}
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 32 }}>
+            <TouchableOpacity
+              onPress={() => router.push('/wallet-vouchers-purchase')}
+              style={{
+                flex: 1,
+                backgroundColor: colors.card,
+                borderRadius: 16,
+                padding: 16,
+                borderWidth: 1,
+                borderColor: colors.border,
+                alignItems: 'center',
+              }}
+            >
+              <IconSymbol name="cart.fill" size={24} color={colors.primary} />
+              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginTop: 8 }}>
+                Purchase Vouchers
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push('/wallet-vas-vouchers')}
+              style={{
+                flex: 1,
+                backgroundColor: colors.card,
+                borderRadius: 16,
+                padding: 16,
+                borderWidth: 1,
+                borderColor: colors.border,
+                alignItems: 'center',
+              }}
+            >
+              <IconSymbol name="sparkles" size={24} color={colors.primary} />
+              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginTop: 8 }}>
+                Online Shopping
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Info Card */}
-          <View className="bg-primary/10 border border-primary/30 rounded-2xl p-4">
-            <View className="flex-row items-start">
-              <IconSymbol name="info.circle.fill" size={24} color={colors.primary} />
-              <View className="flex-1 ml-3">
-                <Text className="text-foreground font-semibold mb-1">How to Use</Text>
-                <Text className="text-muted text-sm">
-                  • Enter your voucher code above{'\n'}
-                  • Tap "Redeem Voucher"{'\n'}
-                  • Voucher value will be added to your wallet{'\n'}
-                  • Check "My Vouchers" for active vouchers
+          {/* My Vouchers Section */}
+          <View>
+            <Text style={{ fontSize: 20, fontWeight: '700', color: colors.text, marginBottom: 16 }}>
+              My Vouchers
+            </Text>
+
+            {loading && !refreshing ? (
+              <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={{ marginTop: 16, fontSize: 14, color: colors.muted }}>
+                  Loading vouchers...
                 </Text>
               </View>
-            </View>
+            ) : myVouchers.length === 0 ? (
+              <View style={{ alignItems: 'center', paddingVertical: 60 }}>
+                <IconSymbol name="ticket.fill" size={64} color={colors.muted} />
+                <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text, marginTop: 16 }}>
+                  No Vouchers Yet
+                </Text>
+                <Text style={{ fontSize: 14, color: colors.muted, marginTop: 8, textAlign: 'center' }}>
+                  Purchase or redeem vouchers to see them here
+                </Text>
+              </View>
+            ) : (
+              myVouchers.map((voucher, index) => (
+                <View
+                  key={voucher.id || index}
+                  style={{
+                    backgroundColor: colors.card,
+                    borderRadius: 16,
+                    padding: 16,
+                    marginBottom: 12,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>
+                        {voucher.name || voucher.type}
+                      </Text>
+                      {voucher.merchant && (
+                        <Text style={{ fontSize: 14, color: colors.muted, marginTop: 4 }}>
+                          {voucher.merchant}
+                        </Text>
+                      )}
+                      <View style={{
+                        backgroundColor: colors.background,
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        borderRadius: 8,
+                        marginTop: 12,
+                        alignSelf: 'flex-start',
+                      }}>
+                        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary, letterSpacing: 1 }}>
+                          {voucher.code}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      {voucher.balance !== undefined && (
+                        <Text style={{ fontSize: 20, fontWeight: '700', color: colors.primary }}>
+                          R{voucher.balance.toFixed(2)}
+                        </Text>
+                      )}
+                      <View style={{
+                        backgroundColor: voucher.status === 1 ? '#10b98120' : colors.muted + '20',
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 6,
+                        marginTop: 8,
+                      }}>
+                        <Text style={{
+                          fontSize: 12,
+                          fontWeight: '600',
+                          color: voucher.status === 1 ? '#10b981' : colors.muted,
+                        }}>
+                          {voucher.status === 1 ? 'Active' : 'Inactive'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Action Buttons */}
+                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: colors.border }}>
+                    <TouchableOpacity
+                      onPress={() => handleCheckBalance(voucher.code)}
+                      disabled={checkingBalance}
+                      style={{
+                        flex: 1,
+                        backgroundColor: colors.primary + '20',
+                        borderRadius: 12,
+                        padding: 12,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>
+                        {checkingBalance ? 'Checking...' : 'Check Balance'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))
+            )}
           </View>
         </View>
+
+        <View style={{ height: 40 }} />
       </ScrollView>
     </ScreenContainer>
   );

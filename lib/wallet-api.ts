@@ -1487,6 +1487,150 @@ export class WalletAPIService {
   }
 
   /**
+   * Get customer vouchers (all vouchers owned by customer)
+   */
+  async getCustomerVouchers(): Promise<any> {
+    try {
+      const url = this.getApiUrl('vouchers/customer_vouchers');
+      const headers = await this.getHeaders(true);
+
+      console.log('🎫 Wallet API Get Customer Vouchers Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success && data.statusCode !== 200) {
+        throw new Error(data.messages || 'Failed to get customer vouchers');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get customer vouchers error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get voucher details by code
+   */
+  async getVoucherByCode(code: string): Promise<any> {
+    try {
+      const url = this.getApiUrl(`vouchers/get_voucher?code=${code}`);
+      const headers = await this.getHeaders(true);
+
+      console.log('🔍 Wallet API Get Voucher Request:');
+      console.log('URL:', url);
+      console.log('Code:', code);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success && data.statusCode !== 200) {
+        throw new Error(data.messages || 'Failed to get voucher');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get voucher error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update voucher status
+   */
+  async updateVoucher(code: string, status: number): Promise<any> {
+    try {
+      const url = this.getApiUrl(`vouchers/update_voucher?code=${code}`);
+      const headers = await this.getHeaders(true);
+
+      console.log('✏️ Wallet API Update Voucher Request:');
+      console.log('URL:', url);
+      console.log('Code:', code, 'Status:', status);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ status }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success && data.statusCode !== 200) {
+        throw new Error(data.messages || 'Failed to update voucher');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API update voucher error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check voucher balance
+   */
+  async checkVoucherBalance(code: string, refresh: boolean = false): Promise<any> {
+    try {
+      const url = this.getApiUrl(`vouchers/voucher_balance?code=${code}&refresh=${refresh}`);
+      const headers = await this.getHeaders(true);
+
+      console.log('💳 Wallet API Check Voucher Balance Request:');
+      console.log('URL:', url);
+      console.log('Code:', code, 'Refresh:', refresh);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success && data.statusCode !== 200) {
+        throw new Error(data.messages || 'Failed to check voucher balance');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API check voucher balance error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get customer profile
    */
   async getProfile(): Promise<CustomerProfileResponse> {
