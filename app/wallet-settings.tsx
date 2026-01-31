@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/ScreenContainer';
@@ -9,7 +9,35 @@ import { WalletAPI } from '@/lib/wallet-api';
 export default function WalletSettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
+  const [settings, setSettings] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const walletAPI = new WalletAPI();
+
+  useEffect(() => {
+    fetchCustomerSettings();
+  }, []);
+
+  const fetchCustomerSettings = async () => {
+    try {
+      setLoading(true);
+      const response = await walletAPI.getCustomerSettings();
+      console.log('Customer Settings:', response.data);
+      setSettings(response.data);
+      
+      // Update state based on fetched settings if available
+      if (response.data?.notifications !== undefined) {
+        setNotificationsEnabled(response.data.notifications);
+      }
+      if (response.data?.biometrics !== undefined) {
+        setBiometricsEnabled(response.data.biometrics);
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch customer settings:', error);
+      // Continue with default values if API fails
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleRemoveConsent = () => {
     Alert.alert(
@@ -62,7 +90,9 @@ export default function WalletSettingsScreen() {
             </TouchableOpacity>
             <View>
               <Text className="text-2xl font-bold text-foreground">Settings</Text>
-              <Text className="text-sm text-muted">Manage your account</Text>
+              <Text className="text-sm text-muted">
+                {loading ? 'Loading settings...' : 'Manage your account'}
+              </Text>
             </View>
           </View>
 

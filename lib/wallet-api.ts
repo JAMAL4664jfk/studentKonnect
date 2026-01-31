@@ -1553,6 +1553,50 @@ class WalletAPIService {
   }
 
   /**
+   * Get customer settings
+   */
+  async getCustomerSettings(): Promise<any> {
+    try {
+      const url = this.getApiUrl('customer/customer_settings');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('⚙️ Wallet API Get Customer Settings Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+        data: {},
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to fetch customer settings');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get customer settings error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Remove customer consent
    */
   async removeConsent(): Promise<any> {
