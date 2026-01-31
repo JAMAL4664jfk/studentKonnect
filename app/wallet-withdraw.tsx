@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityInd
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 import { WalletAPI } from '@/lib/wallet-api';
 
 interface FeeStructure {
@@ -14,6 +14,7 @@ interface FeeStructure {
 }
 
 export default function WalletWithdrawScreen() {
+  const colors = useColors();
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(true);
   const [quickAmounts, setQuickAmounts] = useState<string[]>([]);

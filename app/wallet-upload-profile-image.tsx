@@ -4,10 +4,11 @@ import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 import { WalletAPI } from '@/lib/wallet-api';
 
 export default function WalletUploadProfileImageScreen() {
+  const colors = useColors();
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const walletAPI = new WalletAPI();

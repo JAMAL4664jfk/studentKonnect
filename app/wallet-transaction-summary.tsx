@@ -3,10 +3,11 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Ref
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 import { WalletAPI } from '@/lib/wallet-api';
 
 export default function WalletTransactionSummaryScreen() {
+  const colors = useColors();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [summary, setSummary] = useState<any>(null);

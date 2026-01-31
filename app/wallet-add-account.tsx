@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, Scro
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 import { WalletAPI } from '@/lib/wallet-api';
 
 const ACCOUNT_TYPES = [
@@ -18,6 +18,7 @@ const BANKS = [
 ];
 
 export default function WalletAddAccountScreen() {
+  const colors = useColors();
   const [bankName, setBankName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [accountType, setAccountType] = useState('savings');

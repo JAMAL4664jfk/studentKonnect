@@ -4,10 +4,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 import { WalletAPI } from '@/lib/wallet-api';
 
 export default function WalletFundPayFastScreen() {
+  const colors = useColors();
   const { amount } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
   const [checkoutUrl, setCheckoutUrl] = useState('');

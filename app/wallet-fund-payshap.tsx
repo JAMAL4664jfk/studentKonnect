@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } fr
 import { router, useLocalSearchParams } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 import { WalletAPI } from '@/lib/wallet-api';
 
 const BANKS = [
@@ -19,6 +19,7 @@ const BANKS = [
 ];
 
 export default function WalletFundPayShapScreen() {
+  const colors = useColors();
   const { amount } = useLocalSearchParams();
   const [selectedBank, setSelectedBank] = useState<any>(null);
   const [loading, setLoading] = useState(false);

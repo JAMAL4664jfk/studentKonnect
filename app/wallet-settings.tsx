@@ -3,10 +3,11 @@ import { View, Text, TouchableOpacity, ScrollView, Alert, Switch } from 'react-n
 import { router } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 import { WalletAPI } from '@/lib/wallet-api';
 
 export default function WalletSettingsScreen() {
+  const colors = useColors();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const [settings, setSettings] = useState<any>(null);

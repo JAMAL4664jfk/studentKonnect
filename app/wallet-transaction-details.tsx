@@ -3,10 +3,11 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } fr
 import { router, useLocalSearchParams } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { colors } from '@/constants/Colors';
+import { useColors } from '@/hooks/use-colors';
 import { WalletAPI } from '@/lib/wallet-api';
 
 export default function WalletTransactionDetailsScreen() {
+  const colors = useColors();
   const params = useLocalSearchParams();
   const transactionId = params.transactionId as string;
   
