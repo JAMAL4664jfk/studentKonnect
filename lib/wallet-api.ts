@@ -2153,6 +2153,42 @@ class WalletAPIService {
   }
 
   /**
+   * Get merchants
+   */
+  async getMerchants(): Promise<any> {
+    try {
+      const url = this.getApiUrl('shopping/get_merchants');
+      const headers = await this.getHeaders(true);
+
+      console.log('🏪 Wallet API Get Merchants Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({}),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (data.statusCode !== 200) {
+        throw new Error(data.messages || 'Failed to fetch merchants');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get merchants error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Wallet top-up (External funding)
    */
   async walletTopUp(amount: number): Promise<any> {
