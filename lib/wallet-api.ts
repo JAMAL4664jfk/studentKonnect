@@ -1628,7 +1628,7 @@ export class WalletAPIService {
    */
   async getTransactionDetails(transactionId: string): Promise<any> {
     try {
-      const url = this.getApiUrl(`customer/get_transaction?tid=${transactionId}`);
+      const url = this.getApiUrl(`transactions/get_transaction/?tid=${transactionId}`);
       const headers = await this.getHeaders(true); // Requires auth token
 
       console.log('📝 Wallet API Get Transaction Details Request:');
@@ -1708,6 +1708,51 @@ export class WalletAPIService {
       return data;
     } catch (error: any) {
       console.error('❌ Wallet API get transaction summary error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get loyalty transactions
+   */
+  async getLoyaltyTransactions(limit: number = 50, offset: number = 0): Promise<any> {
+    try {
+      const url = this.getApiUrl(`transactions/get_loyalty_transactions?limit=${limit}&offset=${offset}`);
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('🎁 Wallet API Get Loyalty Transactions Request:');
+      console.log('URL:', url);
+      console.log('Limit:', limit, 'Offset:', offset);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+        data: [],
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success && data.statusCode !== 200) {
+        throw new Error(data.messages || 'Failed to get loyalty transactions');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get loyalty transactions error:', error);
       throw error;
     }
   }

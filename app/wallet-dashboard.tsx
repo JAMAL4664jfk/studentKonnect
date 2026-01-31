@@ -284,6 +284,17 @@ export default function WalletDashboardScreen() {
                 <Text className="text-foreground font-medium">Shopping Deals</Text>
                 <Text className="text-muted text-xs mt-1">Coupons & offers</Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => router.push('/wallet-loyalty')}
+                className="flex-1 min-w-[45%] bg-card rounded-2xl p-4 border border-border"
+              >
+                <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mb-3">
+                  <IconSymbol name="star.fill" size={24} color={colors.primary} />
+                </View>
+                <Text className="text-foreground font-medium">Loyalty Rewards</Text>
+                <Text className="text-muted text-xs mt-1">Earn points</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
