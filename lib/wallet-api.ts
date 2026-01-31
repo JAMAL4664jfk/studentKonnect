@@ -558,6 +558,83 @@ class WalletAPIService {
   }
 
   /**
+   * Check if access token is still valid
+   */
+  async checkToken(): Promise<any> {
+    try {
+      const url = this.getApiUrl('auth/checkToken');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('🔑 Wallet API Check Token Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({}),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API check token error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Register/update customer device information
+   */
+  async registerCustomerDevice(
+    customerId: string,
+    deviceData: any,
+    otpToken: string
+  ): Promise<any> {
+    try {
+      const url = this.getApiUrl('customer/customer_device');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('📱 Wallet API Register Device Request:');
+      console.log('URL:', url);
+      console.log('Customer ID:', customerId);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          customer_id: customerId,
+          device_data: deviceData,
+          otp_token: otpToken,
+        }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (data.statusCode !== 200 && !data.success) {
+        throw new Error(data.messages || 'Failed to register device');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API register device error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Register a new customer
    */
   async register(registrationData: WalletRegistrationRequest): Promise<WalletRegistrationResponse> {
