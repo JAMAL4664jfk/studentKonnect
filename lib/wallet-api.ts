@@ -1415,6 +1415,187 @@ class WalletAPIService {
   }
 
   /**
+   * Upload customer profile image
+   */
+  async uploadProfileImage(imageBase64: string): Promise<any> {
+    try {
+      const url = this.getApiUrl('customer/profile_image');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('🖼️ Wallet API Upload Profile Image Request:');
+      console.log('URL:', url);
+      console.log('Image length:', imageBase64.length);
+
+      const body = JSON.stringify({
+        image: imageBase64,
+      });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: body,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to upload profile image');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API upload profile image error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get transaction details by transaction ID
+   */
+  async getTransactionDetails(transactionId: string): Promise<any> {
+    try {
+      const url = this.getApiUrl(`customer/get_transaction?tid=${transactionId}`);
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('📝 Wallet API Get Transaction Details Request:');
+      console.log('URL:', url);
+      console.log('Transaction ID:', transactionId);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+        data: {},
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to get transaction details');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get transaction details error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get transaction summary
+   */
+  async getTransactionSummary(): Promise<any> {
+    try {
+      const url = this.getApiUrl('customer/transactions');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('📊 Wallet API Get Transaction Summary Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+        data: {},
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to get transaction summary');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get transaction summary error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Remove customer consent
+   */
+  async removeConsent(): Promise<any> {
+    try {
+      const url = this.getApiUrl('customer/remove_consent');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('⛔ Wallet API Remove Consent Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to remove consent');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API remove consent error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Verify token validity
    */
   async verifyToken(): Promise<boolean> {
