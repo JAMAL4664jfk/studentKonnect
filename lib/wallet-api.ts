@@ -221,6 +221,63 @@ export interface VerifyIDResponse {
   Message: string;
 }
 
+export interface WalletInfoResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  messages: string;
+  result_code: string;
+  data: {
+    wallet_id: string;
+    customer_id: string;
+    account_number: string;
+    wallet_type: string;
+    status: string;
+    available_balance: number;
+    ledger_balance: number;
+    currency: string;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
+export interface BalanceResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  messages: string;
+  result_code: string;
+  data: {
+    available_balance: number;
+    ledger_balance: number;
+    currency: string;
+  };
+}
+
+export interface AddAccountRequest {
+  customer_id: string;
+  account_type: string; // "BANK", "CARD", etc.
+  account_number: string;
+  bank_name?: string;
+  branch_code?: string;
+  account_holder_name?: string;
+}
+
+export interface AddAccountResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  messages: string;
+  result_code: string;
+  data?: {
+    account_id: string;
+    status: string;
+  };
+}
+
 export interface WalletBalance {
   available_balance: number;
   ledger_balance: number;
@@ -978,30 +1035,158 @@ class WalletAPIService {
   }
 
   /**
-   * Get wallet balance
+   * Get wallet information
    */
-  async getBalance(): Promise<WalletBalance> {
+  async getWalletInfo(): Promise<WalletInfoResponse> {
     try {
-      const response = await fetch(this.getApiUrl('customer/balance'), {
+      const url = this.getApiUrl('customer/wallet_info');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('💼 Wallet API Get Wallet Info Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
         method: 'GET',
-        headers: await this.getHeaders(),
+        headers: headers,
       });
 
-      const data = await response.json();
+      console.log('📡 Response Status:', response.status);
 
-      if (data.success) {
-        return data.data;
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data: WalletInfoResponse = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+        data: {
+          wallet_id: '',
+          customer_id: '',
+          account_number: '',
+          wallet_type: '',
+          status: '',
+          available_balance: 0,
+          ledger_balance: 0,
+          currency: 'ZAR',
+          created_at: '',
+          updated_at: '',
+        },
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to fetch wallet info');
       }
 
-      throw new Error(data.messages || 'Failed to fetch balance');
-    } catch (error) {
-      console.error('Error fetching balance:', error);
-      // Return mock data as fallback
-      return {
-        available_balance: 3245.50,
-        ledger_balance: 3245.50,
-        currency: 'ZAR',
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get wallet info error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get wallet balance
+   */
+  async getBalance(): Promise<BalanceResponse> {
+    try {
+      const url = this.getApiUrl('customer/balance');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('💰 Wallet API Get Balance Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data: BalanceResponse = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+        data: {
+          available_balance: 0,
+          ledger_balance: 0,
+          currency: 'ZAR',
+        },
       };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to fetch balance');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get balance error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add bank account or payment method
+   */
+  async addAccount(accountData: AddAccountRequest): Promise<AddAccountResponse> {
+    try {
+      const url = this.getApiUrl('customer/add_account');
+      const headers = await this.getHeaders(true); // Requires auth token
+      const body = JSON.stringify(accountData);
+
+      console.log('🏦 Wallet API Add Account Request:');
+      console.log('URL:', url);
+      console.log('Account Type:', accountData.account_type);
+      console.log('Account Number:', accountData.account_number);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: body,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      let data: AddAccountResponse;
+      try {
+        data = responseText ? JSON.parse(responseText) : {
+          success: false,
+          messages: 'Empty response',
+          statusCode: response.status,
+          endpoint: '',
+          environment: '',
+          result_code: '0',
+        };
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to add account');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API add account error:', error);
+      throw error;
     }
   }
 

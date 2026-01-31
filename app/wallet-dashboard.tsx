@@ -32,10 +32,14 @@ export default function WalletDashboardScreen() {
     try {
       // Try to fetch balance
       try {
-        const balanceData = await walletAPI.getBalance();
-        setBalance(balanceData.balance || 0);
+        const balanceResponse = await walletAPI.getBalance();
+        if (balanceResponse.success && balanceResponse.data) {
+          setBalance(balanceResponse.data.available_balance || 0);
+        } else {
+          setBalance(0);
+        }
       } catch (error) {
-        console.log("Balance not available yet");
+        console.log("Balance not available yet:", error);
         setBalance(0); // Default to 0 if not available
       }
 
