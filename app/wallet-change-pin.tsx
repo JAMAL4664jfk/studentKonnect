@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { colors } from '@/constants/Colors';
 import { WalletAPI } from '@/lib/wallet-api';

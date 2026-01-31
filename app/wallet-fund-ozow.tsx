@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { WebView } from 'react-native-webview';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { colors } from '@/constants/Colors';
 import { WalletAPI } from '@/lib/wallet-api';

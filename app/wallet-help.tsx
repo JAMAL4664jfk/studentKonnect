@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { router } from 'expo-router';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { colors } from '@/constants/Colors';
 
