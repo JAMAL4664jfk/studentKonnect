@@ -716,24 +716,32 @@ export class WalletAPIService {
         }
         
         // Decode base64 tokens to get actual token values
+        console.log('🔍 [TOKEN DECODE] Starting token decode process...');
+        console.log('🔍 [TOKEN DECODE] Buffer available:', typeof Buffer !== 'undefined');
+        console.log('🔍 [TOKEN DECODE] Original access token:', data.data.access_token.substring(0, 30) + '...');
+        
         let accessToken = data.data.access_token;
         let refreshToken = data.data.refresh_token;
         
         try {
+          console.log('🔍 [TOKEN DECODE] Attempting Buffer.from decode...');
           // Check if tokens are base64 encoded (they usually are from this API)
           // Use Buffer for React Native compatibility
           const decodedAccess = Buffer.from(accessToken, 'base64').toString('utf-8');
           const decodedRefresh = Buffer.from(refreshToken, 'base64').toString('utf-8');
           
-          console.log('🔓 Decoded access token:', decodedAccess.substring(0, 20) + '...');
-          console.log('🔓 Decoded refresh token:', decodedRefresh.substring(0, 20) + '...');
+          console.log('🔓 [SUCCESS] Decoded access token:', decodedAccess.substring(0, 20) + '...');
+          console.log('🔓 [SUCCESS] Decoded refresh token:', decodedRefresh.substring(0, 20) + '...');
           
           accessToken = decodedAccess;
           refreshToken = decodedRefresh;
         } catch (decodeError) {
-          console.log('ℹ️ Tokens are not base64 encoded, using as-is');
-          console.error('Decode error:', decodeError);
+          console.log('❌ [FAILED] Token decode failed, using as-is');
+          console.error('❌ [FAILED] Decode error:', decodeError);
+          console.error('❌ [FAILED] Error type:', decodeError instanceof Error ? decodeError.message : String(decodeError));
         }
+        
+        console.log('🔍 [TOKEN DECODE] Final token to store:', accessToken.substring(0, 30) + '...');
         
         // Store decoded tokens with phone number and customer ID for database storage
         await this.storeTokens(
