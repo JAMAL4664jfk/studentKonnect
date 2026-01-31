@@ -178,6 +178,23 @@ export interface UploadDocumentResponse {
   result_code: string;
 }
 
+export interface AddAdditionalInfoRequest {
+  customer_id: string;
+  industry: string; // Industry code
+  occupation: string; // Occupation code
+  occupation_other?: string; // Required if occupation is "OTHER"
+  source_of_funds: string; // Source of funds code
+}
+
+export interface AddAdditionalInfoResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  messages: string;
+  result_code: string;
+}
+
 export interface WalletBalance {
   available_balance: number;
   ledger_balance: number;
@@ -802,6 +819,60 @@ class WalletAPIService {
       return data;
     } catch (error: any) {
       console.error('❌ Wallet API upload document error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add additional customer information (industry, occupation, source of funds)
+   */
+  async addAdditionalInfo(infoData: AddAdditionalInfoRequest): Promise<AddAdditionalInfoResponse> {
+    try {
+      const url = this.getApiUrl('customer/add_additional');
+      const headers = await this.getHeaders(false);
+      const body = JSON.stringify(infoData);
+
+      console.log('📝 Wallet API Add Additional Info Request:');
+      console.log('URL:', url);
+      console.log('Industry:', infoData.industry);
+      console.log('Occupation:', infoData.occupation);
+      console.log('Source of Funds:', infoData.source_of_funds);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: body,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      let data: AddAdditionalInfoResponse;
+      try {
+        data = responseText ? JSON.parse(responseText) : {
+          success: false,
+          messages: 'Empty response',
+          statusCode: response.status,
+          endpoint: '',
+          environment: '',
+          result_code: '0',
+        };
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to add additional information');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API add additional info error:', error);
       throw error;
     }
   }

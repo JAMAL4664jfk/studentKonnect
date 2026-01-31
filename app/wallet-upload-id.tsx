@@ -192,12 +192,15 @@ export default function WalletUploadIDScreen() {
       Toast.show({
         type: "success",
         text1: "ID Uploaded",
-        text2: response.messages || "Your ID has been uploaded successfully",
+        text2: "Now let's complete your profile",
       });
 
-      // Navigate to dashboard
+      // Navigate to additional info
       setTimeout(() => {
-        router.replace("/wallet-dashboard");
+        router.push({
+          pathname: "/wallet-additional-info",
+          params: { customerId: customerId }
+        });
       }, 1500);
     } catch (error: any) {
       console.error("Upload ID error:", error);
