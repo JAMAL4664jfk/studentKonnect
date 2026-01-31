@@ -141,6 +141,26 @@ export interface CreatePinResponse {
   result_code: string;
 }
 
+export interface AddAddressRequest {
+  customer_id: string;
+  addressType: string; // "PHYSICAL" or "POSTAL"
+  city: string;
+  code: string; // Postal code
+  state: string; // Province
+  country: string; // Country code (e.g., "ZA")
+  line1: string; // Street address line 1
+  line2?: string; // Street address line 2 (optional)
+}
+
+export interface AddAddressResponse {
+  endpoint: string;
+  statusCode: number;
+  environment: string;
+  success: boolean;
+  messages: string;
+  result_code: string;
+}
+
 export interface WalletBalance {
   available_balance: number;
   ledger_balance: number;
@@ -659,6 +679,58 @@ class WalletAPIService {
       }
     } catch (error: any) {
       console.error('❌ Wallet API create PIN error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add customer address
+   */
+  async addAddress(addressData: AddAddressRequest): Promise<AddAddressResponse> {
+    try {
+      const url = this.getApiUrl('customer/add_address');
+      const headers = await this.getHeaders(false);
+      const body = JSON.stringify(addressData);
+
+      console.log('🏠 Wallet API Add Address Request:');
+      console.log('URL:', url);
+      console.log('Body:', body);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: body,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      let data: AddAddressResponse;
+      try {
+        data = responseText ? JSON.parse(responseText) : {
+          success: false,
+          messages: 'Empty response',
+          statusCode: response.status,
+          endpoint: '',
+          environment: '',
+          result_code: '0',
+        };
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to add address');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API add address error:', error);
       throw error;
     }
   }

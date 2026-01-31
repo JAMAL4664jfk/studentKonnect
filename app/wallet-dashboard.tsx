@@ -103,6 +103,29 @@ export default function WalletDashboardScreen() {
       >
         {/* Header */}
         <View className="px-6 pt-12 pb-6">
+          {/* Profile Completion Banner */}
+          {!loading && profile && !profile.address && (
+            <TouchableOpacity
+              onPress={() => router.push({
+                pathname: "/wallet-add-address",
+                params: { customerId: profile.customerId }
+              })}
+              className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 mb-6 flex-row items-center"
+            >
+              <View className="w-12 h-12 rounded-full bg-amber-500/20 items-center justify-center mr-3">
+                <IconSymbol name="exclamationmark.triangle.fill" size={24} color="#f59e0b" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-foreground font-semibold mb-1">
+                  Complete Your Profile
+                </Text>
+                <Text className="text-muted text-xs">
+                  Add your address to unlock all features
+                </Text>
+              </View>
+              <IconSymbol name="chevron.right" size={20} color={colors.muted} />
+            </TouchableOpacity>
+          )}
           <View className="flex-row items-center justify-between mb-6">
             <View>
               <Text className="text-sm text-muted">Welcome back</Text>
