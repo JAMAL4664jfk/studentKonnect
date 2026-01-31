@@ -45,18 +45,24 @@ export default function WalletDashboardScreen() {
 
       // Try to fetch profile
       try {
-        const profileData = await walletAPI.getProfile();
-        setProfile(profileData);
+        const profileResponse = await walletAPI.getProfile();
+        if (profileResponse.success && profileResponse.data) {
+          setProfile(profileResponse.data);
+        }
       } catch (error) {
-        console.log("Profile not available yet");
+        console.log("Profile not available yet:", error);
       }
 
       // Try to fetch transactions
       try {
-        const transactionsData = await walletAPI.getTransactions(5, 0);
-        setTransactions(transactionsData || []);
+        const transactionsResponse = await walletAPI.getTransactions(5, 0);
+        if (transactionsResponse.success && transactionsResponse.data) {
+          setTransactions(transactionsResponse.data.transactions || []);
+        } else {
+          setTransactions([]);
+        }
       } catch (error) {
-        console.log("Transactions not available yet");
+        console.log("Transactions not available yet:", error);
         setTransactions([]);
       }
     } catch (error) {

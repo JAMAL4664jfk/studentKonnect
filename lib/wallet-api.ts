@@ -1193,27 +1193,44 @@ class WalletAPIService {
   /**
    * Get transaction history
    */
-  async getTransactions(limit: number = 50, offset: number = 0): Promise<Transaction[]> {
+  async getTransactions(limit: number = 50, offset: number = 0): Promise<any> {
     try {
-      const response = await fetch(
-        this.getApiUrl(`transactions?limit=${limit}&offset=${offset}`),
-        {
-          method: 'GET',
-          headers: await this.getHeaders(),
-        }
-      );
+      const url = this.getApiUrl('transactions/get_transactions');
+      const headers = await this.getHeaders(true); // Requires auth token
 
-      const data = await response.json();
+      console.log('📋 Wallet API Get Transactions Request:');
+      console.log('URL:', url);
 
-      if (data.success) {
-        return data.data.transactions || [];
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+        data: { transactions: [] },
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to fetch transactions');
       }
 
-      throw new Error(data.messages || 'Failed to fetch transactions');
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-      // Return mock data as fallback
-      return this.getMockTransactions();
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get transactions error:', error);
+      throw error;
     }
   }
 
@@ -1244,29 +1261,88 @@ class WalletAPIService {
   /**
    * Get customer profile
    */
-  async getProfile(): Promise<CustomerProfile> {
+  async getProfile(): Promise<any> {
     try {
-      const response = await fetch(this.getApiUrl('customer/profile'), {
+      const url = this.getApiUrl('customer/profile');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('👤 Wallet API Get Profile Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
         method: 'GET',
-        headers: await this.getHeaders(),
+        headers: headers,
       });
 
-      const data = await response.json();
+      console.log('📡 Response Status:', response.status);
 
-      if (data.success) {
-        return data.data;
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+        data: {},
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to fetch profile');
       }
 
-      throw new Error(data.messages || 'Failed to fetch profile');
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      // Return mock data as fallback
-      return {
-        id: 'mock_user',
-        name: 'Student Account',
-        email: 'scholar@student.ac.za',
-        phone_number: '+27000000000',
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get profile error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check customer subscription status
+   */
+  async checkSubscription(): Promise<any> {
+    try {
+      const url = this.getApiUrl('customer/check_subscription');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('💳 Wallet API Check Subscription Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+        data: {},
       };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to check subscription');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API check subscription error:', error);
+      throw error;
     }
   }
 
