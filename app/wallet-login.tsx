@@ -171,6 +171,14 @@ export default function WalletLoginScreen() {
               )}
             </TouchableOpacity>
 
+            {/* Forgot PIN Link */}
+            <TouchableOpacity
+              onPress={() => router.push('/wallet-forgot-pin')}
+              className="items-center py-3"
+            >
+              <Text className="text-sm text-primary font-medium">Forgot PIN?</Text>
+            </TouchableOpacity>
+
             {/* Test Credentials Info */}
             <View className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 mt-4">
               <Text className="text-sm font-semibold text-blue-600 mb-2">

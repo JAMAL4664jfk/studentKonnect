@@ -1553,6 +1553,50 @@ class WalletAPIService {
   }
 
   /**
+   * Reset PIN (Forgot PIN)
+   */
+  async resetPin(phoneNumber: string): Promise<any> {
+    try {
+      const url = this.getApiUrl('customer/resetPin');
+      const headers = await this.getHeaders(false); // No auth token needed for reset
+
+      console.log('🔐 Wallet API Reset PIN Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ phone_number: phoneNumber }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to reset PIN');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API reset PIN error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get customer settings
    */
   async getCustomerSettings(): Promise<any> {

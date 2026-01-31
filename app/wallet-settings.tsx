@@ -112,6 +112,7 @@ export default function WalletSettingsScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              onPress={() => router.push('/wallet-edit-profile')}
               className="flex-row items-center justify-between py-3"
             >
               <View className="flex-row items-center">
@@ -127,6 +128,7 @@ export default function WalletSettingsScreen() {
             <Text className="text-foreground font-semibold text-lg mb-4">Security</Text>
             
             <TouchableOpacity
+              onPress={() => router.push('/wallet-change-pin')}
               className="flex-row items-center justify-between py-3"
             >
               <View className="flex-row items-center">
