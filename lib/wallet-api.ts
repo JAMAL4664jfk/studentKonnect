@@ -1972,6 +1972,99 @@ class WalletAPIService {
   }
 
   /**
+   * Create voucher payment intent
+   */
+  async createVoucherPaymentIntent(
+    denominations: Array<{ amount: string; id: string; quantity: string }>,
+    merchantId: string,
+    totalAmount: string,
+    type: 'strict' | 'flexible' = 'strict'
+  ): Promise<any> {
+    try {
+      const url = this.getApiUrl('orders/intent?q=voucher_payment');
+      const headers = await this.getHeaders(true);
+
+      console.log('🎫 Wallet API Voucher Payment Intent Request:');
+      console.log('URL:', url);
+      console.log('Denominations:', denominations);
+      console.log('Merchant ID:', merchantId);
+      console.log('Total Amount:', totalAmount);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          denominations,
+          merchant_id: merchantId,
+          total_amount: totalAmount,
+          type,
+        }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (data.statusCode !== 200) {
+        throw new Error(data.messages || 'Voucher payment intent creation failed');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API voucher payment intent error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create subscription intent
+   */
+  async createSubscriptionIntent(
+    productId: number,
+    tierId?: number
+  ): Promise<any> {
+    try {
+      const url = this.getApiUrl('orders/intent?q=subscription');
+      const headers = await this.getHeaders(true);
+
+      console.log('📝 Wallet API Subscription Intent Request:');
+      console.log('URL:', url);
+      console.log('Product ID:', productId);
+      if (tierId) console.log('Tier ID:', tierId);
+
+      const body: any = { product_id: productId };
+      if (tierId) body.tier_id = tierId;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(body),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = JSON.parse(responseText);
+      console.log('📦 Parsed Data:', data);
+
+      if (data.statusCode !== 200) {
+        throw new Error(data.messages || 'Subscription intent creation failed');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API subscription intent error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Wallet top-up (External funding)
    */
   async walletTopUp(amount: number): Promise<any> {

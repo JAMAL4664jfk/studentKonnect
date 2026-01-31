@@ -81,6 +81,17 @@ export default function WalletVouchersScreen() {
             <Text className="text-white font-semibold text-lg">Redeem Voucher</Text>
           </TouchableOpacity>
 
+          {/* Purchase Vouchers */}
+          <TouchableOpacity
+            onPress={() => router.push('/wallet-vouchers-purchase')}
+            className="bg-primary rounded-2xl p-4 items-center mb-6"
+          >
+            <View className="flex-row items-center">
+              <IconSymbol name="cart.fill" size={20} color="#fff" />
+              <Text className="text-white font-semibold text-lg ml-2">Purchase Vouchers</Text>
+            </View>
+          </TouchableOpacity>
+
           {/* Browse Vouchers */}
           <View className="mb-6">
             <Text className="text-lg font-semibold text-foreground mb-3">Browse Vouchers</Text>
