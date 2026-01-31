@@ -1759,6 +1759,124 @@ class WalletAPIService {
   }
 
   /**
+   * Process payment/order
+   */
+  async processPayment(
+    sid: string,
+    orderReference: string,
+    orderId: string,
+    amount: number,
+    tipAmount?: number,
+    tipRecipientType?: string,
+    tipRecipientMobile?: string
+  ): Promise<any> {
+    try {
+      const url = this.getApiUrl('orders/process');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('💳 Wallet API Process Payment Request:');
+      console.log('URL:', url);
+
+      const body: any = {
+        sid,
+        order_reference: orderReference,
+        order_id: orderId,
+        amount,
+      };
+
+      // Add optional tip fields if provided
+      if (tipAmount !== undefined) body.tip_amount = tipAmount;
+      if (tipRecipientType) body.tip_recipient_type = tipRecipientType;
+      if (tipRecipientMobile) body.tip_recipient_mobile = tipRecipientMobile;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(body),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (data.statusCode !== 200) {
+        throw new Error(data.messages || 'Payment processing failed');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API process payment error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Confirm payment/order with PIN
+   */
+  async confirmPayment(
+    sid: string,
+    orderReference: string,
+    orderId: string,
+    pin: string
+  ): Promise<any> {
+    try {
+      const url = this.getApiUrl('orders/confirm');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('✅ Wallet API Confirm Payment Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          sid,
+          order_reference: orderReference,
+          order_id: orderId,
+          pin,
+        }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+        statusCode: response.status,
+        endpoint: '',
+        environment: '',
+        result_code: '0',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (data.statusCode !== 200) {
+        throw new Error(data.messages || 'Payment confirmation failed');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API confirm payment error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Wallet top-up (External funding)
    */
   async walletTopUp(amount: number): Promise<any> {
