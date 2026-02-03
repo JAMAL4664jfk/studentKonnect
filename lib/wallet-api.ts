@@ -1954,6 +1954,47 @@ export class WalletAPIService {
   }
 
   /**
+   * Create QR payment intent
+   * Initiates payment by scanning QR codes from various payment providers
+   * Supports: Zapper, SnapScan, Scan to Pay, Lunar, and other QR payment methods
+   */
+  async createQrPaymentIntent(qrCode: string): Promise<any> {
+    try {
+      const url = this.getApiUrl('orders/intent?q=qr_payment');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('📱 Wallet API QR Payment Intent Request:');
+      console.log('URL:', url);
+      console.log('QR Code:', qrCode.substring(0, 50) + '...');
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ qr_code: qrCode }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      // Note: statusCode 404 with message can indicate business logic errors like insufficient funds
+      // Don't throw error, let the caller handle the response
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API QR payment intent error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Add bank account or payment method
    */
   async addAccount(accountData: AddAccountRequest): Promise<AddAccountResponse> {
