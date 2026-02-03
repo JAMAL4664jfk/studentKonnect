@@ -20,6 +20,7 @@ import { supabase } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GroupDetailModal } from "@/components/GroupDetailModal";
 
 interface Conversation {
   id: string;
@@ -125,6 +126,10 @@ export default function ChatScreen() {
   const [chatSearch, setChatSearch] = useState("");
   const [groupSearch, setGroupSearch] = useState("");
   const [callSearch, setCallSearch] = useState("");
+  
+  // Group detail modal state
+  const [showGroupDetail, setShowGroupDetail] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -995,6 +1000,16 @@ export default function ChatScreen() {
                           {group.member_count} members
                         </Text>
                       </View>
+                      <TouchableOpacity
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          setSelectedGroupId(group.id);
+                          setShowGroupDetail(true);
+                        }}
+                        className="ml-2"
+                      >
+                        <IconSymbol name="info.circle" size={24} color={colors.primary} />
+                      </TouchableOpacity>
                     </TouchableOpacity>
                   ))
                 )}
@@ -1556,7 +1571,24 @@ export default function ChatScreen() {
             </>
           )}
         </View>
-      </Modal>
+       </Modal>
+
+      {/* Group Detail Modal */}
+      <GroupDetailModal
+        visible={showGroupDetail}
+        groupId={selectedGroupId}
+        currentUserId={currentUserId || ""}
+        onClose={() => {
+          setShowGroupDetail(false);
+          setSelectedGroupId(null);
+        }}
+        onLeave={() => {
+          if (currentUserId) loadGroups(currentUserId);
+        }}
+        onJoin={() => {
+          if (currentUserId) loadGroups(currentUserId);
+        }}
+      />
 
       <Toast />
     </ScreenContainer>
