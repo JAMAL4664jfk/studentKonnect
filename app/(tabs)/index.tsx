@@ -34,6 +34,7 @@ type FeaturedService = {
 const FEATURED_SERVICES: FeaturedService[] = [
   { id: "marketplace", title: "Marketplace", image: require("@/assets/images/marketplace-bg.jpg") },
   { id: "accommodation", title: "Accommodation", image: require("@/assets/images/accommodation-bg.jpg") },
+  { id: "hookup", title: "Student Hook-Up", image: require("@/assets/images/student-hookup-bg.jpg") },
 ];
 
 type Transaction = {
