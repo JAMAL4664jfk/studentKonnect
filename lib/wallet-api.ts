@@ -2045,6 +2045,62 @@ export class WalletAPIService {
   }
 
   /**
+   * Create VAS voucher payment intent
+   * Initiates payment for VAS vouchers (airtime, data, etc.)
+   */
+  async createVasVoucherPaymentIntent(
+    providerId: string,
+    productCode: string,
+    voucherCode: string,
+    voucherValue: number,
+    mobileNumber: string
+  ): Promise<any> {
+    try {
+      const url = this.getApiUrl('orders/intent?q=vas_vouchers');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('🎫 Wallet API VAS Voucher Payment Intent Request:');
+      console.log('URL:', url);
+      console.log('Provider ID:', providerId);
+      console.log('Product Code:', productCode);
+      console.log('Voucher Code:', voucherCode);
+      console.log('Voucher Value (cents):', voucherValue);
+      console.log('Mobile Number:', mobileNumber);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          providerId: providerId,
+          productCode: productCode,
+          voucherCode: voucherCode,
+          voucherValue: voucherValue.toString(), // Amount in cents
+          mobileNumber: mobileNumber,
+        }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      // Note: statusCode 404 with message can indicate business logic errors like insufficient funds
+      // Don't throw error, let the caller handle the response
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API VAS voucher payment intent error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Add bank account or payment method
    */
   async addAccount(accountData: AddAccountRequest): Promise<AddAccountResponse> {
