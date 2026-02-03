@@ -13,8 +13,6 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useNotifications } from "@/contexts/NotificationsContext";
 
-
-
 export default function NotificationsScreen() {
   const router = useRouter();
   const colors = useColors();
@@ -93,61 +91,58 @@ export default function NotificationsScreen() {
     }
   };
 
-  const renderNotification = ({ item }: { item: any }) => {
-    return (
-      <TouchableOpacity
-        onPress={() => handleNotificationPress(item)}
-        className={`p-4 border-b border-border`}
-        style={{
-          backgroundColor: !item.is_read ? colors.surface : 'transparent',
-          opacity: 1,
-        }}
-      >
-        <View className="flex-row items-start gap-3">
-          <View
-            className="w-10 h-10 rounded-full items-center justify-center"
-            style={{ backgroundColor: getNotificationColor(item.type) + '20' }}
-          >
-            <IconSymbol
-              name={getNotificationIcon(item.type) as any}
-              size={20}
-              color={getNotificationColor(item.type)}
-            />
-          </View>
-
-          <View className="flex-1">
-            <Text
-              className={`text-base ${
-                !item.is_read ? "font-bold text-foreground" : "font-semibold text-foreground"
-              }`}
-              numberOfLines={1}
-            >
-              {item.title}
-            </Text>
-            <Text className="text-sm text-muted mt-1" numberOfLines={2}>
-              {item.message}
-            </Text>
-            <Text className="text-xs text-muted mt-2">
-              {formatTime(item.created_at)}
-            </Text>
-          </View>
-
-          <View className="flex-col items-end gap-2">
-            {!item.is_read && (
-              <View className="w-2 h-2 rounded-full bg-primary" />
-            )}
-            <TouchableOpacity onPress={() => deleteNotification(item.id)}>
-              <IconSymbol name="xmark.circle.fill" size={20} color={colors.muted} />
-            </TouchableOpacity>
-          </View>
+  const renderNotification = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      onPress={() => handleNotificationPress(item)}
+      className="p-4 border-b border-border"
+      style={{
+        backgroundColor: !item.is_read ? colors.surface : 'transparent',
+        opacity: 1,
+      }}
+    >
+      <View className="flex-row items-start gap-3">
+        <View
+          className="w-10 h-10 rounded-full items-center justify-center"
+          style={{ backgroundColor: getNotificationColor(item.type) + '20' }}
+        >
+          <IconSymbol
+            name={getNotificationIcon(item.type) as any}
+            size={20}
+            color={getNotificationColor(item.type)}
+          />
         </View>
-      </TouchableOpacity>
-    );
-  };
+
+        <View className="flex-1">
+          <Text
+            className={`text-base ${
+              !item.is_read ? "font-bold text-foreground" : "font-semibold text-foreground"
+            }`}
+            numberOfLines={1}
+          >
+            {item.title}
+          </Text>
+          <Text className="text-sm text-muted mt-1" numberOfLines={2}>
+            {item.message}
+          </Text>
+          <Text className="text-xs text-muted mt-2">
+            {formatTime(item.created_at)}
+          </Text>
+        </View>
+
+        <View className="flex-col items-end gap-2">
+          {!item.is_read && (
+            <View className="w-2 h-2 rounded-full bg-primary" />
+          )}
+          <TouchableOpacity onPress={() => deleteNotification(item.id)}>
+            <IconSymbol name="xmark.circle.fill" size={20} color={colors.muted} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <ScreenContainer edges={["top", "left", "right"]} className="flex-1">
-      {/* Header */}
       <View className="p-4 border-b border-border">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-3">
@@ -174,7 +169,6 @@ export default function NotificationsScreen() {
         </View>
       </View>
 
-      {/* Type Filters */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -206,7 +200,6 @@ export default function NotificationsScreen() {
         </View>
       </ScrollView>
 
-      {/* Notifications List */
       <FlatList
         data={filteredNotifications}
         renderItem={renderNotification}
