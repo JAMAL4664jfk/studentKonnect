@@ -8,6 +8,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Modal,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -48,6 +50,7 @@ export default function ChatDetailScreen() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showCallingModal, setShowCallingModal] = useState(false);
   const [callType, setCallType] = useState<"voice" | "video">("voice");
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -244,7 +247,84 @@ export default function ChatDetailScreen() {
     setSending(false);
   };
 
-  const handleSend = async () => {
+  const handleBlockUser = async () => {
+    if (!currentUserId) return;
+
+    Alert.alert(
+      "Block User",
+      `Are you sure you want to block ${otherUserName}? You won't receive messages from them.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Block",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await supabase.from("blocked_users").insert({
+                blocker_id: currentUserId,
+                blocked_id: otherUserId,
+              });
+
+              Toast.show({
+                type: "success",
+                text1: "User blocked",
+                text2: `${otherUserName} has been blocked`,
+              });
+
+              setShowSettingsMenu(false);
+              router.back();
+            } catch (error) {
+              console.error("Error blocking user:", error);
+              Toast.show({
+                type: "error",
+                text1: "Failed to block user",
+              });
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteChat = async () => {
+    if (!currentUserId) return;
+
+    Alert.alert(
+      "Delete Chat",
+      "Are you sure you want to delete this chat? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await supabase.from("deleted_chats").insert({
+                conversation_id: conversationId,
+                user_id: currentUserId,
+              });
+
+              Toast.show({
+                type: "success",
+                text1: "Chat deleted",
+              });
+
+              setShowSettingsMenu(false);
+              router.back();
+            } catch (error) {
+              console.error("Error deleting chat:", error);
+              Toast.show({
+                type: "error",
+                text1: "Failed to delete chat",
+              });
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSend = async () {
     if (!messageText.trim() || !currentUserId || sending) return;
 
     setSending(true);
@@ -336,7 +416,7 @@ export default function ChatDetailScreen() {
         </TouchableOpacity>
         
         <TouchableOpacity
-          className="w-9 h-9 rounded-full items-center justify-center"
+          className="w-9 h-9 rounded-full items-center justify-center mr-2"
           style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           onPress={() => {
             setCallType("video");
@@ -344,6 +424,14 @@ export default function ChatDetailScreen() {
           }}
         >
           <IconSymbol name="video.fill" size={20} color={colors.foreground} />
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          className="w-9 h-9 rounded-full items-center justify-center"
+          style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          onPress={() => setShowSettingsMenu(true)}
+        >
+          <IconSymbol name="ellipsis.circle" size={20} color={colors.foreground} />
         </TouchableOpacity>
       </View>
 
@@ -443,6 +531,71 @@ export default function ChatDetailScreen() {
         otherUserName={otherUserName}
         otherUserPhoto={otherUserPhoto}
       />
+
+      {/* Settings Menu Modal */}
+      <Modal visible={showSettingsMenu} animationType="slide" transparent>
+        <View className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <View
+            className="rounded-t-3xl p-6"
+            style={{ backgroundColor: colors.background }}
+          >
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-xl font-bold text-foreground">Chat Settings</Text>
+              <TouchableOpacity onPress={() => setShowSettingsMenu(false)}>
+                <IconSymbol name="xmark.circle.fill" size={28} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+
+            {/* User Info */}
+            <View className="flex-row items-center p-4 bg-surface rounded-xl mb-4">
+              <Image
+                source={{ uri: otherUserPhoto || "https://via.placeholder.com/50" }}
+                className="w-14 h-14 rounded-full mr-3"
+              />
+              <View className="flex-1">
+                <Text className="text-lg font-semibold text-foreground">{otherUserName}</Text>
+                <Text className="text-sm text-muted">Active now</Text>
+              </View>
+            </View>
+
+            {/* Settings Options */}
+            <View className="gap-2">
+              <TouchableOpacity
+                onPress={() => {
+                  setShowSettingsMenu(false);
+                  // Navigate to user profile
+                }}
+                className="flex-row items-center p-4 bg-surface rounded-xl"
+              >
+                <IconSymbol name="person.circle" size={24} color={colors.primary} />
+                <Text className="text-base font-semibold text-foreground ml-3">View Profile</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleDeleteChat}
+                className="flex-row items-center p-4 bg-surface rounded-xl"
+              >
+                <IconSymbol name="trash" size={24} color={colors.destructive} />
+                <Text className="text-base font-semibold ml-3" style={{ color: colors.destructive }}>
+                  Delete Chat
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleBlockUser}
+                className="flex-row items-center p-4 bg-surface rounded-xl"
+              >
+                <IconSymbol name="hand.raised.fill" size={24} color={colors.destructive} />
+                <Text className="text-base font-semibold ml-3" style={{ color: colors.destructive }}>
+                  Block User
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Toast />
     </ScreenContainer>
   );
 }
