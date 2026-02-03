@@ -1,156 +1,78 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   FlatList,
   RefreshControl,
+  ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { supabase } from "@/lib/supabase";
+import { useNotifications } from "@/contexts/NotificationsContext";
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: "transaction" | "system" | "chat" | "service";
-  read: boolean;
-  created_at: string;
-  user_id: string;
-}
+
 
 export default function NotificationsScreen() {
   const router = useRouter();
   const colors = useColors();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { notifications, unreadCount, loading, loadNotifications, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+  const [filter, setFilter] = useState<'all' | 'unread' | string>('all');
 
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setCurrentUserId(user.id);
-        loadNotifications(user.id);
-        subscribeToNotifications(user.id);
-      }
-    };
+  const filteredNotifications = filter === 'all' 
+    ? notifications
+    : filter === 'unread'
+    ? notifications.filter(n => !n.is_read)
+    : notifications.filter(n => n.type === filter);
 
-    getCurrentUser();
+  const typeFilters = [
+    { key: 'all', label: 'All', icon: 'bell.fill' },
+    { key: 'unread', label: 'Unread', icon: 'bell.badge.fill' },
+    { key: 'chat', label: 'Chats', icon: 'message.fill' },
+    { key: 'group', label: 'Groups', icon: 'person.3.fill' },
+    { key: 'connection', label: 'Connections', icon: 'person.badge.plus' },
+    { key: 'marketplace', label: 'Marketplace', icon: 'cart.fill' },
+    { key: 'accommodation', label: 'Housing', icon: 'house.fill' },
+    { key: 'hookup', label: 'Dating', icon: 'heart.fill' },
+  ];
 
-    return () => {
-      // Cleanup subscription
-    };
-  }, []);
-
-  const loadNotifications = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
-
-    if (data) {
-      setNotifications(data);
-    }
-  };
-
-  const subscribeToNotifications = (userId: string) => {
-    const channel = supabase
-      .channel(`notifications:${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          const newNotification = payload.new as Notification;
-          setNotifications((current) => [newNotification, ...current]);
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          const updatedNotification = payload.new as Notification;
-          setNotifications((current) =>
-            current.map((n) =>
-              n.id === updatedNotification.id ? updatedNotification : n
-            )
-          );
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  };
-
-  const handleRefresh = async () => {
-    if (!currentUserId) return;
-    setRefreshing(true);
-    await loadNotifications(currentUserId);
-    setRefreshing(false);
-  };
-
-  const handleNotificationPress = async (notification: Notification) => {
-    // Mark as read
-    if (!notification.read) {
-      await supabase
-        .from("notifications")
-        .update({ read: true })
-        .eq("id", notification.id);
+  const handleNotificationPress = async (notification: any) => {
+    if (!notification.is_read) {
+      await markAsRead(notification.id);
     }
 
-    // Navigate to detail
-    router.push({
-      pathname: "/notification-detail",
-      params: {
-        id: notification.id,
-        title: notification.title,
-        message: notification.message,
-        type: notification.type,
-        created_at: notification.created_at,
-      },
-    });
-  };
-
-  const markAllAsRead = async () => {
-    if (!currentUserId) return;
-
-    await supabase
-      .from("notifications")
-      .update({ read: true })
-      .eq("user_id", currentUserId)
-      .eq("read", false);
-
-    setNotifications((current) =>
-      current.map((n) => ({ ...n, read: true }))
-    );
+    if (notification.action_url) {
+      router.push(notification.action_url as any);
+    }
   };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case "transaction":
-        return "banknote.fill";
-      case "chat":
-        return "message.fill";
-      case "service":
-        return "bell.fill";
-      default:
-        return "bell.fill";
+      case 'marketplace': return 'cart.fill';
+      case 'accommodation': return 'house.fill';
+      case 'hookup': return 'heart.fill';
+      case 'chat': return 'message.fill';
+      case 'group': return 'person.3.fill';
+      case 'connection': return 'person.badge.plus';
+      case 'wellness': return 'heart.text.square.fill';
+      case 'event': return 'calendar';
+      default: return 'bell.fill';
+    }
+  };
+
+  const getNotificationColor = (type: string) => {
+    switch (type) {
+      case 'marketplace': return '#10b981';
+      case 'accommodation': return '#3b82f6';
+      case 'hookup': return '#ec4899';
+      case 'chat': return '#8b5cf6';
+      case 'group': return '#f59e0b';
+      case 'connection': return '#06b6d4';
+      case 'wellness': return '#14b8a6';
+      case 'event': return '#f97316';
+      default: return colors.primary;
     }
   };
 
@@ -171,32 +93,32 @@ export default function NotificationsScreen() {
     }
   };
 
-  const renderNotification = ({ item }: { item: Notification }) => {
+  const renderNotification = ({ item }: { item: any }) => {
     return (
       <TouchableOpacity
         onPress={() => handleNotificationPress(item)}
-        className={`p-4 border-b border-border ${
-          !item.read ? "bg-primary/5" : "bg-background"
-        }`}
-        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+        className={`p-4 border-b border-border`}
+        style={{
+          backgroundColor: !item.is_read ? colors.surface : 'transparent',
+          opacity: 1,
+        }}
       >
         <View className="flex-row items-start gap-3">
           <View
-            className={`w-10 h-10 rounded-full items-center justify-center ${
-              !item.read ? "bg-primary/20" : "bg-surface"
-            }`}
+            className="w-10 h-10 rounded-full items-center justify-center"
+            style={{ backgroundColor: getNotificationColor(item.type) + '20' }}
           >
             <IconSymbol
               name={getNotificationIcon(item.type) as any}
               size={20}
-              color={!item.read ? colors.primary : colors.muted}
+              color={getNotificationColor(item.type)}
             />
           </View>
 
           <View className="flex-1">
             <Text
               className={`text-base ${
-                !item.read ? "font-bold text-foreground" : "font-semibold text-foreground"
+                !item.is_read ? "font-bold text-foreground" : "font-semibold text-foreground"
               }`}
               numberOfLines={1}
             >
@@ -210,15 +132,18 @@ export default function NotificationsScreen() {
             </Text>
           </View>
 
-          {!item.read && (
-            <View className="w-2 h-2 rounded-full bg-primary mt-2" />
-          )}
+          <View className="flex-col items-end gap-2">
+            {!item.is_read && (
+              <View className="w-2 h-2 rounded-full bg-primary" />
+            )}
+            <TouchableOpacity onPress={() => deleteNotification(item.id)}>
+              <IconSymbol name="xmark.circle.fill" size={20} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
         </View>
       </TouchableOpacity>
     );
   };
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <ScreenContainer edges={["top", "left", "right"]} className="flex-1">
@@ -247,22 +172,50 @@ export default function NotificationsScreen() {
             </TouchableOpacity>
           )}
         </View>
-        {unreadCount > 0 && (
-          <Text className="text-sm text-muted mt-1">
-            {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
-          </Text>
-        )}
       </View>
+
+      {/* Type Filters */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        className="border-b border-border"
+      >
+        <View className="flex-row px-4 py-2 gap-2">
+          {typeFilters.map((typeFilter) => (
+            <TouchableOpacity
+              key={typeFilter.key}
+              onPress={() => setFilter(typeFilter.key)}
+              className="px-3 py-1.5 rounded-full flex-row items-center gap-1"
+              style={{
+                backgroundColor: filter === typeFilter.key ? colors.primary : colors.surface,
+              }}
+            >
+              <IconSymbol
+                name={typeFilter.icon as any}
+                size={14}
+                color={filter === typeFilter.key ? '#fff' : colors.foreground}
+              />
+              <Text
+                className="text-sm font-medium"
+                style={{ color: filter === typeFilter.key ? '#fff' : colors.foreground }}
+              >
+                {typeFilter.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
 
       {/* Notifications List */}
       <FlatList
-        data={notifications}
+        data={filteredNotifications}
         renderItem={renderNotification}
         keyExtractor={(item) => item.id}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
+            refreshing={loading}
+            onRefresh={loadNotifications}
             tintColor={colors.primary}
           />
         }
