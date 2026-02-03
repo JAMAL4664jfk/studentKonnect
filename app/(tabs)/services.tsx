@@ -73,6 +73,15 @@ const SERVICES: ServiceItem[] = [
     badgeColor: "#ec4899",
   },
   {
+    id: "hookup",
+    name: "Student Hook-Up",
+    icon: "heart.circle.fill",
+    description: "Connect with other students",
+    backgroundImage: require("@/assets/images/student-hookup-bg.jpg"),
+    badgeText: "Find Matches",
+    badgeColor: "#ec4899",
+  },
+  {
     id: "career",
     name: "Career",
     icon: "briefcase.fill",
@@ -133,6 +142,7 @@ export default function ServicesScreen() {
       loans: "/student-loans",
       tutor: "/tutoring",
       wellness: "/wellness",
+      hookup: "/student-hookup",
       career: "/career",
       gamification: "/gamification",
       nsfas: "/nsfas",
