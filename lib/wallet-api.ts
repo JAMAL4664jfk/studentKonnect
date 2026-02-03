@@ -629,14 +629,18 @@ export class WalletAPIService {
       const data = await response.json();
       
       if (data.success && data.data) {
-        // Store tokens as-is (base64 format)
+        // DECODE base64 tokens before storing
+        console.log('🔓 Decoding refreshed tokens...');
+        const decodedAccessToken = Buffer.from(data.data.access_token, 'base64').toString('utf-8');
+        const decodedRefreshToken = Buffer.from(data.data.refresh_token, 'base64').toString('utf-8');
+        
         await this.storeTokens(
-          data.data.access_token,
-          data.data.refresh_token,
+          decodedAccessToken,
+          decodedRefreshToken,
           data.data.access_token_expires_in,
           data.data.refresh_token_expires_in || 2592000
         );
-        console.log('✅ Token refreshed successfully');
+        console.log('✅ Token refreshed and decoded successfully');
       } else {
         console.error('❌ Token refresh failed:', data.messages);
         // Clear tokens and force re-login
@@ -722,12 +726,16 @@ export class WalletAPIService {
           await AsyncStorage.setItem('wallet_user_id', userId.toString());
         }
         
-        // Store tokens as-is (base64 encoded) - API expects them in this format
-        console.log('💾 Storing tokens (base64 format):', data.data.access_token.substring(0, 30) + '...');
+        // DECODE base64 tokens before storing - API sends them encoded but expects decoded tokens in requests
+        console.log('🔓 Decoding base64 tokens from API...');
+        const decodedAccessToken = Buffer.from(data.data.access_token, 'base64').toString('utf-8');
+        const decodedRefreshToken = Buffer.from(data.data.refresh_token, 'base64').toString('utf-8');
+        console.log('✅ Decoded access token:', decodedAccessToken.substring(0, 30) + '...');
+        console.log('✅ Decoded refresh token:', decodedRefreshToken.substring(0, 30) + '...');
         
         await this.storeTokens(
-          data.data.access_token,
-          data.data.refresh_token,
+          decodedAccessToken,
+          decodedRefreshToken,
           data.data.access_token_expires_in,
           data.data.refresh_token_expires_in,
           phoneNumber,
@@ -1493,6 +1501,46 @@ export class WalletAPIService {
       return data;
     } catch (error: any) {
       console.error('❌ Wallet API get balance error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get funding details - bank information for students to fund their wallet
+   * Students should use their mobile number as the reference when making deposits
+   */
+  async getFundingDetails(): Promise<any> {
+    try {
+      const url = this.getApiUrl('wallet/funding_details');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('🏛️ Wallet API Get Funding Details Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to fetch funding details');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get funding details error:', error);
       throw error;
     }
   }
