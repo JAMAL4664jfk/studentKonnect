@@ -1871,6 +1871,46 @@ export class WalletAPIService {
   }
 
   /**
+   * Get in-app messages (IAM)
+   * Different from regular notifications - these are in-app specific messages
+   */
+  async getInAppMessages(): Promise<any> {
+    try {
+      const url = this.getApiUrl('iam/messages');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('💬 Wallet API Get In-App Messages Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to fetch in-app messages');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get in-app messages error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Add bank account or payment method
    */
   async addAccount(accountData: AddAccountRequest): Promise<AddAccountResponse> {
