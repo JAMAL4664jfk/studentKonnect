@@ -324,7 +324,7 @@ export default function ChatDetailScreen() {
     );
   };
 
-  const handleSend = async () {
+  const handleSend = async () => {
     if (!messageText.trim() || !currentUserId || sending) return;
 
     setSending(true);
