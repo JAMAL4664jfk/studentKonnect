@@ -10,6 +10,7 @@ import {
   TextInput,
   Modal,
   Pressable,
+  ImageBackground,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -866,6 +867,11 @@ export default function ChatScreen() {
         {/* Content */}
         <View className="flex-1">
           {activeTab === "chats" && (
+            <ImageBackground
+              source={require("@/assets/images/chat-bg.jpg")}
+              style={{ flex: 1 }}
+              imageStyle={{ opacity: 0.05 }}
+            >
             <FlatList
               data={conversations}
               keyExtractor={(item) => item.id}
@@ -923,9 +929,15 @@ export default function ChatScreen() {
                 </View>
               }
             />
+            </ImageBackground>
           )}
 
           {activeTab === "groups" && (
+            <ImageBackground
+              source={require("@/assets/images/groups-bg.jpg")}
+              style={{ flex: 1 }}
+              imageStyle={{ opacity: 0.05 }}
+            >
             <ScrollView
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
@@ -1066,9 +1078,15 @@ export default function ChatScreen() {
                 )}
               </View>
             </ScrollView>
+            </ImageBackground>
           )}
 
           {activeTab === "calls" && (
+            <ImageBackground
+              source={require("@/assets/images/calls-bg.jpg")}
+              style={{ flex: 1 }}
+              imageStyle={{ opacity: 0.05 }}
+            >
             <View className="flex-1">
               {/* Call Filter */}
               <ScrollView
@@ -1151,9 +1169,15 @@ export default function ChatScreen() {
                 }
               />
             </View>
+            </ImageBackground>
           )}
 
           {activeTab === "status" && (
+            <ImageBackground
+              source={require("@/assets/images/status-bg.jpg")}
+              style={{ flex: 1 }}
+              imageStyle={{ opacity: 0.05 }}
+            >
             <ScrollView
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
@@ -1257,9 +1281,15 @@ export default function ChatScreen() {
                 )}
               </View>
             </ScrollView>
+            </ImageBackground>
           )}
 
           {activeTab === "discover" && (
+            <ImageBackground
+              source={require("@/assets/images/discover-bg.jpg")}
+              style={{ flex: 1 }}
+              imageStyle={{ opacity: 0.05 }}
+            >
             <View className="flex-1">
               {/* Search */}
               <View className="px-4 py-3 border-b border-border">
@@ -1338,6 +1368,7 @@ export default function ChatScreen() {
                 }
               />
             </View>
+            </ImageBackground>
           )}
         </View>
       </View>
