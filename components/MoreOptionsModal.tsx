@@ -91,6 +91,12 @@ export function MoreOptionsModal({ visible, onClose }: MoreOptionsModalProps) {
       image: require("@/assets/images/hero-student-connect.jpg"),
     },
     {
+      id: "hookup",
+      title: "Student Hook-Up",
+      subtitle: "Dating & matchmaking",
+      image: require("@/assets/images/dating-bg.jpg"),
+    },
+    {
       id: "loans",
       title: "Student Loans",
       subtitle: "Apply for student loans",
@@ -112,6 +118,11 @@ export function MoreOptionsModal({ visible, onClose }: MoreOptionsModalProps) {
     if (actionId === "tutoring") {
       onClose();
       router.push("/tutoring" as any);
+      return;
+    }
+    if (actionId === "hookup") {
+      onClose();
+      router.push("/student-hookup" as any);
       return;
     }
     if (actionId === "loans") {
