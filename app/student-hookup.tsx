@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, Animated, PanResponder, Dimensions, Modal, TextInput } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Animated, PanResponder, Dimensions, Modal, TextInput, ImageBackground } from "react-native";
 import { Image } from "expo-image";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "expo-router";
@@ -397,50 +397,61 @@ export default function StudentHookupScreen() {
   return (
     <ScreenContainer>
       <View className="flex-1">
-        {/* Header */}
-        <LinearGradient
-          colors={["#ec4899", "#f97316"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="-mx-4 -mt-4 px-4 pt-6 pb-6 rounded-b-3xl mb-4"
-        >
-          <View className="flex-row items-center justify-between mb-4">
-            <View className="flex-1">
-              <Text className="text-3xl font-bold text-white">💖 Student Hook-Up! 💖</Text>
-              <Text className="text-sm text-white opacity-90">🌹 Find your perfect match on campus 💘</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="w-10 h-10 rounded-full items-center justify-center"
-              style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
+        {/* Header - Matching Screenshot Design */}
+        <View className="-mx-4 -mt-4 mb-4">
+          <ImageBackground
+            source={require("@/assets/images/student-hookup-bg.jpg")}
+            style={{ height: 200 }}
+            resizeMode="cover"
+          >
+            <LinearGradient
+              colors={["rgba(0,0,0,0.3)", "rgba(0,0,0,0.6)"]}
+              className="flex-1 px-4 pt-6 pb-4 justify-between"
             >
-              <IconSymbol name="xmark" size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
+              {/* Top Row: Status Pills and Actions */}
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row gap-2">
+                  {/* Live Status */}
+                  <View className="bg-green-500/90 px-3 py-2 rounded-full flex-row items-center gap-1.5">
+                    <IconSymbol name="wifi" size={14} color="#fff" />
+                    <Text className="text-white text-xs font-bold">Live</Text>
+                  </View>
+                  {/* Points */}
+                  <View className="bg-pink-500/90 px-3 py-2 rounded-full flex-row items-center gap-1.5">
+                    <IconSymbol name="heart.fill" size={14} color="#fff" />
+                    <Text className="text-white text-xs font-bold">250 pts</Text>
+                  </View>
+                  {/* Streak */}
+                  <View className="bg-orange-500/90 px-3 py-2 rounded-full flex-row items-center gap-1.5">
+                    <IconSymbol name="flame.fill" size={14} color="#fff" />
+                    <Text className="text-white text-xs font-bold">5 days</Text>
+                  </View>
+                </View>
+                <View className="flex-row gap-2">
+                  <TouchableOpacity className="w-10 h-10 rounded-full bg-white/20 items-center justify-center">
+                    <IconSymbol name="heart.fill" size={18} color="#fff" />
+                  </TouchableOpacity>
+                  <TouchableOpacity className="w-10 h-10 rounded-full bg-white/20 items-center justify-center">
+                    <IconSymbol name="crown.fill" size={18} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+              </View>
 
-          {/* Stats */}
-          <View className="flex-row gap-3">
-            <View className="flex-1 bg-white/20 rounded-xl p-3">
-              <Text className="text-2xl font-bold text-white">{likes.length}</Text>
-              <Text className="text-xs text-white opacity-90">Likes You</Text>
-            </View>
-            <View className="flex-1 bg-white/20 rounded-xl p-3">
-              <Text className="text-2xl font-bold text-white">{matches.length}</Text>
-              <Text className="text-xs text-white opacity-90">Matches</Text>
-            </View>
-            <View className="flex-1 bg-white/20 rounded-xl p-3">
-              <Text className="text-2xl font-bold text-white">{liked.length}</Text>
-              <Text className="text-xs text-white opacity-90">Liked</Text>
-            </View>
-          </View>
-        </LinearGradient>
+              {/* Title */}
+              <View className="items-center">
+                <Text className="text-4xl font-bold text-white mb-1">💖 Student Hook-Up! 💖</Text>
+                <Text className="text-base text-white/90">🌹 Find your perfect match on campus 💘</Text>
+              </View>
+            </LinearGradient>
+          </ImageBackground>
+        </View>
 
-        {/* Tabs */}
+        {/* Tabs - Matching Marketplace Style */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="mb-4"
-          contentContainerStyle={{ gap: 8, paddingHorizontal: 4 }}
+          className="mb-6"
+          contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 12 }}
         >
           {[
             { key: "dashboard", label: "Dashboard", icon: "house.fill" },
@@ -449,29 +460,33 @@ export default function StudentHookupScreen() {
             { key: "liked", label: "Liked", icon: "heart", badge: liked.length },
             { key: "passed", label: "Passed", icon: "xmark.circle", badge: passed.length },
             { key: "matches", label: "Matches", icon: "sparkles", badge: matches.length },
+            { key: "events", label: "Events", icon: "calendar" },
             { key: "edit", label: "Edit Profile", icon: "pencil" },
           ].map((tab) => (
             <TouchableOpacity
               key={tab.key}
               onPress={() => setActiveTab(tab.key as TabType)}
-              className={`px-4 py-2.5 rounded-full flex-row items-center gap-2 ${
-                activeTab === tab.key ? "bg-primary" : "bg-surface border border-border"
+              className={`px-5 rounded-full flex-row items-center gap-2 ${
+                activeTab === tab.key
+                  ? "bg-primary"
+                  : "bg-white border-2 border-gray-200"
               }`}
+              style={{ height: 42, minHeight: 42, maxHeight: 42 }}
             >
               <IconSymbol
                 name={tab.icon}
-                size={16}
-                color={activeTab === tab.key ? "#fff" : colors.foreground}
+                size={18}
+                color={activeTab === tab.key ? "#fff" : "#1f2937"}
               />
               <Text
-                className={`font-semibold text-sm ${
-                  activeTab === tab.key ? "text-white" : "text-foreground"
+                className={`font-bold text-base ${
+                  activeTab === tab.key ? "text-white" : "text-gray-900"
                 }`}
               >
                 {tab.label}
               </Text>
               {tab.badge !== undefined && tab.badge > 0 && (
-                <View className="bg-error w-5 h-5 rounded-full items-center justify-center">
+                <View className="bg-error w-5 h-5 rounded-full items-center justify-center ml-1">
                   <Text className="text-white text-xs font-bold">{tab.badge}</Text>
                 </View>
               )}
@@ -493,9 +508,21 @@ export default function StudentHookupScreen() {
             <Text className="text-muted-foreground mt-2">Upgrade to see who likes you</Text>
           </View>
         )}
+        {activeTab === "events" && (
+          <View className="flex-1 items-center justify-center">
+            <IconSymbol name="calendar" size={64} color={colors.primary} />
+            <Text className="text-xl font-bold text-foreground mt-4">Campus Events</Text>
+            <Text className="text-muted-foreground mt-2">Meet people at events near you</Text>
+          </View>
+        )}
         {activeTab === "edit" && (
           <View className="flex-1 items-center justify-center">
-            <Text className="text-muted-foreground">Edit profile coming soon</Text>
+            <TouchableOpacity
+              onPress={() => router.push("/edit-dating-profile")}
+              className="bg-primary px-6 py-3 rounded-full"
+            >
+              <Text className="text-white font-bold text-base">Edit Your Profile</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
