@@ -1670,6 +1670,125 @@ export class WalletAPIService {
   }
 
   /**
+   * Get all notification messages for the customer
+   */
+  async getMessages(): Promise<any> {
+    try {
+      const url = this.getApiUrl('notifications/get_messages');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('📨 Wallet API Get Messages Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to fetch messages');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get messages error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check unread message count
+   * Returns the number of unread notifications
+   */
+  async checkMessageCount(): Promise<any> {
+    try {
+      const url = this.getApiUrl('notifications/check_messages');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('🔢 Wallet API Check Message Count Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to check message count');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API check message count error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a single notification message by ID
+   */
+  async getMessage(messageId: number): Promise<any> {
+    try {
+      const url = this.getApiUrl(`notifications/get_message?message_id=${messageId}`);
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('📬 Wallet API Get Single Message Request:');
+      console.log('URL:', url);
+      console.log('Message ID:', messageId);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to fetch message');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get message error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Add bank account or payment method
    */
   async addAccount(accountData: AddAccountRequest): Promise<AddAccountResponse> {
