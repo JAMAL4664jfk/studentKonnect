@@ -1789,6 +1789,88 @@ export class WalletAPIService {
   }
 
   /**
+   * Mark a notification message as read
+   */
+  async markMessageAsRead(messageId: number): Promise<any> {
+    try {
+      const url = this.getApiUrl(`notifications/message_read?message_id=${messageId}`);
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('✅ Wallet API Mark Message as Read Request:');
+      console.log('URL:', url);
+      console.log('Message ID:', messageId);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ status: '1' }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success && data.statusCode !== 200) {
+        throw new Error(data.messages || 'Failed to mark message as read');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API mark message as read error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a notification message
+   */
+  async deleteMessage(messageId: number): Promise<any> {
+    try {
+      const url = this.getApiUrl(`notifications/message_remove?message_id=${messageId}`);
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('🗑️ Wallet API Delete Message Request:');
+      console.log('URL:', url);
+      console.log('Message ID:', messageId);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({}),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success && data.statusCode !== 200) {
+        throw new Error(data.messages || 'Failed to delete message');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API delete message error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Add bank account or payment method
    */
   async addAccount(accountData: AddAccountRequest): Promise<AddAccountResponse> {
