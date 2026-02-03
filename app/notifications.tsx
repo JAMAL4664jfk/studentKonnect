@@ -205,9 +205,8 @@ export default function NotificationsScreen() {
           ))}
         </View>
       </ScrollView>
-    </View>
 
-      {/* Notifications List */}
+      {/* Notifications List */
       <FlatList
         data={filteredNotifications}
         renderItem={renderNotification}
