@@ -35,7 +35,7 @@ const FEATURED_SERVICES: FeaturedService[] = [
   { id: "marketplace", title: "Marketplace", image: require("@/assets/images/marketplace-bg.jpg") },
   { id: "accommodation", title: "Accommodation", image: require("@/assets/images/accommodation-bg.jpg") },
   { id: "loans", title: "Student Loans", image: require("@/assets/images/loans-bg.jpg") },
-  { id: "dating", title: "Dating", image: require("@/assets/images/dating-bg.jpg") },
+  { id: "hookup", title: "Student Hook-Up", image: require("@/assets/images/dating-bg.jpg") },
 ];
 
 type Transaction = {
@@ -70,7 +70,7 @@ export default function HomeScreen() {
       marketplace: "/marketplace",
       accommodation: "/accommodation",
       loans: "/student-loans",
-      dating: "/dating",
+      hookup: "/student-hookup",
     };
     
     const route = routes[serviceId];
