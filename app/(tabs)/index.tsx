@@ -34,7 +34,6 @@ type FeaturedService = {
 const FEATURED_SERVICES: FeaturedService[] = [
   { id: "marketplace", title: "Marketplace", image: require("@/assets/images/marketplace-bg.jpg") },
   { id: "accommodation", title: "Accommodation", image: require("@/assets/images/accommodation-bg.jpg") },
-  { id: "hookup", title: "Student Hook-Up", image: require("@/assets/images/dating-bg.jpg") },
 ];
 
 type Transaction = {
@@ -47,7 +46,7 @@ type Transaction = {
 
 const RECENT_TRANSACTIONS: Transaction[] = [
   { id: "1", description: "Shoprite", amount: -245.50, type: "debit", date: "Today, 10:30 AM" },
-  { id: "2", description: "NSFAS Allowance", amount: 1500.00, type: "credit", date: "Yesterday" },
+  { id: "2", description: "Allowance Deposit", amount: 1500.00, type: "credit", date: "Yesterday" },
   { id: "3", description: "Uber", amount: -85.00, type: "debit", date: "2 days ago" },
 ];
 
