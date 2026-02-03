@@ -1995,6 +1995,56 @@ export class WalletAPIService {
   }
 
   /**
+   * Create utilities payment intent
+   * Initiates payment for utilities like electricity, water, etc.
+   */
+  async createUtilitiesPaymentIntent(
+    amount: number,
+    meterNumber: string,
+    providerId: string
+  ): Promise<any> {
+    try {
+      const url = this.getApiUrl('orders/intent?q=utilities');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('⚡ Wallet API Utilities Payment Intent Request:');
+      console.log('URL:', url);
+      console.log('Amount (cents):', amount);
+      console.log('Meter Number:', meterNumber);
+      console.log('Provider ID:', providerId);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          amount: amount.toString(), // Amount in cents
+          meter_number: meterNumber,
+          providerId: providerId,
+        }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      // Note: statusCode 404 with message can indicate business logic errors like insufficient funds
+      // Don't throw error, let the caller handle the response
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API utilities payment intent error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Add bank account or payment method
    */
   async addAccount(accountData: AddAccountRequest): Promise<AddAccountResponse> {
