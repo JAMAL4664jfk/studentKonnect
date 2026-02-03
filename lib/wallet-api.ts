@@ -1546,6 +1546,130 @@ export class WalletAPIService {
   }
 
   /**
+   * Confirm funding/deposit transaction
+   * Used to verify customer deposits
+   */
+  async confirmFunding(uuid: string): Promise<any> {
+    try {
+      const url = this.getApiUrl('funding/confirm');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('✅ Wallet API Confirm Funding Request:');
+      console.log('URL:', url);
+      console.log('UUID:', uuid);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ uuid }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success && data.statusCode !== 200) {
+        throw new Error(data.messages || 'Failed to confirm funding');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API confirm funding error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get in-app alerts for the customer
+   * Returns notifications and alerts to be displayed in the app
+   */
+  async getInAppAlerts(): Promise<any> {
+    try {
+      const url = this.getApiUrl('iaa');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('🔔 Wallet API Get In-App Alerts Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to fetch in-app alerts');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get in-app alerts error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Register push notification token
+   * Allows the app to receive push notifications
+   */
+  async registerPushToken(pushToken: string): Promise<any> {
+    try {
+      const url = this.getApiUrl('notifications');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('📲 Wallet API Register Push Token Request:');
+      console.log('URL:', url);
+      console.log('Push Token:', pushToken.substring(0, 30) + '...');
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ push_token: pushToken }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success && data.statusCode !== 200) {
+        throw new Error(data.messages || 'Failed to register push token');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API register push token error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Add bank account or payment method
    */
   async addAccount(accountData: AddAccountRequest): Promise<AddAccountResponse> {
