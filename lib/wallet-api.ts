@@ -1911,6 +1911,49 @@ export class WalletAPIService {
   }
 
   /**
+   * Get VAS (Value Added Services) vouchers
+   * Retrieves available vouchers for services like online shopping, airtime, etc.
+   */
+  async getVasVouchers(type: string, notificationStatus: string = '200'): Promise<any> {
+    try {
+      const url = this.getApiUrl(`shopping/get_vas_vouchers?type=${type}`);
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('🎫 Wallet API Get VAS Vouchers Request:');
+      console.log('URL:', url);
+      console.log('Type:', type);
+      console.log('Notification Status:', notificationStatus);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ notification_status: notificationStatus }),
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to fetch VAS vouchers');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get VAS vouchers error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Add bank account or payment method
    */
   async addAccount(accountData: AddAccountRequest): Promise<AddAccountResponse> {
