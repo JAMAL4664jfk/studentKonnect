@@ -553,27 +553,28 @@ export default function MarketplaceScreen() {
       <View className="flex-1">
         <View>
         {/* Modern Header - Bold & Confident */}
-        <View className="mb-8 -mx-4 -mt-4 px-4 pt-6 pb-8 rounded-b-3xl overflow-hidden"
-          style={{
-            backgroundColor: '#8b5cf6',
-            backgroundImage: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)'
-          }}
-        >
-          <View className="flex-row items-center justify-between mb-6">
-            <View className="flex-1 items-center">
-              <Text className="text-5xl font-black text-white mb-2 tracking-tight" style={{ textShadowColor: 'rgba(0,0,0,0.1)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4 }}>
-                Marketplace
-              </Text>
-              <Text className="text-base text-white font-medium" style={{ opacity: 0.9 }}>
-                Buy and sell with fellow students
-              </Text>
-            </View>
+        {/* Compact Header */}
+        <View className="flex-row items-center justify-between mb-6">
+          <View className="flex-1">
+            <Text className="text-3xl font-bold text-foreground mb-1">
+              Marketplace
+            </Text>
+            <Text className="text-sm text-muted-foreground">
+              Buy and sell with fellow students
+            </Text>
+          </View>
+          <View className="flex-row items-center gap-2">
+            <TouchableOpacity
+              onPress={() => router.push("/my-marketplace")}
+              className="w-10 h-10 rounded-full bg-muted items-center justify-center"
+            >
+              <IconSymbol name="person.fill" size={18} color={colors.primary} />
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-12 h-12 rounded-2xl items-center justify-center absolute right-0"
-              style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+              className="w-10 h-10 rounded-full bg-muted items-center justify-center"
             >
-              <IconSymbol name="xmark" size={22} color="#fff" />
+              <IconSymbol name="xmark" size={18} color={colors.foreground} />
             </TouchableOpacity>
           </View>
         </View>

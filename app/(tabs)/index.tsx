@@ -34,7 +34,6 @@ type FeaturedService = {
 const FEATURED_SERVICES: FeaturedService[] = [
   { id: "marketplace", title: "Marketplace", image: require("@/assets/images/marketplace-bg.jpg") },
   { id: "accommodation", title: "Accommodation", image: require("@/assets/images/accommodation-bg.jpg") },
-  { id: "loans", title: "Student Loans", image: require("@/assets/images/loans-bg.jpg") },
   { id: "hookup", title: "Student Hook-Up", image: require("@/assets/images/dating-bg.jpg") },
 ];
 
@@ -69,7 +68,6 @@ export default function HomeScreen() {
     const routes: Record<string, string> = {
       marketplace: "/marketplace",
       accommodation: "/accommodation",
-      loans: "/student-loans",
       hookup: "/student-hookup",
     };
     

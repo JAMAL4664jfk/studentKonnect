@@ -69,18 +69,58 @@ export default function StudentHookupScreen() {
   });
 
   useEffect(() => {
+    seedDemoUsers();
     loadProfiles();
     loadInteractions();
   }, []);
 
+  const seedDemoUsers = async () => {
+    // Seed 10 demo users if not already exists
+    const demoUsers = [
+      { name: "Tshephang Motaung", age: 23, institution: "University of Johannesburg", course: "Marketing", bio: "Marketing student with big dreams. Love music festivals and creative vibes! 🎵", interests: ["Music", "Art", "Travel"], images: ["https://i.pravatar.cc/400?img=1"], isVerified: true },
+      { name: "Lerato Ndlovu", age: 21, institution: "University of Pretoria", course: "Computer Science", bio: "Tech enthusiast and gamer. Looking for someone to share adventures with! 🎮", interests: ["Gaming", "Technology", "Movies"], images: ["https://i.pravatar.cc/400?img=5"], isVerified: true },
+      { name: "Thabo Mkhize", age: 24, institution: "Wits University", course: "Business Management", bio: "Entrepreneur at heart. Love fitness and healthy living. Let's build something together! 💪", interests: ["Fitness", "Business", "Food"], images: ["https://i.pravatar.cc/400?img=12"], isVerified: false },
+      { name: "Naledi Khumalo", age: 22, institution: "University of Cape Town", course: "Medicine", bio: "Future doctor with a passion for helping others. Love hiking and nature! 🏔️", interests: ["Travel", "Fitness", "Reading"], images: ["https://i.pravatar.cc/400?img=9"], isVerified: true },
+      { name: "Sipho Dlamini", age: 25, institution: "Stellenbosch University", course: "Engineering", bio: "Engineering student who loves solving problems. Coffee addict ☕", interests: ["Technology", "Coffee", "Sports"], images: ["https://i.pravatar.cc/400?img=15"], isVerified: false },
+      { name: "Zanele Moyo", age: 20, institution: "Rhodes University", course: "Journalism", bio: "Aspiring journalist and storyteller. Love photography and exploring new places 📸", interests: ["Photography", "Writing", "Travel"], images: ["https://i.pravatar.cc/400?img=10"], isVerified: true },
+      { name: "Bongani Sithole", age: 23, institution: "University of KwaZulu-Natal", course: "Law", bio: "Law student with a passion for justice. Love debating and intellectual conversations ⚖️", interests: ["Reading", "Debate", "Politics"], images: ["https://i.pravatar.cc/400?img=13"], isVerified: false },
+      { name: "Nomvula Zulu", age: 21, institution: "North-West University", course: "Psychology", bio: "Understanding the human mind. Love art and creative expression 🎨", interests: ["Art", "Psychology", "Music"], images: ["https://i.pravatar.cc/400?img=16"], isVerified: true },
+      { name: "Mandla Nkosi", age: 24, institution: "University of the Free State", course: "Sports Science", bio: "Athlete and fitness coach. Let's stay active together! 🏃‍♂️", interests: ["Sports", "Fitness", "Nutrition"], images: ["https://i.pravatar.cc/400?img=14"], isVerified: false },
+      { name: "Precious Mahlangu", age: 22, institution: "Tshwane University of Technology", course: "Fashion Design", bio: "Fashion designer with an eye for style. Love shopping and creative projects 👗", interests: ["Fashion", "Shopping", "Art"], images: ["https://i.pravatar.cc/400?img=20"], isVerified: true },
+    ];
+
+    try {
+      for (const user of demoUsers) {
+        await supabase.from("datingProfiles").upsert({
+          ...user,
+          images: JSON.stringify(user.images),
+          interests: JSON.stringify(user.interests),
+          isActive: true,
+        }, { onConflict: "name" });
+      }
+    } catch (error) {
+      console.log("Demo users already seeded or error:", error);
+    }
+  };
+
   const loadProfiles = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      // Get current user to exclude from profiles
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      let query = supabase
         .from("datingProfiles")
         .select("*")
         .eq("isActive", true)
         .order("createdAt", { ascending: false });
+      
+      // Exclude current user's profile
+      if (user) {
+        query = query.neq("userId", user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setProfiles(data || []);

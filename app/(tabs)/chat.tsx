@@ -814,8 +814,15 @@ export default function ChatScreen() {
           </View>
         </View>
 
-        {/* Tabs */}
-        <View className="border-b border-border">
+        {/* Tabs with Background */}
+        <View className="border-b border-border" style={{
+          backgroundImage: activeTab === 'chats' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' :
+                          activeTab === 'groups' ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' :
+                          activeTab === 'calls' ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' :
+                          activeTab === 'status' ? 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' :
+                          'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+          paddingVertical: 2
+        }}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -865,12 +872,15 @@ export default function ChatScreen() {
                   onPress={() => handleConversationPress(item)}
                   className="flex-row items-center px-4 py-3 border-b border-border active:bg-surface"
                 >
-                  <Image
-                    source={{
-                      uri: item.other_user_photo || "https://via.placeholder.com/50",
-                    }}
-                    className="w-12 h-12 rounded-full mr-3"
-                  />
+                  <View className="relative">
+                    <Image
+                      source={{
+                        uri: item.other_user_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.other_user_name)}&background=random&size=128`,
+                      }}
+                      className="w-12 h-12 rounded-full mr-3"
+                    />
+                    <View className="absolute bottom-0 right-3 w-3 h-3 rounded-full border-2 border-background" style={{ backgroundColor: '#10b981' }} />
+                  </View>
                   <View className="flex-1">
                     <View className="flex-row items-center justify-between mb-1">
                       <Text className="text-base font-semibold text-foreground">
@@ -952,12 +962,19 @@ export default function ChatScreen() {
                       }}
                       className="bg-surface rounded-xl p-4 mb-3 flex-row items-center"
                     >
-                      <View
-                        className="w-12 h-12 rounded-full items-center justify-center mr-3"
-                        style={{ backgroundColor: colors.primary + "20" }}
-                      >
-                        <IconSymbol name="person.3.fill" size={24} color={colors.primary} />
-                      </View>
+                      {group.avatar_url ? (
+                        <Image
+                          source={{ uri: group.avatar_url }}
+                          className="w-12 h-12 rounded-full mr-3"
+                        />
+                      ) : (
+                        <View
+                          className="w-12 h-12 rounded-full items-center justify-center mr-3"
+                          style={{ backgroundColor: colors.primary + "20" }}
+                        >
+                          <IconSymbol name="person.3.fill" size={24} color={colors.primary} />
+                        </View>
+                      )}
                       <View className="flex-1">
                         <View className="flex-row items-center justify-between mb-1">
                           <Text className="text-base font-semibold text-foreground">
@@ -995,12 +1012,19 @@ export default function ChatScreen() {
                   publicGroups.map((group) => (
                     <View key={group.id} className="bg-surface rounded-xl p-4 mb-3">
                       <View className="flex-row items-center mb-3">
-                        <View
-                          className="w-12 h-12 rounded-full items-center justify-center mr-3"
-                          style={{ backgroundColor: colors.primary + "20" }}
-                        >
-                          <IconSymbol name="globe" size={24} color={colors.primary} />
-                        </View>
+                        {group.avatar_url ? (
+                          <Image
+                            source={{ uri: group.avatar_url }}
+                            className="w-12 h-12 rounded-full mr-3"
+                          />
+                        ) : (
+                          <View
+                            className="w-12 h-12 rounded-full items-center justify-center mr-3"
+                            style={{ backgroundColor: colors.primary + "20" }}
+                          >
+                            <IconSymbol name="globe" size={24} color={colors.primary} />
+                          </View>
+                        )}
                         <View className="flex-1">
                           <Text className="text-base font-semibold text-foreground">
                             {group.name}
@@ -1076,7 +1100,7 @@ export default function ChatScreen() {
                     <View className="flex-row items-center px-4 py-3 border-b border-border">
                       <Image
                         source={{
-                          uri: otherUser.photo || "https://via.placeholder.com/50",
+                          uri: otherUser.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser.name)}&background=random&size=128`,
                         }}
                         className="w-12 h-12 rounded-full mr-3"
                       />
@@ -1199,12 +1223,10 @@ export default function ChatScreen() {
                             className="w-full h-full rounded-full"
                           />
                         ) : (
-                          <View
-                            className="w-full h-full rounded-full items-center justify-center"
-                            style={{ backgroundColor: colors.muted + "20" }}
-                          >
-                            <IconSymbol name="person.fill" size={24} color={colors.muted} />
-                          </View>
+                          <Image
+                            source={{ uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(status.user_name)}&background=random&size=128` }}
+                            className="w-full h-full rounded-full"
+                          />
                         )}
                       </View>
                       <View className="flex-1">
