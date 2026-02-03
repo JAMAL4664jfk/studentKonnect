@@ -6,6 +6,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import {
+  storeWalletSession,
+  getWalletSession,
+  updateAccessToken as updateAccessTokenInDB,
+  getCachedPhoneNumber,
+  getCachedUserId,
+  getCachedCustomerId,
+  logoutWalletSession,
+} from './wallet-session-client';
 
 // API Configuration - Read from expo-constants for runtime access
 // Updated with correct Payelio QA environment URLs
@@ -400,7 +409,7 @@ export class WalletAPIService {
   }
 
   /**
-   * Get headers for API requests
+   * Get headers with authentication (auto-refreshes expired tokens)
    */
   private async getHeaders(includeAuth: boolean = true): Promise<HeadersInit> {
     const headers: HeadersInit = {
@@ -410,12 +419,12 @@ export class WalletAPIService {
     };
 
     if (includeAuth) {
-      // Always check server-side token validity by attempting refresh if local check shows expired
+      // Check if token is expired and refresh if needed
       const isExpired = await this.isTokenExpired();
       console.log('🔍 Token expiry check:', isExpired ? 'EXPIRED' : 'VALID');
       
       if (isExpired) {
-        console.log('🔄 Token expired locally, attempting refresh...');
+        console.log('🔄 Token expired, attempting refresh...');
         try {
           await this.refreshAccessToken();
           console.log('✅ Token refresh successful');
@@ -439,72 +448,112 @@ export class WalletAPIService {
   }
 
   /**
-   * Make authenticated API request with automatic 401 retry
-   */
-  private async makeAuthenticatedRequest(
-    url: string,
-    method: string = 'GET',
-    body?: any,
-    retryOn401: boolean = true
-  ): Promise<Response> {
-    const headers = await this.getHeaders(true);
-    
-    const response = await fetch(url, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    // If 401 and we haven't retried yet, refresh token and retry
-    if (response.status === 401 && retryOn401) {
-      console.log('🔄 Got 401, refreshing token and retrying...');
-      try {
-        await this.refreshAccessToken();
-        // Retry with new token (set retryOn401 to false to prevent infinite loop)
-        return this.makeAuthenticatedRequest(url, method, body, false);
-      } catch (error) {
-        console.error('❌ Token refresh failed on 401:', error);
-        throw new Error('Session expired. Please login again.');
-      }
-    }
-
-    return response;
-  }
-
-  /**
-   * Get stored access token
+   * Get stored access token from database or AsyncStorage fallback
    */
   private async getAccessToken(): Promise<string | null> {
     try {
+      // Try to get from database first
+      const phoneNumber = await getCachedPhoneNumber();
+      if (phoneNumber) {
+        const session = await getWalletSession(phoneNumber);
+        if (session && session.accessToken) {
+          return session.accessToken;
+        }
+      }
+      
+      // Fallback to AsyncStorage
       return await AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     } catch (error) {
       console.error('Error getting access token:', error);
-      return null;
+      // Fallback to AsyncStorage on error
+      try {
+        return await AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      } catch (fallbackError) {
+        console.error('Error getting access token from AsyncStorage:', fallbackError);
+        return null;
+      }
     }
   }
 
   /**
-   * Store access token
+   * Store access token in database
    */
   private async storeTokens(
     accessToken: string,
     refreshToken: string,
-    expiresIn: number
+    accessTokenExpiresIn: number,
+    refreshTokenExpiresIn: number = 2592000, // 30 days default
+    phoneNumber?: string,
+    customerId?: string | null
   ): Promise<void> {
     try {
       // If expiresIn is not provided or invalid, default to 1 hour
-      const validExpiresIn = expiresIn && expiresIn > 0 ? expiresIn : 3600;
-      const expiryTime = Date.now() + validExpiresIn * 1000;
+      const validExpiresIn = accessTokenExpiresIn && accessTokenExpiresIn > 0 ? accessTokenExpiresIn : 3600;
       
-      console.log(`💾 Storing tokens with expiry: ${validExpiresIn}s (${Math.floor(validExpiresIn / 60)} minutes)`);
+      console.log(`💾 Storing tokens in database with expiry: ${validExpiresIn}s (${Math.floor(validExpiresIn / 60)} minutes)`);
       
-      await AsyncStorage.multiSet([
-        [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
-        [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
-        [STORAGE_KEYS.TOKEN_EXPIRY, expiryTime.toString()],
-      ]);
+      // Get user info from cache or parameters
+      const cachedPhone = phoneNumber || await getCachedPhoneNumber();
+      const cachedUserId = await getCachedUserId();
+      const cachedCustomerId = customerId !== undefined ? customerId : await getCachedCustomerId();
       
-      console.log('✅ Tokens stored successfully');
+      if (!cachedPhone || !cachedUserId) {
+        console.warn('⚠️ Missing phone number or user ID, falling back to AsyncStorage');
+        // Fallback to AsyncStorage if database storage fails
+        const expiryTime = Date.now() + validExpiresIn * 1000;
+        const refreshExpiryTime = Date.now() + refreshTokenExpiresIn * 1000;
+        
+        const storageItems = [
+          [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
+          [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
+          [STORAGE_KEYS.TOKEN_EXPIRY, expiryTime.toString()],
+          ['wallet_refresh_token_expiry', refreshExpiryTime.toString()],
+        ];
+        
+        // Store phone number if available for session restoration
+        if (cachedPhone) {
+          storageItems.push(['wallet_phone_number', cachedPhone]);
+        }
+        
+        await AsyncStorage.multiSet(storageItems);
+        console.log('✅ Tokens stored in AsyncStorage with phone number for session restoration');
+        return;
+      }
+      
+      // Store in database
+      const success = await storeWalletSession(
+        cachedUserId,
+        cachedPhone,
+        cachedCustomerId,
+        {
+          accessToken,
+          refreshToken,
+          accessTokenExpiresIn: validExpiresIn,
+          refreshTokenExpiresIn,
+        }
+      );
+      
+      if (!success) {
+        console.warn('⚠️ Database storage failed, falling back to AsyncStorage');
+        // Fallback to AsyncStorage
+        const expiryTime = Date.now() + validExpiresIn * 1000;
+        const refreshExpiryTime = Date.now() + refreshTokenExpiresIn * 1000;
+        
+        const storageItems = [
+          [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
+          [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
+          [STORAGE_KEYS.TOKEN_EXPIRY, expiryTime.toString()],
+          ['wallet_refresh_token_expiry', refreshExpiryTime.toString()],
+        ];
+        
+        // Store phone number for session restoration
+        if (cachedPhone) {
+          storageItems.push(['wallet_phone_number', cachedPhone]);
+        }
+        
+        await AsyncStorage.multiSet(storageItems);
+        console.log('✅ Tokens stored in AsyncStorage with phone number for session restoration');
+      }
     } catch (error) {
       console.error('Error storing tokens:', error);
     }
@@ -580,12 +629,18 @@ export class WalletAPIService {
       const data = await response.json();
       
       if (data.success && data.data) {
+        // DECODE base64 tokens before storing
+        console.log('🔓 Decoding refreshed tokens...');
+        const decodedAccessToken = Buffer.from(data.data.access_token, 'base64').toString('utf-8');
+        const decodedRefreshToken = Buffer.from(data.data.refresh_token, 'base64').toString('utf-8');
+        
         await this.storeTokens(
-          data.data.access_token,
-          data.data.refresh_token,
-          data.data.access_token_expires_in
+          decodedAccessToken,
+          decodedRefreshToken,
+          data.data.access_token_expires_in,
+          data.data.refresh_token_expires_in || 2592000
         );
-        console.log('✅ Token refreshed successfully');
+        console.log('✅ Token refreshed and decoded successfully');
       } else {
         console.error('❌ Token refresh failed:', data.messages);
         // Clear tokens and force re-login
@@ -627,7 +682,7 @@ export class WalletAPIService {
   /**
    * Login with phone number and PIN
    */
-  async login(phoneNumber: string, pin: string): Promise<WalletLoginResponse> {
+  async login(phoneNumber: string, pin: string, userId?: number): Promise<WalletLoginResponse> {
     try {
       const url = this.getApiUrl('customer/login');
       const headers = await this.getHeaders(false);
@@ -666,11 +721,36 @@ export class WalletAPIService {
       }
 
       if (data.success && data.data) {
+        // If userId provided, cache it for database storage
+        if (userId) {
+          await AsyncStorage.setItem('wallet_user_id', userId.toString());
+        }
+        
+        // DECODE base64 tokens before storing - API sends them encoded but expects decoded tokens in requests
+        console.log('🔓 Decoding base64 tokens from API...');
+        const decodedAccessToken = Buffer.from(data.data.access_token, 'base64').toString('utf-8');
+        const decodedRefreshToken = Buffer.from(data.data.refresh_token, 'base64').toString('utf-8');
+        console.log('✅ Decoded access token:', decodedAccessToken.substring(0, 30) + '...');
+        console.log('✅ Decoded refresh token:', decodedRefreshToken.substring(0, 30) + '...');
+        
         await this.storeTokens(
-          data.data.access_token,
-          data.data.refresh_token,
-          data.data.access_token_expires_in
+          decodedAccessToken,
+          decodedRefreshToken,
+          data.data.access_token_expires_in,
+          data.data.refresh_token_expires_in,
+          phoneNumber,
+          null // customer ID not available in login response
         );
+        
+        // Verify token immediately after login
+        try {
+          console.log('🔍 [DEBUG] Verifying token with /auth/checkToken...');
+          const tokenCheck = await this.checkToken();
+          console.log('✅ [DEBUG] Token verification result:', tokenCheck);
+        } catch (checkError) {
+          console.error('❌ [DEBUG] Token verification failed:', checkError);
+        }
+        
         return data;
       } else {
         // API returned error response
@@ -1426,6 +1506,46 @@ export class WalletAPIService {
   }
 
   /**
+   * Get funding details - bank information for students to fund their wallet
+   * Students should use their mobile number as the reference when making deposits
+   */
+  async getFundingDetails(): Promise<any> {
+    try {
+      const url = this.getApiUrl('wallet/funding_details');
+      const headers = await this.getHeaders(true); // Requires auth token
+
+      console.log('🏛️ Wallet API Get Funding Details Request:');
+      console.log('URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      console.log('📡 Response Status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📄 Raw Response:', responseText);
+
+      const data = responseText ? JSON.parse(responseText) : {
+        success: false,
+        messages: 'Empty response',
+      };
+
+      console.log('📦 Parsed Data:', data);
+
+      if (!data.success) {
+        throw new Error(data.messages || 'Failed to fetch funding details');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Wallet API get funding details error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Add bank account or payment method
    */
   async addAccount(accountData: AddAccountRequest): Promise<AddAccountResponse> {
@@ -1484,11 +1604,15 @@ export class WalletAPIService {
   async getTransactions(limit: number = 50, offset: number = 0): Promise<TransactionsResponse> {
     try {
       const url = this.getApiUrl('transactions/get_transactions');
+      const headers = await this.getHeaders(true); // Requires auth token
 
       console.log('📋 Wallet API Get Transactions Request:');
       console.log('URL:', url);
 
-      const response = await this.makeAuthenticatedRequest(url, 'GET');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
 
       console.log('📡 Response Status:', response.status);
 
@@ -1692,11 +1816,15 @@ export class WalletAPIService {
   async getProfile(): Promise<CustomerProfileResponse> {
     try {
       const url = this.getApiUrl('customer/profile');
+      const headers = await this.getHeaders(true); // Requires auth token
 
       console.log('👤 Wallet API Get Profile Request:');
       console.log('URL:', url);
 
-      const response = await this.makeAuthenticatedRequest(url, 'GET');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
 
       console.log('📡 Response Status:', response.status);
 
@@ -1959,11 +2087,16 @@ export class WalletAPIService {
   async fundViaPayFast(amount: string): Promise<any> {
     try {
       const url = this.getApiUrl('funding/payfast');
+      const headers = await this.getHeaders(true); // Requires auth token
 
       console.log('💳 Wallet API PayFast Funding Request:');
       console.log('URL:', url);
 
-      const response = await this.makeAuthenticatedRequest(url, 'POST', { amount });
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ amount }),
+      });
 
       console.log('📡 Response Status:', response.status);
 
