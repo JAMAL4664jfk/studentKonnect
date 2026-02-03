@@ -231,7 +231,7 @@ export default function AccommodationScreen() {
       >
         {/* Image Section */}
         <View className="relative">
-          {imageUrl ? (
+          {imageUrl && imageUrl.trim() !== "" ? (
             <Image
               source={{ uri: imageUrl }}
               className="w-full h-56"
@@ -240,8 +240,9 @@ export default function AccommodationScreen() {
               cachePolicy="memory-disk"
             />
           ) : (
-            <View className="w-full h-56 bg-muted items-center justify-center">
-              <IconSymbol name="building.2.fill" size={64} color={colors.mutedForeground} />
+            <View className="w-full h-56 items-center justify-center" style={{ backgroundColor: colors.muted }}>
+              <IconSymbol name="building.2.fill" size={64} color={colors.primary} />
+              <Text className="text-sm text-muted-foreground mt-2">No image available</Text>
             </View>
           )}
           
@@ -534,23 +535,25 @@ export default function AccommodationScreen() {
             backgroundImage: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)'
           }}
         >
-          <View className="flex-row items-center justify-between mb-2">
-            <View className="flex-1 items-center">
-              <View className="flex-row items-center gap-2 mb-1">
-                <Text className="text-4xl font-bold text-white" style={{ textShadowColor: 'rgba(0,0,0,0.1)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4 }}>{FEATURE_DESCRIPTIONS.features.accommodation.title}</Text>
-                <Text className="text-lg">{FEATURE_DESCRIPTIONS.features.accommodation.badge}</Text>
+          <View className="mb-2">
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-1 pr-12">
+                <View className="flex-row items-center gap-2 mb-1 flex-wrap">
+                  <Text className="text-3xl font-bold text-white" style={{ textShadowColor: 'rgba(0,0,0,0.1)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4 }}>{FEATURE_DESCRIPTIONS.features.accommodation.title}</Text>
+                  <Text className="text-lg">{FEATURE_DESCRIPTIONS.features.accommodation.badge}</Text>
+                </View>
               </View>
-              <Text className="text-sm text-white" style={{ opacity: 0.9 }}>
-                {FEATURE_DESCRIPTIONS.features.accommodation.description}
-              </Text>
+              <TouchableOpacity
+                onPress={() => router.back()}
+                className="w-10 h-10 rounded-full items-center justify-center absolute right-0 top-0"
+                style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+              >
+                <IconSymbol name="xmark" size={20} color="#fff" />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="w-10 h-10 rounded-full items-center justify-center absolute right-0"
-              style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-            >
-              <IconSymbol name="xmark" size={20} color="#fff" />
-            </TouchableOpacity>
+            <Text className="text-sm text-white" style={{ opacity: 0.9 }}>
+              {FEATURE_DESCRIPTIONS.features.accommodation.description}
+            </Text>
           </View>
         </View>
 

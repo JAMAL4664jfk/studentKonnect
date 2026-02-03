@@ -231,38 +231,54 @@ export default function WellnessScreen() {
 
           {/* Wellness Resources */}
           <View className="gap-3">
-            <Text className="text-xl font-bold text-foreground">Wellness Resources</Text>
-            {wellnessResources.map((resource) => (
-              <TouchableOpacity
-                key={resource.id}
-                onPress={() => setSelectedSection(resource.id as SectionType)}
-                className="bg-surface rounded-2xl overflow-hidden border border-border active:opacity-70"
-                style={{
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 4,
-                  elevation: 2,
-                }}
-              >
-                <Image
-                  source={{ uri: resource.thumbnail }}
-                  style={{ width: "100%", height: 120 }}
-                  contentFit="cover"
-                />
-                <View className="p-4">
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-1">
-                      <Text className="text-base font-semibold text-foreground mb-1">
+            <Text className="text-xl font-bold text-foreground mb-2">Wellness Resources</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="-mx-4 px-4 mb-4"
+              contentContainerStyle={{ gap: 12, paddingRight: 16 }}
+            >
+              {wellnessResources.map((resource) => (
+                <TouchableOpacity
+                  key={resource.id}
+                  onPress={() => setSelectedSection(resource.id as SectionType)}
+                  className="bg-surface rounded-2xl overflow-hidden border border-border active:opacity-70"
+                  style={{
+                    width: 280,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                    elevation: 2,
+                  }}
+                >
+                  {resource.thumbnail ? (
+                    <Image
+                      source={{ uri: resource.thumbnail }}
+                      style={{ width: "100%", height: 140 }}
+                      contentFit="cover"
+                      cachePolicy="memory-disk"
+                      transition={200}
+                    />
+                  ) : (
+                    <View className="w-full h-36 bg-muted items-center justify-center">
+                      <IconSymbol name={resource.icon} size={48} color={colors.mutedForeground} />
+                    </View>
+                  )}
+                  <View className="p-4">
+                    <View className="flex-row items-center gap-2 mb-2">
+                      <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center">
+                        <IconSymbol name={resource.icon} size={16} color={colors.primary} />
+                      </View>
+                      <Text className="text-base font-semibold text-foreground flex-1" numberOfLines={1}>
                         {resource.title}
                       </Text>
-                      <Text className="text-sm text-muted">{resource.description}</Text>
                     </View>
-                    <IconSymbol name="chevron.right" size={20} color={colors.muted} />
+                    <Text className="text-sm text-muted-foreground" numberOfLines={2}>{resource.description}</Text>
                   </View>
-                </View>
-              </TouchableOpacity>
-            ))}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
 
           {/* Emergency Support */}
