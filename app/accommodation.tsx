@@ -61,10 +61,19 @@ const parseJSON = (jsonString: string | null): any => {
 // Helper function to get image URL
 const getImageUrl = (images: string): string => {
   const imageArray = parseJSON(images);
-  if (imageArray.length === 0) return "";
-  const firstImage = imageArray[0];
-  // Return the image URL directly, don't filter out any images
-  return firstImage || "";
+  if (!imageArray || imageArray.length === 0) return "";
+  
+  // Find the first valid image URL
+  for (const img of imageArray) {
+    if (img && typeof img === 'string' && img.trim() !== '') {
+      // Check if it's a valid URL or path
+      if (img.startsWith('http') || img.startsWith('file://') || img.startsWith('/')) {
+        return img.trim();
+      }
+    }
+  }
+  
+  return "";
 };
 
 // Amenity icons mapping
@@ -238,12 +247,15 @@ export default function AccommodationScreen() {
               contentFit="cover"
               transition={200}
               cachePolicy="memory-disk"
+              placeholder={require("@/assets/images/accommodation-bg.jpg")}
+              placeholderContentFit="cover"
             />
           ) : (
-            <View className="w-full h-56 items-center justify-center" style={{ backgroundColor: colors.muted }}>
-              <IconSymbol name="building.2.fill" size={64} color={colors.primary} />
-              <Text className="text-sm text-muted-foreground mt-2">No image available</Text>
-            </View>
+            <Image
+              source={require("@/assets/images/accommodation-bg.jpg")}
+              className="w-full h-56"
+              contentFit="cover"
+            />
           )}
           
           {/* Favorite Button */}
@@ -396,7 +408,7 @@ export default function AccommodationScreen() {
             </View>
 
             {/* Images Carousel */}
-            {imagesArray.length > 0 && (
+            {imagesArray.length > 0 ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
                 {imagesArray.map((img: string, index: number) => (
                   img && (
@@ -406,10 +418,18 @@ export default function AccommodationScreen() {
                       className="w-80 h-64 rounded-2xl mr-3"
                       contentFit="cover"
                       cachePolicy="memory-disk"
+                      placeholder={require("@/assets/images/accommodation-bg.jpg")}
+                      placeholderContentFit="cover"
                     />
                   )
                 ))}
               </ScrollView>
+            ) : (
+              <Image
+                source={require("@/assets/images/accommodation-bg.jpg")}
+                className="w-full h-64 rounded-2xl mb-6"
+                contentFit="cover"
+              />
             )}
 
             {/* Title and Price */}

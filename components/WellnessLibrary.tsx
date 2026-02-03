@@ -59,13 +59,88 @@ export function WellnessLibrary({ onArticlePress }: { onArticlePress?: (article:
       const { data, error } = await query;
 
       if (error) throw error;
-      setArticles(data || []);
+      
+      // If no articles in database, use sample articles
+      if (!data || data.length === 0) {
+        setArticles(getSampleArticles());
+      } else {
+        setArticles(data);
+      }
     } catch (error) {
       console.error("Error loading articles:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  const getSampleArticles = (): Article[] => [
+    {
+      id: "1",
+      title: "Managing Stress During Exams",
+      content: "Learn effective techniques to manage exam stress...",
+      summary: "Practical tips and strategies to stay calm and focused during exam periods",
+      category: "stress",
+      image_url: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400",
+      likes_count: 45,
+      views_count: 230,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "2",
+      title: "Healthy Eating on a Student Budget",
+      content: "Discover affordable and nutritious meal ideas...",
+      summary: "Budget-friendly nutrition tips for busy students",
+      category: "nutrition",
+      image_url: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400",
+      likes_count: 67,
+      views_count: 312,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "3",
+      title: "The Importance of Sleep for Academic Success",
+      content: "Understanding how sleep affects your learning...",
+      summary: "Why quality sleep is crucial for memory and concentration",
+      category: "sleep",
+      image_url: "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400",
+      likes_count: 89,
+      views_count: 445,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "4",
+      title: "Building Healthy Relationships at University",
+      content: "Tips for maintaining positive connections...",
+      summary: "Navigate friendships, dating, and social life in a healthy way",
+      category: "relationships",
+      image_url: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400",
+      likes_count: 52,
+      views_count: 278,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "5",
+      title: "Quick Fitness Routines for Busy Students",
+      content: "Stay active with these time-efficient exercises...",
+      summary: "15-minute workouts you can do in your dorm room",
+      category: "fitness",
+      image_url: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400",
+      likes_count: 73,
+      views_count: 389,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "6",
+      title: "Understanding and Managing Anxiety",
+      content: "Recognize anxiety symptoms and coping strategies...",
+      summary: "Professional guidance on dealing with anxiety and panic attacks",
+      category: "mental-health",
+      image_url: "https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=400",
+      likes_count: 94,
+      views_count: 521,
+      created_at: new Date().toISOString(),
+    },
+  ];
 
   const filteredArticles = articles.filter((article) =>
     article.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -99,9 +174,13 @@ export function WellnessLibrary({ onArticlePress }: { onArticlePress?: (article:
       >
         <TouchableOpacity
           onPress={() => setSelectedCategory("all")}
-          className={`px-3 py-1.5 rounded-full ${
+          className={`px-4 py-2 rounded-full ${
             selectedCategory === "all" ? "bg-primary" : "bg-surface"
           }`}
+          style={{
+            borderWidth: 1,
+            borderColor: selectedCategory === "all" ? colors.primary : colors.border,
+          }}
         >
           <Text
             className={`text-sm font-semibold ${
@@ -115,9 +194,13 @@ export function WellnessLibrary({ onArticlePress }: { onArticlePress?: (article:
           <TouchableOpacity
             key={cat.id}
             onPress={() => setSelectedCategory(cat.id)}
-            className={`px-3 py-1.5 rounded-full ${
+            className={`px-4 py-2 rounded-full ${
               selectedCategory === cat.id ? "bg-primary" : "bg-surface"
             }`}
+            style={{
+              borderWidth: 1,
+              borderColor: selectedCategory === cat.id ? colors.primary : colors.border,
+            }}
           >
             <Text
               className={`text-sm font-semibold ${
