@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { ethers } from "ethers";
+// TEMPORARILY DISABLED: Crypto functionality causing bundling issues
+// import { ethers } from "ethers";
 import Toast from "react-native-toast-message";
 import { getApiBaseUrl, getRpcUrl, API_ENDPOINTS, apiRequest } from "@/utils/api-config";
 
@@ -82,50 +83,61 @@ export const CryptoWalletProvider: React.FC<{ children: ReactNode }> = ({ childr
   const [tokens, setTokens] = useState<Token[]>([]);
   const [transactions, setTransactions] = useState<CryptoTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [provider, setProvider] = useState<ethers.JsonRpcProvider | null>(null);
+  // TEMPORARILY DISABLED: Crypto functionality causing bundling issues
+  // const [provider, setProvider] = useState<ethers.JsonRpcProvider | null>(null);
+  const [provider, setProvider] = useState<any | null>(null);
 
   useEffect(() => {
+    // TEMPORARILY DISABLED: Crypto functionality causing bundling issues
     // Initialize provider
-    const initProvider = async () => {
-      try {
-        // Connect to blockchain RPC (automatically handles platform differences)
-        const rpcUrl = getRpcUrl();
-        console.log("Connecting to RPC:", rpcUrl);
-        const rpcProvider = new ethers.JsonRpcProvider(rpcUrl);
-        setProvider(rpcProvider);
-      } catch (error) {
-        console.error("Failed to initialize provider:", error);
-      }
-    };
+    // const initProvider = async () => {
+    //   try {
+    //     // Connect to blockchain RPC (automatically handles platform differences)
+    //     const rpcUrl = getRpcUrl();
+    //     console.log("Connecting to RPC:", rpcUrl);
+    //     const rpcProvider = new ethers.JsonRpcProvider(rpcUrl);
+    //     setProvider(rpcProvider);
+    //   } catch (error) {
+    //     console.error("Failed to initialize provider:", error);
+    //   }
+    // };
 
-    initProvider();
+    // initProvider();
   }, []);
 
   const connectWallet = async () => {
     try {
       setIsLoading(true);
 
-      // Create wallet via backend API (automatically handles platform differences)
-      console.log("Connecting to API:", getApiBaseUrl());
-      
-      const data = await apiRequest(API_ENDPOINTS.createWallet, {
-        method: "POST",
-        body: JSON.stringify({
-          userId: "default-user"
-        }),
-      });
-      setAddress(data.address);
-      setIsConnected(true);
-
-      // Load token configurations from backend
-      await loadTokenConfigs();
-      await refreshBalances();
-
+      // TEMPORARILY DISABLED: Crypto functionality causing bundling issues
       Toast.show({
-        type: "success",
-        text1: "Wallet Connected",
-        text2: `Address: ${data.address.slice(0, 6)}...${data.address.slice(-4)}`,
+        type: "info",
+        text1: "Crypto Wallet Temporarily Disabled",
+        text2: "This feature will be available soon",
       });
+      return;
+
+      // Create wallet via backend API (automatically handles platform differences)
+      // console.log("Connecting to API:", getApiBaseUrl());
+      
+      // const data = await apiRequest(API_ENDPOINTS.createWallet, {
+      //   method: "POST",
+      //   body: JSON.stringify({
+      //     userId: "default-user"
+      //   }),
+      // });
+      // setAddress(data.address);
+      // setIsConnected(true);
+
+      // // Load token configurations from backend
+      // await loadTokenConfigs();
+      // await refreshBalances();
+
+      // Toast.show({
+      //   type: "success",
+      //   text1: "Wallet Connected",
+      //   text2: `Address: ${data.address.slice(0, 6)}...${data.address.slice(-4)}`,
+      // });
     } catch (error: any) {
       console.error("Error connecting wallet:", error);
       Toast.show({
@@ -168,47 +180,53 @@ export const CryptoWalletProvider: React.FC<{ children: ReactNode }> = ({ childr
   const refreshBalances = async () => {
     if (!address || !provider) return;
 
-    try {
-      setIsLoading(true);
+    // TEMPORARILY DISABLED: Crypto functionality causing bundling issues
+    return;
 
-      const updatedTokens: Token[] = [];
+    // try {
+    //   setIsLoading(true);
 
-      for (const tokenConfig of TOKEN_CONFIGS) {
-        if (!tokenConfig.address) continue;
+    //   const updatedTokens: Token[] = [];
 
-        const balance = await getTokenBalance(tokenConfig.address);
-        updatedTokens.push({
-          ...tokenConfig,
-          balance,
-        });
-      }
+    //   for (const tokenConfig of TOKEN_CONFIGS) {
+    //     if (!tokenConfig.address) continue;
 
-      setTokens(updatedTokens);
-    } catch (error) {
-      console.error("Error refreshing balances:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    //     const balance = await getTokenBalance(tokenConfig.address);
+    //     updatedTokens.push({
+    //       ...tokenConfig,
+    //       balance,
+    //     });
+    //   }
+
+    //   setTokens(updatedTokens);
+    // } catch (error) {
+    //   console.error("Error refreshing balances:", error);
+    // } finally {
+    //   setIsLoading(false);
+    // }
   };
 
   const getTokenBalance = async (tokenAddress: string): Promise<string> => {
     if (!address || !provider) return "0";
 
-    try {
-      const tokenABI = [
-        "function balanceOf(address owner) view returns (uint256)",
-        "function decimals() view returns (uint8)",
-      ];
+    // TEMPORARILY DISABLED: Crypto functionality causing bundling issues
+    return "0";
 
-      const tokenContract = new ethers.Contract(tokenAddress, tokenABI, provider);
-      const balance = await tokenContract.balanceOf(address);
-      const decimals = await tokenContract.decimals();
+    // try {
+    //   const tokenABI = [
+    //     "function balanceOf(address owner) view returns (uint256)",
+    //     "function decimals() view returns (uint8)",
+    //   ];
 
-      return ethers.formatUnits(balance, decimals);
-    } catch (error) {
-      console.error("Error getting token balance:", error);
-      return "0";
-    }
+    //   const tokenContract = new ethers.Contract(tokenAddress, tokenABI, provider);
+    //   const balance = await tokenContract.balanceOf(address);
+    //   const decimals = await tokenContract.decimals();
+
+    //   return ethers.formatUnits(balance, decimals);
+    // } catch (error) {
+    //   console.error("Error getting token balance:", error);
+    //   return "0";
+    // }
   };
 
   const sendToken = async (
@@ -218,37 +236,45 @@ export const CryptoWalletProvider: React.FC<{ children: ReactNode }> = ({ childr
   ): Promise<string> => {
     if (!address) throw new Error("Wallet not connected");
 
-    try {
-      // Call backend API to send tokens
-      const data = await apiRequest(API_ENDPOINTS.sendTransaction, {
-        method: "POST",
-        body: JSON.stringify({
-          from: address,
-          to,
-          tokenAddress,
-          amount,
-        }),
-      });
+    // TEMPORARILY DISABLED: Crypto functionality causing bundling issues
+    Toast.show({
+      type: "info",
+      text1: "Crypto Wallet Temporarily Disabled",
+      text2: "This feature will be available soon",
+    });
+    throw new Error("Crypto wallet temporarily disabled");
 
-      Toast.show({
-        type: "success",
-        text1: "Transaction Sent",
-        text2: "Your transaction is being processed",
-      });
+    // try {
+    //   // Call backend API to send tokens
+    //   const data = await apiRequest(API_ENDPOINTS.sendTransaction, {
+    //     method: "POST",
+    //     body: JSON.stringify({
+    //       from: address,
+    //       to,
+    //       tokenAddress,
+    //       amount,
+    //     }),
+    //   });
 
-      // Refresh balances after transaction
-      setTimeout(() => refreshBalances(), 3000);
+    //   Toast.show({
+    //     type: "success",
+    //     text1: "Transaction Sent",
+    //     text2: "Your transaction is being processed",
+    //   });
 
-      return data.txHash;
-    } catch (error: any) {
-      console.error("Error sending token:", error);
-      Toast.show({
-        type: "error",
-        text1: "Transaction Failed",
-        text2: error.message || "Failed to send transaction",
-      });
-      throw error;
-    }
+    //   // Refresh balances after transaction
+    //   setTimeout(() => refreshBalances(), 3000);
+
+    //   return data.txHash;
+    // } catch (error: any) {
+    //   console.error("Error sending token:", error);
+    //   Toast.show({
+    //     type: "error",
+    //     text1: "Transaction Failed",
+    //     text2: error.message || "Failed to send transaction",
+    //   });
+    //   throw error;
+    // }
   };
 
   const swapTokens = async (
@@ -259,38 +285,46 @@ export const CryptoWalletProvider: React.FC<{ children: ReactNode }> = ({ childr
   ): Promise<string> => {
     if (!address) throw new Error("Wallet not connected");
 
-    try {
-      // Call backend API to swap tokens
-      const data = await apiRequest(API_ENDPOINTS.swapTransaction, {
-        method: "POST",
-        body: JSON.stringify({
-          from: address,
-          tokenInAddress,
-          tokenOutAddress,
-          amountIn,
-          minAmountOut,
-        }),
-      });
+    // TEMPORARILY DISABLED: Crypto functionality causing bundling issues
+    Toast.show({
+      type: "info",
+      text1: "Crypto Wallet Temporarily Disabled",
+      text2: "This feature will be available soon",
+    });
+    throw new Error("Crypto wallet temporarily disabled");
 
-      Toast.show({
-        type: "success",
-        text1: "Swap Successful",
-        text2: `Swapped ${amountIn} tokens`,
-      });
+    // try {
+    //   // Call backend API to swap tokens
+    //   const data = await apiRequest(API_ENDPOINTS.swapTransaction, {
+    //     method: "POST",
+    //     body: JSON.stringify({
+    //       from: address,
+    //       tokenInAddress,
+    //       tokenOutAddress,
+    //       amountIn,
+    //       minAmountOut,
+    //     }),
+    //   });
 
-      // Refresh balances after swap
-      setTimeout(() => refreshBalances(), 3000);
+    //   Toast.show({
+    //     type: "success",
+    //     text1: "Swap Successful",
+    //     text2: `Swapped ${amountIn} tokens`,
+    //   });
 
-      return data.txHash;
-    } catch (error: any) {
-      console.error("Error swapping tokens:", error);
-      Toast.show({
-        type: "error",
-        text1: "Swap Failed",
-        text2: error.message || "Failed to swap tokens",
-      });
-      throw error;
-    }
+    //   // Refresh balances after swap
+    //   setTimeout(() => refreshBalances(), 3000);
+
+    //   return data.txHash;
+    // } catch (error: any) {
+    //   console.error("Error swapping tokens:", error);
+    //   Toast.show({
+    //     type: "error",
+    //     text1: "Swap Failed",
+    //     text2: error.message || "Failed to swap tokens",
+    //   });
+    //   throw error;
+    // }
   };
 
   return (
