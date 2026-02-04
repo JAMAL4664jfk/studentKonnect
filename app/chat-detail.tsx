@@ -223,7 +223,17 @@ export default function ChatDetailScreen() {
       .from("chat-attachments")
       .getPublicUrl(fileName);
 
+    console.log('Sending image message:', `[Image] ${urlData.publicUrl}`);
     await sendMessage(conversationId, `[Image] ${urlData.publicUrl}`, currentUserId);
+    
+    // Reload messages to show the attachment immediately
+    await loadMessages(conversationId);
+    
+    Toast.show({
+      type: "success",
+      text1: "Image sent",
+    });
+    
     setSending(false);
   };
 
@@ -253,7 +263,17 @@ export default function ChatDetailScreen() {
       .from("chat-attachments")
       .getPublicUrl(storageFileName);
 
+    console.log('Sending file message:', `[File: ${fileName}] ${urlData.publicUrl}`);
     await sendMessage(conversationId, `[File: ${fileName}] ${urlData.publicUrl}`, currentUserId);
+    
+    // Reload messages to show the attachment immediately
+    await loadMessages(conversationId);
+    
+    Toast.show({
+      type: "success",
+      text1: "File sent",
+    });
+    
     setSending(false);
   };
 
