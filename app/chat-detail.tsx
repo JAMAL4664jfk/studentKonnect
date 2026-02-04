@@ -198,83 +198,115 @@ export default function ChatDetailScreen() {
     if (!currentUserId) return;
 
     setSending(true);
-    // Upload image to Supabase storage
-    const fileName = `chat-images/${Date.now()}.jpg`;
-    const response = await fetch(imageUri);
-    const blob = await response.blob();
+    try {
+      // Upload image to Supabase storage using FormData
+      const fileName = `chat-images/${Date.now()}.jpg`;
+      
+      // Create FormData for React Native file upload
+      const formData = new FormData();
+      formData.append('file', {
+        uri: imageUri,
+        type: 'image/jpeg',
+        name: fileName.split('/').pop(),
+      } as any);
 
-    const { data, error } = await supabase.storage
-      .from("chat-attachments")
-      .upload(fileName, blob, {
-        contentType: "image/jpeg",
+      const { data, error } = await supabase.storage
+        .from("chat-attachments")
+        .upload(fileName, formData, {
+          contentType: "image/jpeg",
+        });
+
+      if (error) {
+        console.error('Image upload error:', error);
+        Toast.show({
+          type: "error",
+          text1: "Upload Failed",
+          text2: error.message || "Could not upload image",
+        });
+        setSending(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("chat-attachments")
+        .getPublicUrl(fileName);
+
+      console.log('Sending image message:', `[Image] ${urlData.publicUrl}`);
+      await sendMessage(conversationId, `[Image] ${urlData.publicUrl}`, currentUserId);
+      
+      // Reload messages to show the attachment immediately
+      await loadMessages(conversationId);
+      
+      Toast.show({
+        type: "success",
+        text1: "Image sent",
       });
-
-    if (error) {
+    } catch (error: any) {
+      console.error('Error sending image:', error);
       Toast.show({
         type: "error",
-        text1: "Upload Failed",
-        text2: "Could not upload image",
+        text1: "Failed to send image",
+        text2: error.message || "Unknown error",
       });
+    } finally {
       setSending(false);
-      return;
     }
-
-    const { data: urlData } = supabase.storage
-      .from("chat-attachments")
-      .getPublicUrl(fileName);
-
-    console.log('Sending image message:', `[Image] ${urlData.publicUrl}`);
-    await sendMessage(conversationId, `[Image] ${urlData.publicUrl}`, currentUserId);
-    
-    // Reload messages to show the attachment immediately
-    await loadMessages(conversationId);
-    
-    Toast.show({
-      type: "success",
-      text1: "Image sent",
-    });
-    
-    setSending(false);
   };
 
   const sendFileMessage = async (fileUri: string, fileName: string) => {
     if (!currentUserId) return;
 
     setSending(true);
-    const response = await fetch(fileUri);
-    const blob = await response.blob();
+    try {
+      const storageFileName = `chat-files/${Date.now()}-${fileName}`;
+      
+      // Create FormData for React Native file upload
+      const formData = new FormData();
+      formData.append('file', {
+        uri: fileUri,
+        type: 'application/octet-stream',
+        name: fileName,
+      } as any);
 
-    const storageFileName = `chat-files/${Date.now()}-${fileName}`;
-    const { data, error } = await supabase.storage
-      .from("chat-attachments")
-      .upload(storageFileName, blob);
+      const { data, error } = await supabase.storage
+        .from("chat-attachments")
+        .upload(storageFileName, formData);
 
-    if (error) {
+      if (error) {
+        console.error('File upload error:', error);
+        Toast.show({
+          type: "error",
+          text1: "Upload Failed",
+          text2: error.message || "Could not upload file",
+        });
+        setSending(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("chat-attachments")
+        .getPublicUrl(storageFileName);
+
+      console.log('Sending file message:', `[File: ${fileName}] ${urlData.publicUrl}`);
+      await sendMessage(conversationId, `[File: ${fileName}] ${urlData.publicUrl}`, currentUserId);
+      
+      // Reload messages to show the attachment immediately
+      await loadMessages(conversationId);
+      
+      Toast.show({
+        type: "success",
+        text1: "File sent",
+      });
+    } catch (error: any) {
+      console.error('Error sending file:', error);
       Toast.show({
         type: "error",
-        text1: "Upload Failed",
-        text2: "Could not upload file",
+        text1: "Failed to send file",
+        text2: error.message || "Unknown error",
       });
+    } finally {
       setSending(false);
-      return;
     }
-
-    const { data: urlData } = supabase.storage
-      .from("chat-attachments")
-      .getPublicUrl(storageFileName);
-
-    console.log('Sending file message:', `[File: ${fileName}] ${urlData.publicUrl}`);
-    await sendMessage(conversationId, `[File: ${fileName}] ${urlData.publicUrl}`, currentUserId);
-    
-    // Reload messages to show the attachment immediately
-    await loadMessages(conversationId);
-    
-    Toast.show({
-      type: "success",
-      text1: "File sent",
-    });
-    
-    setSending(false);
   };
 
   const handleBlockUser = async () => {
