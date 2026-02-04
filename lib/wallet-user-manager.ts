@@ -1,6 +1,7 @@
 /**
  * Wallet User Manager
- * Handles user creation and linking for wallet authentication
+ * Handles user creation for wallet authentication (INDEPENDENT from OAuth)
+ * Wallet login and app login are completely separate systems
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,18 +13,21 @@ const STORAGE_KEYS = {
 
 /**
  * Get or create a user ID for wallet authentication
- * This ensures we always have a userId to store wallet sessions in the database
+ * Creates a standalone wallet user (NOT linked to OAuth)
  */
 export async function getOrCreateWalletUserId(phoneNumber: string): Promise<number | null> {
   try {
-    // First check if we already have a cached user ID
+    // First check if we already have a cached user ID for this phone
     const cachedUserId = await AsyncStorage.getItem(STORAGE_KEYS.WALLET_USER_ID);
-    if (cachedUserId) {
+    const cachedPhone = await AsyncStorage.getItem(STORAGE_KEYS.WALLET_PHONE);
+    
+    // If cached userId exists and matches the phone number, use it
+    if (cachedUserId && cachedPhone === phoneNumber) {
       console.log('✅ [WalletUserManager] Found cached user ID:', cachedUserId);
       return parseInt(cachedUserId, 10);
     }
 
-    // Try to get user ID from backend API (check if wallet account is linked to OAuth account)
+    // Try to get or create user from backend API
     try {
       const response = await fetch(`http://localhost:3000/api/wallet-user/get-or-create`, {
         method: 'POST',
@@ -42,7 +46,7 @@ export async function getOrCreateWalletUserId(phoneNumber: string): Promise<numb
         await AsyncStorage.setItem(STORAGE_KEYS.WALLET_USER_ID, data.userId.toString());
         await AsyncStorage.setItem(STORAGE_KEYS.WALLET_PHONE, phoneNumber);
         
-        console.log('✅ [WalletUserManager] Got/created user ID from backend:', data.userId);
+        console.log('✅ [WalletUserManager] Got/created wallet user ID:', data.userId);
         return data.userId;
       }
     } catch (apiError) {
@@ -55,64 +59,6 @@ export async function getOrCreateWalletUserId(phoneNumber: string): Promise<numb
   } catch (error) {
     console.error('❌ [WalletUserManager] Error getting user ID:', error);
     return null;
-  }
-}
-
-/**
- * Link wallet account to OAuth user
- * Call this after OAuth login to associate wallet with main user account
- */
-export async function linkWalletToOAuthUser(oauthUserId: number, phoneNumber: string): Promise<boolean> {
-  try {
-    console.log('🔗 [WalletUserManager] Linking wallet to OAuth user...');
-    
-    const response = await fetch(`http://localhost:3000/api/wallet-user/link`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: oauthUserId,
-        phoneNumber,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      // Cache the user ID
-      await AsyncStorage.setItem(STORAGE_KEYS.WALLET_USER_ID, oauthUserId.toString());
-      await AsyncStorage.setItem(STORAGE_KEYS.WALLET_PHONE, phoneNumber);
-      
-      console.log('✅ [WalletUserManager] Wallet linked successfully');
-      return true;
-    } else {
-      console.error('❌ [WalletUserManager] Failed to link wallet:', data.message);
-      return false;
-    }
-  } catch (error) {
-    console.error('❌ [WalletUserManager] Link error:', error);
-    return false;
-  }
-}
-
-/**
- * Check if user has a linked wallet account
- */
-export async function hasLinkedWallet(userId: number): Promise<boolean> {
-  try {
-    const response = await fetch(`http://localhost:3000/api/wallet-user/check/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-    return data.success && data.hasWallet;
-  } catch (error) {
-    console.error('❌ [WalletUserManager] Check error:', error);
-    return false;
   }
 }
 
