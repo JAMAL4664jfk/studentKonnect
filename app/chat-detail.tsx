@@ -114,37 +114,6 @@ export default function ChatDetailScreen() {
     setShowAttachmentPicker(true);
   };
 
-  const attachmentOptions = [
-    {
-      id: 'camera',
-      title: 'Camera',
-      icon: 'camera.fill',
-      color: '#3b82f6',
-      onPress: handleTakePhoto,
-    },
-    {
-      id: 'video',
-      title: 'Video',
-      icon: 'video.fill',
-      color: '#8b5cf6',
-      onPress: handleTakeVideo,
-    },
-    {
-      id: 'gallery',
-      title: 'Gallery',
-      icon: 'photo.fill',
-      color: '#10b981',
-      onPress: handleChooseMedia,
-    },
-    {
-      id: 'document',
-      title: 'Document',
-      icon: 'doc.fill',
-      color: '#f59e0b',
-      onPress: handleChooseFile,
-    },
-  ];
-
   const handleTakePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
@@ -895,7 +864,36 @@ export default function ChatDetailScreen() {
       <AttachmentPicker
         visible={showAttachmentPicker}
         onClose={() => setShowAttachmentPicker(false)}
-        options={attachmentOptions}
+        options={[
+          {
+            id: 'camera',
+            title: 'Camera',
+            icon: 'camera.fill',
+            color: '#3b82f6',
+            onPress: handleTakePhoto,
+          },
+          {
+            id: 'video',
+            title: 'Video',
+            icon: 'video.fill',
+            color: '#8b5cf6',
+            onPress: handleTakeVideo,
+          },
+          {
+            id: 'gallery',
+            title: 'Gallery',
+            icon: 'photo.fill',
+            color: '#10b981',
+            onPress: handleChooseMedia,
+          },
+          {
+            id: 'document',
+            title: 'Document',
+            icon: 'doc.fill',
+            color: '#f59e0b',
+            onPress: handleChooseFile,
+          },
+        ]}
       />
 
       {/* Settings Menu Modal */}
