@@ -199,7 +199,7 @@ export default function AuthScreen() {
             full_name: fullName,
             email: email,
             phone_number: formattedPhone,
-            student_id: studentNumber,
+            institution_id: selectedInstitution!.id,
             institution_name: selectedInstitution!.name,
             course_program: courseProgram,
             year_of_study: yearOfStudy,
