@@ -105,16 +105,22 @@ export default function ProfileScreen() {
     setUploading(true);
 
     try {
-      // Convert URI to blob
-      const blob = await uriToBlob(uri);
       const fileExtension = getFileExtension(uri);
       const fileName = `${userId}-${Date.now()}.${fileExtension}`;
       const filePath = `avatars/${fileName}`;
 
-      // Upload to Supabase Storage
+      // For React Native, use FormData approach
+      const formData = new FormData();
+      formData.append('file', {
+        uri: uri,
+        type: `image/${fileExtension}`,
+        name: fileName,
+      } as any);
+
+      // Upload to Supabase Storage using FormData
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, blob, {
+        .upload(filePath, formData, {
           contentType: `image/${fileExtension}`,
           upsert: true,
         });

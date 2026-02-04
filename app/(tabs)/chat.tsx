@@ -882,6 +882,7 @@ export default function ChatScreen() {
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => handleConversationPress(item)}
+                  delayLongPress={500}
                   onLongPress={() => {
                     Alert.alert(
                       item.other_user_name,
