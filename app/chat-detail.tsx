@@ -402,17 +402,128 @@ export default function ChatDetailScreen() {
             }`}
           >
             {isImage && attachmentUrl ? (
-              <Image
-                source={{ uri: attachmentUrl }}
-                style={{ width: 200, height: 200, resizeMode: 'cover' }}
-              />
+              <TouchableOpacity
+                onPress={() => {
+                  // Open image in full screen or download
+                  Alert.alert(
+                    'Image Options',
+                    'What would you like to do?',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Open',
+                        onPress: () => {
+                          // Open URL in browser
+                          import('expo-linking').then(({ default: Linking }) => {
+                            Linking.openURL(attachmentUrl);
+                          });
+                        },
+                      },
+                      {
+                        text: 'Download',
+                        onPress: async () => {
+                          try {
+                            const { default: FileSystem } = await import('expo-file-system');
+                            const { default: MediaLibrary } = await import('expo-media-library');
+                            
+                            const { status } = await MediaLibrary.requestPermissionsAsync();
+                            if (status !== 'granted') {
+                              Toast.show({
+                                type: 'error',
+                                text1: 'Permission denied',
+                                text2: 'Cannot save image without permission',
+                              });
+                              return;
+                            }
+
+                            const fileUri = FileSystem.documentDirectory + `image_${Date.now()}.jpg`;
+                            const downloadResult = await FileSystem.downloadAsync(attachmentUrl, fileUri);
+                            
+                            const asset = await MediaLibrary.createAssetAsync(downloadResult.uri);
+                            Toast.show({
+                              type: 'success',
+                              text1: 'Image saved',
+                              text2: 'Image saved to gallery',
+                            });
+                          } catch (error) {
+                            Toast.show({
+                              type: 'error',
+                              text1: 'Download failed',
+                              text2: 'Could not save image',
+                            });
+                          }
+                        },
+                      },
+                    ]
+                  );
+                }}
+              >
+                <Image
+                  source={{ uri: attachmentUrl }}
+                  style={{ width: 200, height: 200, resizeMode: 'cover' }}
+                />
+              </TouchableOpacity>
             ) : isFile && fileName ? (
-              <View className="px-4 py-3 flex-row items-center">
+              <TouchableOpacity
+                onPress={() => {
+                  Alert.alert(
+                    'File Options',
+                    fileName,
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Open',
+                        onPress: () => {
+                          import('expo-linking').then(({ default: Linking }) => {
+                            Linking.openURL(attachmentUrl);
+                          });
+                        },
+                      },
+                      {
+                        text: 'Download',
+                        onPress: async () => {
+                          try {
+                            const { default: FileSystem } = await import('expo-file-system');
+                            const { default: Sharing } = await import('expo-sharing');
+                            
+                            Toast.show({
+                              type: 'info',
+                              text1: 'Downloading...',
+                            });
+
+                            const fileUri = FileSystem.documentDirectory + fileName;
+                            const downloadResult = await FileSystem.downloadAsync(attachmentUrl, fileUri);
+                            
+                            // Share/save the file
+                            if (await Sharing.isAvailableAsync()) {
+                              await Sharing.shareAsync(downloadResult.uri);
+                            } else {
+                              Toast.show({
+                                type: 'success',
+                                text1: 'File downloaded',
+                                text2: 'File saved to app directory',
+                              });
+                            }
+                          } catch (error) {
+                            Toast.show({
+                              type: 'error',
+                              text1: 'Download failed',
+                              text2: 'Could not download file',
+                            });
+                          }
+                        },
+                      },
+                    ]
+                  );
+                }}
+                className="px-4 py-3 flex-row items-center"
+              >
                 <IconSymbol name="doc.fill" size={24} color={isMe ? "#FFFFFF" : colors.foreground} />
                 <Text className={`ml-2 ${isMe ? "text-white" : "text-foreground"}`}>
                   {fileName}
                 </Text>
-              </View>
+                <IconSymbol name="arrow.down.circle" size={20} color={isMe ? "#FFFFFF" : colors.primary} style={{ marginLeft: 8 }} />
+              </TouchableOpacity>
             ) : (
               <View className="px-4 py-2">
                 <Text className={`${isMe ? "text-white" : "text-foreground"}`}>
