@@ -10,6 +10,7 @@ import cryptoRouter from "../crypto/crypto-router";
 import { initializeOnStartup } from "../crypto/startup";
 import walletProxyRouter from "../routes/wallet-proxy";
 import walletSessionRouter from "../routes/wallet-session";
+import walletUserRouter from "../routes/wallet-user";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -80,6 +81,9 @@ async function startServer() {
 
   // Register wallet session routes
   app.use("/api", walletSessionRouter);
+
+  // Register wallet user routes
+  app.use("/api", walletUserRouter);
 
   // Initialize blockchain services
   initializeOnStartup().catch((error) => {

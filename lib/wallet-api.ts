@@ -15,6 +15,7 @@ import {
   getCachedCustomerId,
   logoutWalletSession,
 } from './wallet-session-client';
+import { getOrCreateWalletUserId } from './wallet-user-manager';
 
 // API Configuration - Read from expo-constants for runtime access
 // Updated with correct Payelio QA environment URLs
@@ -437,7 +438,7 @@ export class WalletAPIService {
       
       const token = await this.getAccessToken();
       if (token) {
-        headers['authorization'] = `Bearer ${token}`;
+        headers['Authorization'] = `Bearer ${token}`;
         console.log('🔑 Using token:', token.substring(0, 20) + '...');
       } else {
         console.warn('⚠️ No access token available');
@@ -494,8 +495,17 @@ export class WalletAPIService {
       
       // Get user info from cache or parameters
       const cachedPhone = phoneNumber || await getCachedPhoneNumber();
-      const cachedUserId = await getCachedUserId();
+      let cachedUserId = await getCachedUserId();
       const cachedCustomerId = customerId !== undefined ? customerId : await getCachedCustomerId();
+      
+      // If no userId found in cache, try to get or create one for wallet authentication
+      if (!cachedUserId && cachedPhone) {
+        console.log('🔍 No cached userId found, attempting to get or create wallet user...');
+        cachedUserId = await getOrCreateWalletUserId(cachedPhone);
+        if (cachedUserId) {
+          console.log('✅ Got wallet userId:', cachedUserId);
+        }
+      }
       
       if (!cachedPhone || !cachedUserId) {
         console.warn('⚠️ Missing phone number or user ID, falling back to AsyncStorage');
