@@ -109,21 +109,57 @@ export default function StudentHookupScreen() {
       // Get current user to exclude from profiles
       const { data: { user } } = await supabase.auth.getUser();
       
+      // Get real users from profiles table
       let query = supabase
-        .from("datingProfiles")
-        .select("*")
-        .eq("isActive", true)
-        .order("createdAt", { ascending: false });
+        .from("profiles")
+        .select(`
+          id,
+          full_name,
+          avatar_url,
+          institution_name,
+          course_program,
+          bio,
+          created_at
+        `)
+        .not("full_name", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(50);
       
-      // Exclude current user's profile
+      // Exclude current user
       if (user) {
-        query = query.neq("userId", user.id);
+        query = query.neq("id", user.id);
+        
+        // Also exclude users already swiped on
+        const { data: interactions } = await supabase
+          .from("dating_interactions")
+          .select("target_user_id")
+          .eq("user_id", user.id);
+        
+        if (interactions && interactions.length > 0) {
+          const swipedIds = interactions.map(i => i.target_user_id);
+          query = query.not("id", "in", `(${swipedIds.join(",")})`);
+        }
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
-      setProfiles(data || []);
+      
+      // Transform to DatingProfile format
+      const transformedProfiles: DatingProfile[] = (data || []).map((profile, index) => ({
+        id: index,
+        userId: profile.id,
+        name: profile.full_name || "Anonymous",
+        age: 20 + Math.floor(Math.random() * 10), // Calculate from DOB if available
+        institution: profile.institution_name || "Student",
+        course: profile.course_program || "Unknown",
+        bio: profile.bio || "Hey there! 👋",
+        images: profile.avatar_url || "https://via.placeholder.com/400",
+        interests: "",
+        isVerified: false,
+      }));
+      
+      setProfiles(transformedProfiles);
     } catch (error) {
       console.error("Error loading profiles:", error);
       Toast.show({
@@ -137,12 +173,68 @@ export default function StudentHookupScreen() {
   };
 
   const loadInteractions = async () => {
-    // Load likes, matches, etc. from database
-    // Mock data for now
-    setLikes([]);
-    setLiked([]);
-    setPassed([]);
-    setMatches([]);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      // Load likes (people who liked me)
+      const { data: likesData } = await supabase
+        .from("dating_interactions")
+        .select(`
+          target_user_id,
+          profiles!dating_interactions_target_user_id_fkey (
+            id,
+            full_name,
+            avatar_url,
+            institution_name,
+            course_program,
+            bio
+          )
+        `)
+        .eq("target_user_id", user.id)
+        .eq("action", "like");
+      
+      // Load liked (people I liked)
+      const { data: likedData } = await supabase
+        .from("dating_interactions")
+        .select(`
+          target_user_id,
+          profiles!dating_interactions_target_user_id_fkey (
+            id,
+            full_name,
+            avatar_url,
+            institution_name,
+            course_program,
+            bio
+          )
+        `)
+        .eq("user_id", user.id)
+        .eq("action", "like");
+      
+      // Load matches
+      const { data: matchesData } = await supabase
+        .from("dating_matches")
+        .select(`
+          user1_id,
+          user2_id,
+          profiles!dating_matches_user2_id_fkey (
+            id,
+            full_name,
+            avatar_url,
+            institution_name,
+            course_program,
+            bio
+          )
+        `)
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+      
+      // Transform and set data
+      setLikes(likesData || []);
+      setLiked(likedData || []);
+      setMatches(matchesData || []);
+    } catch (error) {
+      console.error("Error loading interactions:", error);
+    }
   };
 
   const panResponder = useRef(
@@ -166,35 +258,89 @@ export default function StudentHookupScreen() {
     })
   ).current;
 
-  const handleSwipeRight = () => {
+  const handleSwipeRight = async () => {
+    const currentProfile = profiles[currentIndex];
+    
     Animated.timing(position, {
       toValue: { x: width + 100, y: 0 },
       duration: 300,
       useNativeDriver: false,
-    }).start(() => {
-      const currentProfile = profiles[currentIndex];
+    }).start(async () => {
       setLiked([...liked, currentProfile]);
       setCurrentIndex(currentIndex + 1);
       position.setValue({ x: 0, y: 0 });
       
-      Toast.show({
-        type: "success",
-        text1: "Liked! 💖",
-        text2: `You liked ${currentProfile.name}`,
-      });
+      // Save interaction to database
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        
+        // Save the like
+        await supabase.from("dating_interactions").insert({
+          user_id: user.id,
+          target_user_id: currentProfile.userId,
+          action: "like",
+        });
+        
+        // Check if it's a match (they liked us back)
+        const { data: mutualLike } = await supabase
+          .from("dating_interactions")
+          .select("*")
+          .eq("user_id", currentProfile.userId)
+          .eq("target_user_id", user.id)
+          .eq("action", "like")
+          .single();
+        
+        if (mutualLike) {
+          // It's a match!
+          await supabase.from("dating_matches").insert({
+            user1_id: user.id,
+            user2_id: currentProfile.userId,
+          });
+          
+          Toast.show({
+            type: "success",
+            text1: "It's a Match! 🎉",
+            text2: `You and ${currentProfile.name} liked each other!`,
+          });
+        } else {
+          Toast.show({
+            type: "success",
+            text1: "Liked! 💖",
+            text2: `You liked ${currentProfile.name}`,
+          });
+        }
+      } catch (error) {
+        console.error("Error saving like:", error);
+      }
     });
   };
 
-  const handleSwipeLeft = () => {
+  const handleSwipeLeft = async () => {
+    const currentProfile = profiles[currentIndex];
+    
     Animated.timing(position, {
       toValue: { x: -width - 100, y: 0 },
       duration: 300,
       useNativeDriver: false,
-    }).start(() => {
-      const currentProfile = profiles[currentIndex];
+    }).start(async () => {
       setPassed([...passed, currentProfile]);
       setCurrentIndex(currentIndex + 1);
       position.setValue({ x: 0, y: 0 });
+      
+      // Save pass interaction to database
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        
+        await supabase.from("dating_interactions").insert({
+          user_id: user.id,
+          target_user_id: currentProfile.userId,
+          action: "pass",
+        });
+      } catch (error) {
+        console.error("Error saving pass:", error);
+      }
     });
   };
 

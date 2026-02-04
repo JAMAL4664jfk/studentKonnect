@@ -142,10 +142,19 @@ export default function AuthScreen() {
 
       router.replace("/(tabs)/services");
     } catch (error: any) {
+      let errorMessage = error.message || "Invalid email or password";
+      
+      // Check if it's an email confirmation issue
+      if (error.message?.includes("Email not confirmed") || error.message?.includes("confirm")) {
+        errorMessage = "Please confirm your email address first";
+      } else if (error.message?.includes("Invalid login credentials")) {
+        errorMessage = "Invalid email or password. Please check and try again.";
+      }
+      
       Toast.show({
         type: "error",
         text1: "Login Failed",
-        text2: error.message || "Invalid email or password",
+        text2: errorMessage,
       });
     } finally {
       setLoading(false);
@@ -165,6 +174,7 @@ export default function AuthScreen() {
         email,
         password,
         options: {
+          emailRedirectTo: undefined,
           data: {
             full_name: fullName,
             phone_number: formattedPhone,
@@ -179,6 +189,17 @@ export default function AuthScreen() {
       });
 
       if (error) throw error;
+
+      // Check if email confirmation is required
+      if (data.user && !data.session) {
+        Toast.show({
+          type: "info",
+          text1: "Account Created!",
+          text2: "Please check your email to confirm your account",
+        });
+        setMode("login");
+        return;
+      }
 
       Toast.show({
         type: "success",
