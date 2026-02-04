@@ -154,8 +154,8 @@ export default function StudentHookupScreen() {
         institution: profile.institution_name || "Student",
         course: profile.course_program || "Unknown",
         bio: profile.bio || "Hey there! 👋",
-        images: profile.avatar_url || "https://via.placeholder.com/400",
-        interests: "",
+        images: JSON.stringify([profile.avatar_url || "https://via.placeholder.com/400"]),
+        interests: JSON.stringify([]),
         isVerified: false,
       }));
       
