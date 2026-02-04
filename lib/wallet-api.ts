@@ -440,11 +440,14 @@ export class WalletAPIService {
       if (token) {
         headers['Authorization'] = token;
         console.log('🔑 Using token:', token.substring(0, 20) + '...');
+        console.log('🔑 Token length:', token.length);
+        console.log('🔑 Authorization header value:', headers['Authorization']);
       } else {
         console.warn('⚠️ No access token available');
       }
     }
 
+    console.log('📤 Final headers:', JSON.stringify(headers, null, 2));
     return headers;
   }
 
