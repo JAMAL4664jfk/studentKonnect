@@ -195,6 +195,13 @@ export default function ProfileScreen() {
       action: () => router.push("/lifestyle-rewards"),
     },
     {
+      id: "blocked",
+      title: "Blocked Users",
+      icon: "person.crop.circle.badge.xmark",
+      color: "#ef4444",
+      action: () => router.push("/blocked-users"),
+    },
+    {
       id: "notifications",
       title: "Notifications",
       icon: "bell.fill",

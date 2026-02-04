@@ -894,18 +894,22 @@ export default function ChatScreen() {
                           style: 'destructive',
                           onPress: async () => {
                             try {
+                              // Immediately remove from UI
+                              setConversations(prev => prev.filter(c => c.id !== item.id));
+                              
+                              // Delete from database
                               await supabase
                                 .from('conversations')
                                 .delete()
                                 .eq('id', item.id);
-                              
-                              if (currentUserId) await loadConversations(currentUserId);
                               
                               Toast.show({
                                 type: 'success',
                                 text1: 'Chat deleted',
                               });
                             } catch (error) {
+                              // Reload on error
+                              if (currentUserId) loadConversations(currentUserId);
                               Toast.show({
                                 type: 'error',
                                 text1: 'Failed to delete chat',
@@ -918,6 +922,10 @@ export default function ChatScreen() {
                           style: 'destructive',
                           onPress: async () => {
                             try {
+                              // Immediately remove from UI
+                              setConversations(prev => prev.filter(c => c.id !== item.id));
+                              
+                              // Block user in database
                               await supabase.from('blocked_users').insert({
                                 blocker_id: currentUserId,
                                 blocked_id: item.other_user_id,
@@ -929,13 +937,13 @@ export default function ChatScreen() {
                                 .delete()
                                 .eq('id', item.id);
                               
-                              if (currentUserId) await loadConversations(currentUserId);
-                              
                               Toast.show({
                                 type: 'success',
                                 text1: 'User blocked',
                               });
                             } catch (error) {
+                              // Reload on error
+                              if (currentUserId) loadConversations(currentUserId);
                               Toast.show({
                                 type: 'error',
                                 text1: 'Failed to block user',
