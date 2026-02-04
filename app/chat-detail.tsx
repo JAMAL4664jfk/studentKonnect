@@ -25,6 +25,10 @@ import { ActionSheetIOS } from "react-native";
 import { CallingModal } from "@/components/CallingModal";
 import { UserProfileModal } from "@/components/UserProfileModal";
 import { AttachmentPicker } from "@/components/AttachmentPicker";
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
+import * as Sharing from 'expo-sharing';
+import * as Linking from 'expo-linking';
 
 interface Message {
   id: string;
@@ -527,19 +531,13 @@ export default function ChatDetailScreen() {
                       {
                         text: 'Open',
                         onPress: () => {
-                          // Open URL in browser
-                          import('expo-linking').then(({ default: Linking }) => {
-                            Linking.openURL(attachmentUrl);
-                          });
+                          Linking.openURL(attachmentUrl);
                         },
                       },
                       {
                         text: 'Download',
                         onPress: async () => {
                           try {
-                            const { default: FileSystem } = await import('expo-file-system');
-                            const { default: MediaLibrary } = await import('expo-media-library');
-                            
                             const { status } = await MediaLibrary.requestPermissionsAsync();
                             if (status !== 'granted') {
                               Toast.show({
@@ -553,13 +551,14 @@ export default function ChatDetailScreen() {
                             const fileUri = FileSystem.documentDirectory + `image_${Date.now()}.jpg`;
                             const downloadResult = await FileSystem.downloadAsync(attachmentUrl, fileUri);
                             
-                            const asset = await MediaLibrary.createAssetAsync(downloadResult.uri);
+                            await MediaLibrary.createAssetAsync(downloadResult.uri);
                             Toast.show({
                               type: 'success',
                               text1: 'Image saved',
                               text2: 'Image saved to gallery',
                             });
                           } catch (error) {
+                            console.error('Download error:', error);
                             Toast.show({
                               type: 'error',
                               text1: 'Download failed',
@@ -588,18 +587,13 @@ export default function ChatDetailScreen() {
                       {
                         text: 'Open',
                         onPress: () => {
-                          import('expo-linking').then(({ default: Linking }) => {
-                            Linking.openURL(attachmentUrl);
-                          });
+                          Linking.openURL(attachmentUrl);
                         },
                       },
                       {
                         text: 'Download',
                         onPress: async () => {
                           try {
-                            const { default: FileSystem } = await import('expo-file-system');
-                            const { default: Sharing } = await import('expo-sharing');
-                            
                             Toast.show({
                               type: 'info',
                               text1: 'Downloading...',
@@ -619,6 +613,7 @@ export default function ChatDetailScreen() {
                               });
                             }
                           } catch (error) {
+                            console.error('Download error:', error);
                             Toast.show({
                               type: 'error',
                               text1: 'Download failed',
@@ -666,7 +661,12 @@ export default function ChatDetailScreen() {
   };
 
   return (
-    <ScreenContainer edges={["top", "left", "right", "bottom"]} className="flex-1">
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+    >
+      <ScreenContainer edges={["top", "left", "right"]} className="flex-1">
       {/* Header with Gradient Background */}
       <View 
         className="border-b border-border"
@@ -757,11 +757,7 @@ export default function ChatDetailScreen() {
       </View>
 
       {/* Messages List */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 20}
-      >
+      <View className="flex-1">
         <FlatList
           ref={flatListRef}
           data={conversationMessages}
@@ -842,7 +838,7 @@ export default function ChatDetailScreen() {
             />
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </View>
 
       {/* Calling Modal */}
       <CallingModal
@@ -961,5 +957,6 @@ export default function ChatDetailScreen() {
 
       <Toast />
     </ScreenContainer>
+    </KeyboardAvoidingView>
   );
 }
