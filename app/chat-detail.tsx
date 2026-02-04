@@ -357,6 +357,25 @@ export default function ChatDetailScreen() {
       minute: "2-digit",
     });
 
+    // Check if message contains an image or file attachment
+    const isImage = item.content.startsWith('[Image]');
+    const isFile = item.content.startsWith('[File:');
+    let attachmentUrl = '';
+    let fileName = '';
+    let displayText = item.content;
+
+    if (isImage) {
+      attachmentUrl = item.content.replace('[Image] ', '');
+      displayText = '';
+    } else if (isFile) {
+      const match = item.content.match(/\[File: (.+?)\] (.+)/);
+      if (match) {
+        fileName = match[1];
+        attachmentUrl = match[2];
+        displayText = '';
+      }
+    }
+
     return (
       <View
         className={`flex-row mb-3 ${isMe ? "justify-end" : "justify-start"}`}
@@ -378,13 +397,29 @@ export default function ChatDetailScreen() {
         )}
         <View className={`max-w-[75%] ${isMe ? "items-end" : "items-start"}`}>
           <View
-            className={`px-4 py-2 rounded-2xl ${
+            className={`rounded-2xl overflow-hidden ${
               isMe ? "bg-primary" : "bg-surface"
             }`}
           >
-            <Text className={`${isMe ? "text-white" : "text-foreground"}`}>
-              {item.content}
-            </Text>
+            {isImage && attachmentUrl ? (
+              <Image
+                source={{ uri: attachmentUrl }}
+                style={{ width: 200, height: 200, resizeMode: 'cover' }}
+              />
+            ) : isFile && fileName ? (
+              <View className="px-4 py-3 flex-row items-center">
+                <IconSymbol name="doc.fill" size={24} color={isMe ? "#FFFFFF" : colors.foreground} />
+                <Text className={`ml-2 ${isMe ? "text-white" : "text-foreground"}`}>
+                  {fileName}
+                </Text>
+              </View>
+            ) : (
+              <View className="px-4 py-2">
+                <Text className={`${isMe ? "text-white" : "text-foreground"}`}>
+                  {displayText}
+                </Text>
+              </View>
+            )}
           </View>
           <Text className="text-xs text-muted mt-1">{messageTime}</Text>
         </View>
@@ -462,11 +497,14 @@ export default function ChatDetailScreen() {
         </TouchableOpacity>
         
         <TouchableOpacity
-          className="w-9 h-9 rounded-full items-center justify-center bg-muted/20"
-          style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          className="w-9 h-9 rounded-full items-center justify-center"
+          style={({ pressed }) => ({
+            opacity: pressed ? 0.6 : 1,
+            backgroundColor: colors.primary + '20'
+          })}
           onPress={() => setShowSettingsMenu(true)}
         >
-          <IconSymbol name="ellipsis.circle.fill" size={20} color={colors.primary} />
+          <IconSymbol name="ellipsis.circle.fill" size={22} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -474,7 +512,7 @@ export default function ChatDetailScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
         <FlatList
           ref={flatListRef}
