@@ -34,7 +34,8 @@ export default function WalletDashboardScreen() {
       try {
         const balanceResponse = await walletAPI.getBalance();
         if (balanceResponse.success && balanceResponse.data) {
-          setBalance(balanceResponse.data.available_balance || 0);
+          const balanceValue = Number(balanceResponse.data.available_balance) || 0;
+          setBalance(balanceValue);
         } else {
           setBalance(0);
         }
@@ -177,7 +178,7 @@ export default function WalletDashboardScreen() {
           <View className="bg-primary rounded-3xl p-6 mb-6">
             <Text className="text-white/70 text-sm mb-2">Total Balance</Text>
             <Text className="text-white text-4xl font-bold mb-4">
-              R {balance !== null ? balance.toFixed(2) : "0.00"}
+              R {balance !== null && typeof balance === 'number' ? balance.toFixed(2) : "0.00"}
             </Text>
             <View className="flex-row gap-3">
               <TouchableOpacity

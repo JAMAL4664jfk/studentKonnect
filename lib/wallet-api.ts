@@ -642,14 +642,12 @@ export class WalletAPIService {
       const data = await response.json();
       
       if (data.success && data.data) {
-        // DECODE base64 tokens before storing
-        console.log('🔓 Decoding refreshed tokens...');
-        const decodedAccessToken = Buffer.from(data.data.access_token, 'base64').toString('utf-8');
-        const decodedRefreshToken = Buffer.from(data.data.refresh_token, 'base64').toString('utf-8');
+        // Store tokens AS-IS in base64 format
+        console.log('🔑 Storing refreshed base64-encoded tokens...');
         
         await this.storeTokens(
-          decodedAccessToken,
-          decodedRefreshToken,
+          data.data.access_token,
+          data.data.refresh_token,
           data.data.access_token_expires_in,
           data.data.refresh_token_expires_in || 2592000
         );
@@ -739,16 +737,14 @@ export class WalletAPIService {
           await AsyncStorage.setItem('wallet_user_id', userId.toString());
         }
         
-        // DECODE base64 tokens before storing - API sends them encoded but expects decoded tokens in requests
-        console.log('🔓 Decoding base64 tokens from API...');
-        const decodedAccessToken = Buffer.from(data.data.access_token, 'base64').toString('utf-8');
-        const decodedRefreshToken = Buffer.from(data.data.refresh_token, 'base64').toString('utf-8');
-        console.log('✅ Decoded access token:', decodedAccessToken.substring(0, 30) + '...');
-        console.log('✅ Decoded refresh token:', decodedRefreshToken.substring(0, 30) + '...');
+        // Store tokens AS-IS in base64 format - API sends and expects them base64-encoded
+        console.log('🔑 Storing base64-encoded tokens from API...');
+        console.log('✅ Access token (base64):', data.data.access_token.substring(0, 30) + '...');
+        console.log('✅ Refresh token (base64):', data.data.refresh_token.substring(0, 30) + '...');
         
         await this.storeTokens(
-          decodedAccessToken,
-          decodedRefreshToken,
+          data.data.access_token,
+          data.data.refresh_token,
           data.data.access_token_expires_in,
           data.data.refresh_token_expires_in,
           phoneNumber,
