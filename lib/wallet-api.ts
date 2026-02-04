@@ -438,7 +438,7 @@ export class WalletAPIService {
       
       const token = await this.getAccessToken();
       if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers['Authorization'] = token;
         console.log('🔑 Using token:', token.substring(0, 20) + '...');
       } else {
         console.warn('⚠️ No access token available');
