@@ -1,10 +1,12 @@
-import { ScrollView, Text, View, TouchableOpacity, ImageBackground } from "react-native";
+import { ScrollView, View, Text, TouchableOpacity, ImageBackground } from "react-native";
+import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { LinearGradient } from "expo-linear-gradient";
+import { supabase } from "@/lib/supabase";
 
 type ServiceItem = {
   id: string;
@@ -131,6 +133,40 @@ const SERVICES: ServiceItem[] = [
 export default function ServicesScreen() {
   const colors = useColors();
   const router = useRouter();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    loadUnreadCount();
+    
+    // Subscribe to message changes
+    const subscription = supabase
+      .channel('unread_messages')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => {
+        loadUnreadCount();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, []);
+
+  const loadUnreadCount = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .neq('sender_id', user.id)
+        .is('read_at', null);
+
+      setUnreadCount(count || 0);
+    } catch (error) {
+      console.error('Error loading unread count:', error);
+    }
+  };
 
   const handleServicePress = (serviceId: string) => {
     const routes: Record<string, string> = {
@@ -201,15 +237,25 @@ export default function ServicesScreen() {
                     className="flex-1 p-4 justify-between"
                   >
                     {/* Badge */}
-                    <View className="flex-row">
+                    <View className="flex-row justify-between items-start">
                       <View
                         className="px-3 py-1 rounded-full"
                         style={{ backgroundColor: service.badgeColor }}
                       >
                         <Text className="text-xs font-bold text-white">
-                          {service.badgeText}
+                          {service.id === 'chat' && unreadCount > 0 ? `${unreadCount} New` : service.badgeText}
                         </Text>
                       </View>
+                      {service.id === 'chat' && unreadCount > 0 && (
+                        <View
+                          className="w-6 h-6 rounded-full items-center justify-center"
+                          style={{ backgroundColor: '#ef4444' }}
+                        >
+                          <Text className="text-xs font-bold text-white">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </Text>
+                        </View>
+                      )}
                     </View>
 
                     {/* Service Info */}

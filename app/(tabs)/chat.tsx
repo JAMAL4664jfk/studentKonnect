@@ -898,11 +898,13 @@ export default function ChatScreen() {
                                 .from('conversations')
                                 .delete()
                                 .eq('id', item.id);
+                              
+                              if (currentUserId) await loadConversations(currentUserId);
+                              
                               Toast.show({
                                 type: 'success',
                                 text1: 'Chat deleted',
                               });
-                              if (currentUserId) loadConversations(currentUserId);
                             } catch (error) {
                               Toast.show({
                                 type: 'error',
@@ -920,11 +922,19 @@ export default function ChatScreen() {
                                 blocker_id: currentUserId,
                                 blocked_id: item.other_user_id,
                               });
+                              
+                              // Also delete the conversation
+                              await supabase
+                                .from('conversations')
+                                .delete()
+                                .eq('id', item.id);
+                              
+                              if (currentUserId) await loadConversations(currentUserId);
+                              
                               Toast.show({
                                 type: 'success',
                                 text1: 'User blocked',
                               });
-                              if (currentUserId) loadConversations(currentUserId);
                             } catch (error) {
                               Toast.show({
                                 type: 'error',

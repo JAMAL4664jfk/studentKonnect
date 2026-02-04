@@ -1,4 +1,4 @@
-import { ScrollView, Text, View, TouchableOpacity, Image, Modal } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, Image, Modal, ActivityIndicator } from "react-native";
 import { useState, useEffect } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
