@@ -11,6 +11,7 @@ import {
   Modal,
   Pressable,
   ImageBackground,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -881,6 +882,60 @@ export default function ChatScreen() {
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => handleConversationPress(item)}
+                  onLongPress={() => {
+                    Alert.alert(
+                      item.other_user_name,
+                      'Choose an action',
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                          text: 'Delete Chat',
+                          style: 'destructive',
+                          onPress: async () => {
+                            try {
+                              await supabase
+                                .from('conversations')
+                                .delete()
+                                .eq('id', item.id);
+                              Toast.show({
+                                type: 'success',
+                                text1: 'Chat deleted',
+                              });
+                              if (currentUserId) loadConversations(currentUserId);
+                            } catch (error) {
+                              Toast.show({
+                                type: 'error',
+                                text1: 'Failed to delete chat',
+                              });
+                            }
+                          },
+                        },
+                        {
+                          text: 'Block User',
+                          style: 'destructive',
+                          onPress: async () => {
+                            try {
+                              await supabase.from('blocked_users').insert({
+                                blocker_id: currentUserId,
+                                blocked_id: item.other_user_id,
+                              });
+                              Toast.show({
+                                type: 'success',
+                                text1: 'User blocked',
+                              });
+                              if (currentUserId) loadConversations(currentUserId);
+                            } catch (error) {
+                              Toast.show({
+                                type: 'error',
+                                text1: 'Failed to block user',
+                              });
+                            }
+                          },
+                        },
+                      ],
+                      { cancelable: true }
+                    );
+                  }}
                   className="flex-row items-center px-4 py-3 border-b border-border active:bg-surface"
                 >
                   <View className="relative">
