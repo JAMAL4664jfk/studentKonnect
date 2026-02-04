@@ -3,9 +3,7 @@ import { useState, useEffect } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { useWallet } from "@/contexts/WalletContext";
 import { supabase } from "@/lib/supabase";
-import { walletAPI } from "@/lib/wallet-api";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
 import { capturePhoto, selectPhoto, uriToBlob, getFileExtension } from "@/lib/image-picker-utils";
@@ -21,7 +19,6 @@ type MenuItem = {
 export default function ProfileScreen() {
   const router = useRouter();
   const colors = useColors();
-  const { balance } = useWallet();
   const [showImageOptions, setShowImageOptions] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
@@ -35,25 +32,6 @@ export default function ProfileScreen() {
 
   const loadUserProfile = async () => {
     try {
-      const useWalletAPI = process.env.EXPO_PUBLIC_USE_WALLET_API === 'true';
-
-      // Try Wallet API first if enabled
-      if (useWalletAPI) {
-        try {
-          const profile = await walletAPI.getProfile();
-          setUserName(profile.name || "Student Account");
-          setUserEmail(profile.email || "scholar@student.ac.za");
-          if (profile.avatar_url) {
-            setProfilePicture(profile.avatar_url);
-          }
-          return;
-        } catch (error) {
-          console.error('Wallet API profile error, falling back to Supabase:', error);
-          // Fall through to Supabase
-        }
-      }
-
-      // Fallback to Supabase
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
@@ -170,6 +148,8 @@ export default function ProfileScreen() {
         text1: "Signed Out",
         text2: "You have been signed out successfully",
       });
+      // Redirect to login page
+      router.replace('/auth' as any);
     } catch (error) {
       Toast.show({
         type: "error",
@@ -256,25 +236,6 @@ export default function ProfileScreen() {
               </Text>
               <Text className="text-sm text-muted">{userEmail}</Text>
             </View>
-          </View>
-
-          {/* Balance Card */}
-          <View
-            className="bg-primary rounded-2xl p-6"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.2,
-              shadowRadius: 8,
-              elevation: 4,
-            }}
-          >
-            <Text className="text-white text-sm mb-2 opacity-90">
-              Wallet Balance
-            </Text>
-            <Text className="text-white text-4xl font-bold">
-              R{balance.toFixed(2)}
-            </Text>
           </View>
 
           {/* Menu Items */}

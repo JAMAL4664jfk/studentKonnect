@@ -23,6 +23,8 @@ import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { ActionSheetIOS } from "react-native";
 import { CallingModal } from "@/components/CallingModal";
+import { UserProfileModal } from "@/components/UserProfileModal";
+import { AttachmentPicker } from "@/components/AttachmentPicker";
 
 interface Message {
   id: string;
@@ -48,6 +50,8 @@ export default function ChatDetailScreen() {
   const [messageText, setMessageText] = useState("");
   const [sending, setSending] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showAttachmentPicker, setShowAttachmentPicker] = useState(false);
   const [showCallingModal, setShowCallingModal] = useState(false);
   const [callType, setCallType] = useState<"voice" | "video">("voice");
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
@@ -106,41 +110,40 @@ export default function ChatDetailScreen() {
     }, 2000);
   };
 
-  const handleAttachmentPress = async () => {
-    if (Platform.OS === "ios") {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ["Cancel", "Take Photo", "Take Video", "Choose Photo/Video", "Choose Document"],
-          cancelButtonIndex: 0,
-        },
-        async (buttonIndex) => {
-          if (buttonIndex === 1) {
-            await handleTakePhoto();
-          } else if (buttonIndex === 2) {
-            await handleTakeVideo();
-          } else if (buttonIndex === 3) {
-            await handleChooseMedia();
-          } else if (buttonIndex === 4) {
-            await handleChooseFile();
-          }
-        }
-      );
-    } else {
-      // Android: Show alert with options
-      Alert.alert(
-        "Add Attachment",
-        "Choose an option",
-        [
-          { text: "Cancel", style: "cancel" },
-          { text: "Take Photo", onPress: handleTakePhoto },
-          { text: "Take Video", onPress: handleTakeVideo },
-          { text: "Choose Photo/Video", onPress: handleChooseMedia },
-          { text: "Choose Document", onPress: handleChooseFile },
-        ],
-        { cancelable: true }
-      );
-    }
+  const handleAttachmentPress = () => {
+    setShowAttachmentPicker(true);
   };
+
+  const attachmentOptions = [
+    {
+      id: 'camera',
+      title: 'Camera',
+      icon: 'camera.fill',
+      color: '#3b82f6',
+      onPress: handleTakePhoto,
+    },
+    {
+      id: 'video',
+      title: 'Video',
+      icon: 'video.fill',
+      color: '#8b5cf6',
+      onPress: handleTakeVideo,
+    },
+    {
+      id: 'gallery',
+      title: 'Gallery',
+      icon: 'photo.fill',
+      color: '#10b981',
+      onPress: handleChooseMedia,
+    },
+    {
+      id: 'document',
+      title: 'Document',
+      icon: 'doc.fill',
+      color: '#f59e0b',
+      onPress: handleChooseFile,
+    },
+  ];
 
   const handleTakePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -713,7 +716,10 @@ export default function ChatDetailScreen() {
           </TouchableOpacity>
           
           {/* Centered User Info */}
-          <View className="flex-1 flex-row items-center justify-center">
+          <TouchableOpacity 
+            className="flex-1 flex-row items-center justify-center"
+            onPress={() => setShowProfileModal(true)}
+          >
             <View className="w-12 h-12 rounded-full mr-3 bg-muted/30 items-center justify-center overflow-hidden">
               {otherUserPhoto ? (
                 <Image
@@ -735,7 +741,7 @@ export default function ChatDetailScreen() {
                 {isOtherUserTyping ? "typing..." : "● Active now"}
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
           
           {/* Action Buttons */}
           <View className="flex-row">
@@ -876,6 +882,20 @@ export default function ChatDetailScreen() {
         callType={callType}
         otherUserName={otherUserName}
         otherUserPhoto={otherUserPhoto}
+      />
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        visible={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        userId={otherUserId}
+      />
+
+      {/* Attachment Picker */}
+      <AttachmentPicker
+        visible={showAttachmentPicker}
+        onClose={() => setShowAttachmentPicker(false)}
+        options={attachmentOptions}
       />
 
       {/* Settings Menu Modal */}

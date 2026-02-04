@@ -23,6 +23,7 @@ import Toast from "react-native-toast-message";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GroupDetailModal } from "@/components/GroupDetailModal";
+import { UserProfileModal } from "@/components/UserProfileModal";
 
 interface Conversation {
   id: string;
@@ -154,6 +155,10 @@ export default function ChatScreen() {
   // Group detail modal state
   const [showGroupDetail, setShowGroupDetail] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  
+  // Profile modal state
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -978,8 +983,17 @@ export default function ChatScreen() {
                     );
                   }}
                   className="flex-row items-center px-4 py-3 border-b border-border active:bg-surface"
+                  style={{
+                    backgroundColor: item.unread_count > 0 ? colors.primary + '08' : 'transparent'
+                  }}
                 >
-                  <View className="relative">
+                  <TouchableOpacity 
+                    className="relative"
+                    onPress={() => {
+                      setSelectedUserId(item.other_user_id);
+                      setShowProfileModal(true);
+                    }}
+                  >
                     <Image
                       source={{
                         uri: item.other_user_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.other_user_name)}&background=random&size=128`,
@@ -987,10 +1001,10 @@ export default function ChatScreen() {
                       className="w-12 h-12 rounded-full mr-3"
                     />
                     <View className="absolute bottom-0 right-3 w-3 h-3 rounded-full border-2 border-background" style={{ backgroundColor: '#10b981' }} />
-                  </View>
+                  </TouchableOpacity>
                   <View className="flex-1">
                     <View className="flex-row items-center justify-between mb-1">
-                      <Text className="text-base font-semibold text-foreground">
+                      <Text className="text-base text-foreground" style={{ fontWeight: item.unread_count > 0 ? '700' : '600' }}>
                         {item.other_user_name}
                       </Text>
                       <Text className="text-xs text-muted">
@@ -998,7 +1012,10 @@ export default function ChatScreen() {
                       </Text>
                     </View>
                     <View className="flex-row items-center justify-between">
-                      <Text className="text-sm text-muted flex-1" numberOfLines={1}>
+                      <Text className="text-sm flex-1" numberOfLines={1} style={{ 
+                        color: item.unread_count > 0 ? colors.foreground : colors.muted,
+                        fontWeight: item.unread_count > 0 ? '600' : '400'
+                      }}>
                         {formatLastMessage(item.last_message)}
                       </Text>
                       {item.unread_count > 0 && (
@@ -1719,8 +1736,7 @@ export default function ChatScreen() {
         </View>
        </Modal>
 
-      {/* Group Detail Modal */}
-      <GroupDetailModal
+      {/* Group Detail Modal */}      <GroupDetailModal
         visible={showGroupDetail}
         groupId={selectedGroupId}
         currentUserId={currentUserId || ""}
@@ -1731,9 +1747,16 @@ export default function ChatScreen() {
         onLeave={() => {
           if (currentUserId) loadGroups(currentUserId);
         }}
-        onJoin={() => {
-          if (currentUserId) loadGroups(currentUserId);
+      />
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        visible={showProfileModal}
+        onClose={() => {
+          setShowProfileModal(false);
+          setSelectedUserId(null);
         }}
+        userId={selectedUserId || ""}
       />
 
       <Toast />
