@@ -190,6 +190,27 @@ export default function AuthScreen() {
 
       if (error) throw error;
 
+      // Create profile in profiles table (fallback if trigger doesn't work)
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .insert({
+            id: data.user.id,
+            full_name: fullName,
+            email: email,
+            phone_number: formattedPhone,
+            student_id: studentNumber,
+            institution_name: selectedInstitution!.name,
+            course_program: courseProgram,
+            year_of_study: yearOfStudy,
+          });
+        
+        // Log error but don't fail signup
+        if (profileError) {
+          console.warn("Profile creation warning:", profileError.message);
+        }
+      }
+
       // Check if email confirmation is required
       if (data.user && !data.session) {
         Toast.show({
