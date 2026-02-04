@@ -26,6 +26,7 @@ interface Conversation {
 
 interface ChatContextType {
   conversations: Conversation[];
+  setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>;
   messages: Record<string, Message[]>;
   typingUsers: Record<string, string[]>;
   loadConversations: (userId: string) => Promise<void>;
@@ -342,6 +343,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     <ChatContext.Provider
       value={{
         conversations,
+        setConversations,
         messages,
         typingUsers,
         loadConversations,

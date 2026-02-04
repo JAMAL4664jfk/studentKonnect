@@ -91,10 +91,32 @@ type TabType = "chats" | "groups" | "calls" | "status" | "discover";
 export default function ChatScreen() {
   const router = useRouter();
   const colors = useColors();
-  const { conversations, loadConversations } = useChat();
+  const { conversations, setConversations, loadConversations } = useChat();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("chats");
+
+  // Format last message for display
+  const formatLastMessage = (message: string | null): string => {
+    if (!message) return "No messages yet";
+    
+    if (message.startsWith('[Image]')) {
+      return "📷 Photo";
+    }
+    if (message.startsWith('[Video]')) {
+      return "🎥 Video";
+    }
+    if (message.startsWith('[File:')) {
+      const match = message.match(/\[File: (.+?)\]/);
+      if (match) {
+        const fileName = match[1];
+        const extension = fileName.split('.').pop()?.toUpperCase();
+        return `📄 ${fileName}`;
+      }
+      return "📄 File";
+    }
+    return message;
+  };
   
   // Groups state
   const [groups, setGroups] = useState<Group[]>([]);
@@ -977,7 +999,7 @@ export default function ChatScreen() {
                     </View>
                     <View className="flex-row items-center justify-between">
                       <Text className="text-sm text-muted flex-1" numberOfLines={1}>
-                        {item.last_message || "No messages yet"}
+                        {formatLastMessage(item.last_message)}
                       </Text>
                       {item.unread_count > 0 && (
                         <View

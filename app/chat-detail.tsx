@@ -110,15 +110,17 @@ export default function ChatDetailScreen() {
     if (Platform.OS === "ios") {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ["Cancel", "Take Photo", "Choose from Library", "Choose File"],
+          options: ["Cancel", "Take Photo", "Take Video", "Choose Photo/Video", "Choose Document"],
           cancelButtonIndex: 0,
         },
         async (buttonIndex) => {
           if (buttonIndex === 1) {
             await handleTakePhoto();
           } else if (buttonIndex === 2) {
-            await handleChoosePhoto();
+            await handleTakeVideo();
           } else if (buttonIndex === 3) {
+            await handleChooseMedia();
+          } else if (buttonIndex === 4) {
             await handleChooseFile();
           }
         }
@@ -131,8 +133,9 @@ export default function ChatDetailScreen() {
         [
           { text: "Cancel", style: "cancel" },
           { text: "Take Photo", onPress: handleTakePhoto },
-          { text: "Choose from Library", onPress: handleChoosePhoto },
-          { text: "Choose File", onPress: handleChooseFile },
+          { text: "Take Video", onPress: handleTakeVideo },
+          { text: "Choose Photo/Video", onPress: handleChooseMedia },
+          { text: "Choose Document", onPress: handleChooseFile },
         ],
         { cancelable: true }
       );
@@ -161,7 +164,30 @@ export default function ChatDetailScreen() {
     }
   };
 
-  const handleChoosePhoto = async () => {
+  const handleTakeVideo = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Toast.show({
+        type: "error",
+        text1: "Permission Denied",
+        text2: "Camera permission is required",
+      });
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: "videos" as any,
+      allowsEditing: true,
+      quality: 0.8,
+      videoMaxDuration: 60, // 60 seconds max
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      await sendVideoMessage(result.assets[0].uri);
+    }
+  };
+
+  const handleChooseMedia = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Toast.show({
@@ -173,13 +199,18 @@ export default function ChatDetailScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images" as any,
-      allowsEditing: true,
+      mediaTypes: "all" as any,
+      allowsEditing: false,
       quality: 0.8,
     });
 
     if (!result.canceled && result.assets[0]) {
-      await sendImageMessage(result.assets[0].uri);
+      const asset = result.assets[0];
+      if (asset.type === 'video') {
+        await sendVideoMessage(asset.uri);
+      } else {
+        await sendImageMessage(asset.uri);
+      }
     }
   };
 
@@ -246,6 +277,65 @@ export default function ChatDetailScreen() {
       Toast.show({
         type: "error",
         text1: "Failed to send image",
+        text2: error.message || "Unknown error",
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const sendVideoMessage = async (videoUri: string) => {
+    if (!currentUserId) return;
+
+    setSending(true);
+    try {
+      // Upload video to Supabase storage using FormData
+      const fileName = `chat-videos/${Date.now()}.mp4`;
+      
+      // Create FormData for React Native file upload
+      const formData = new FormData();
+      formData.append('file', {
+        uri: videoUri,
+        type: 'video/mp4',
+        name: fileName.split('/').pop(),
+      } as any);
+
+      const { data, error } = await supabase.storage
+        .from("chat-attachments")
+        .upload(fileName, formData, {
+          contentType: "video/mp4",
+        });
+
+      if (error) {
+        console.error('Video upload error:', error);
+        Toast.show({
+          type: "error",
+          text1: "Upload Failed",
+          text2: error.message || "Could not upload video",
+        });
+        setSending(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("chat-attachments")
+        .getPublicUrl(fileName);
+
+      console.log('Sending video message:', `[Video] ${urlData.publicUrl}`);
+      await sendMessage(conversationId, `[Video] ${urlData.publicUrl}`, currentUserId);
+      
+      // Reload messages to show the attachment immediately
+      await loadMessages(conversationId);
+      
+      Toast.show({
+        type: "success",
+        text1: "Video sent",
+      });
+    } catch (error: any) {
+      console.error('Error sending video:', error);
+      Toast.show({
+        type: "error",
+        text1: "Failed to send video",
         text2: error.message || "Unknown error",
       });
     } finally {
@@ -605,70 +695,90 @@ export default function ChatDetailScreen() {
 
   return (
     <ScreenContainer edges={["top", "left", "right", "bottom"]} className="flex-1">
-      {/* Header */}
-      <View className="flex-row items-center p-4 border-b border-border">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="mr-3"
-          style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-        >
-          <IconSymbol name="arrow.left" size={24} color={colors.foreground} />
-        </TouchableOpacity>
-        <View className="w-10 h-10 rounded-full mr-3 bg-muted/30 items-center justify-center overflow-hidden">
-          {otherUserPhoto ? (
-            <Image
-              source={{ uri: otherUserPhoto }}
-              className="w-full h-full"
-              style={{ resizeMode: 'cover' }}
-            />
-          ) : (
-            <Text className="text-foreground font-bold text-lg">
-              {otherUserName?.charAt(0).toUpperCase() || '?'}
-            </Text>
-          )}
+      {/* Header with Gradient Background */}
+      <View 
+        className="border-b border-border"
+        style={{
+          background: `linear-gradient(135deg, ${colors.primary}15 0%, ${colors.primary}05 100%)`,
+          backgroundColor: colors.primary + '08',
+        }}
+      >
+        <View className="flex-row items-center p-4">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="mr-3"
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <IconSymbol name="arrow.left" size={24} color={colors.foreground} />
+          </TouchableOpacity>
+          
+          {/* Centered User Info */}
+          <View className="flex-1 flex-row items-center justify-center">
+            <View className="w-12 h-12 rounded-full mr-3 items-center justify-center overflow-hidden" style={{ backgroundColor: colors.primary + '20' }}>
+              {otherUserPhoto ? (
+                <Image
+                  source={{ uri: otherUserPhoto }}
+                  className="w-full h-full"
+                  style={{ resizeMode: 'cover' }}
+                />
+              ) : (
+                <Text className="text-foreground font-bold text-xl">
+                  {otherUserName?.charAt(0).toUpperCase() || '?'}
+                </Text>
+              )}
+            </View>
+            <View className="items-center">
+              <Text className="text-lg font-bold text-foreground">
+                {otherUserName}
+              </Text>
+              <Text className="text-xs" style={{ color: colors.primary }}>
+                {isOtherUserTyping ? "typing..." : "● Active now"}
+              </Text>
+            </View>
+          </View>
+          
+          {/* Action Buttons */}
+          <View className="flex-row">
+            <TouchableOpacity
+              className="w-9 h-9 rounded-full items-center justify-center mr-2"
+              style={({ pressed }) => ({ 
+                opacity: pressed ? 0.6 : 1,
+                backgroundColor: colors.surface 
+              })}
+              onPress={() => {
+                setCallType("voice");
+                setShowCallingModal(true);
+              }}
+            >
+              <IconSymbol name="phone.fill" size={18} color={colors.primary} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              className="w-9 h-9 rounded-full items-center justify-center mr-2"
+              style={({ pressed }) => ({ 
+                opacity: pressed ? 0.6 : 1,
+                backgroundColor: colors.surface 
+              })}
+              onPress={() => {
+                setCallType("video");
+                setShowCallingModal(true);
+              }}
+            >
+              <IconSymbol name="video.fill" size={18} color={colors.primary} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              className="w-9 h-9 rounded-full items-center justify-center"
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.6 : 1,
+                backgroundColor: colors.primary + '20'
+              })}
+              onPress={() => setShowSettingsMenu(true)}
+            >
+              <IconSymbol name="ellipsis.circle.fill" size={20} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
-        <View className="flex-1">
-          <Text className="text-lg font-bold text-foreground">
-            {otherUserName}
-          </Text>
-          <Text className="text-xs text-muted">
-            {isOtherUserTyping ? "typing..." : "Active now"}
-          </Text>
-        </View>
-        
-        {/* Call Buttons */}
-        <TouchableOpacity
-          className="w-9 h-9 rounded-full items-center justify-center mr-2"
-          style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-          onPress={() => {
-            setCallType("voice");
-            setShowCallingModal(true);
-          }}
-        >
-          <IconSymbol name="phone.fill" size={20} color={colors.foreground} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          className="w-9 h-9 rounded-full items-center justify-center mr-2"
-          style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-          onPress={() => {
-            setCallType("video");
-            setShowCallingModal(true);
-          }}
-        >
-          <IconSymbol name="video.fill" size={20} color={colors.foreground} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          className="w-9 h-9 rounded-full items-center justify-center"
-          style={({ pressed }) => ({
-            opacity: pressed ? 0.6 : 1,
-            backgroundColor: colors.primary + '20'
-          })}
-          onPress={() => setShowSettingsMenu(true)}
-        >
-          <IconSymbol name="ellipsis.circle.fill" size={22} color={colors.primary} />
-        </TouchableOpacity>
       </View>
 
       {/* Messages List */}
