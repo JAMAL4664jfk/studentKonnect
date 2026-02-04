@@ -714,7 +714,7 @@ export default function ChatDetailScreen() {
           
           {/* Centered User Info */}
           <View className="flex-1 flex-row items-center justify-center">
-            <View className="w-12 h-12 rounded-full mr-3 items-center justify-center overflow-hidden" style={{ backgroundColor: colors.primary + '20' }}>
+            <View className="w-12 h-12 rounded-full mr-3 bg-muted/30 items-center justify-center overflow-hidden">
               {otherUserPhoto ? (
                 <Image
                   source={{ uri: otherUserPhoto }}
@@ -785,7 +785,7 @@ export default function ChatDetailScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 20}
       >
         <FlatList
           ref={flatListRef}
@@ -861,8 +861,8 @@ export default function ChatDetailScreen() {
             })}
           >
             <IconSymbol
-              name="paperplane.fill"
-              size={20}
+              name="arrow.up.circle.fill"
+              size={24}
               color={messageText.trim() && !sending ? "#FFFFFF" : colors.muted}
             />
           </TouchableOpacity>

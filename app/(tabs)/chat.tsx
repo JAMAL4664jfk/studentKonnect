@@ -1339,41 +1339,53 @@ export default function ChatScreen() {
                     <Text className="text-muted text-center mt-2">No status updates</Text>
                   </View>
                 ) : (
-                  statuses.map((status, index) => (
-                    <TouchableOpacity
-                      key={status.id}
-                      onPress={() => handleViewStatus(status, index)}
-                      className="flex-row items-center mb-4"
-                    >
-                      <View
-                        className="w-14 h-14 rounded-full items-center justify-center mr-3"
-                        style={{
-                          borderWidth: 3,
-                          borderColor: colors.primary,
-                        }}
+                  // Group statuses by user_id
+                  Object.entries(
+                    statuses.reduce((acc, status) => {
+                      if (!acc[status.user_id]) {
+                        acc[status.user_id] = [];
+                      }
+                      acc[status.user_id].push(status);
+                      return acc;
+                    }, {} as Record<string, Status[]>)
+                  ).map(([userId, userStatuses]) => {
+                    const firstStatus = userStatuses[0];
+                    return (
+                      <TouchableOpacity
+                        key={userId}
+                        onPress={() => handleViewStatus(firstStatus, 0)}
+                        className="flex-row items-center mb-4"
                       >
-                        {status.user_photo ? (
-                          <Image
-                            source={{ uri: status.user_photo }}
-                            className="w-full h-full rounded-full"
-                          />
-                        ) : (
-                          <Image
-                            source={{ uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(status.user_name)}&background=random&size=128` }}
-                            className="w-full h-full rounded-full"
-                          />
-                        )}
-                      </View>
-                      <View className="flex-1">
-                        <Text className="text-base font-semibold text-foreground">
-                          {status.user_name}
-                        </Text>
-                        <Text className="text-sm text-muted">
-                          {formatTime(status.created_at)}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))
+                        <View
+                          className="w-14 h-14 rounded-full items-center justify-center mr-3"
+                          style={{
+                            borderWidth: 3,
+                            borderColor: colors.primary,
+                          }}
+                        >
+                          {firstStatus.user_photo ? (
+                            <Image
+                              source={{ uri: firstStatus.user_photo }}
+                              className="w-full h-full rounded-full"
+                            />
+                          ) : (
+                            <Image
+                              source={{ uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(firstStatus.user_name)}&background=random&size=128` }}
+                              className="w-full h-full rounded-full"
+                            />
+                          )}
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-base font-semibold text-foreground">
+                            {firstStatus.user_name}
+                          </Text>
+                          <Text className="text-sm text-muted">
+                            {userStatuses.length} {userStatuses.length === 1 ? 'status' : 'statuses'} • {formatTime(userStatuses[0].created_at)}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })
                 )}
               </View>
             </ScrollView>
@@ -1414,12 +1426,19 @@ export default function ChatScreen() {
                   return (
                     <View className="px-4 py-3 border-b border-border">
                       <View className="flex-row items-center mb-3">
-                        <Image
-                          source={{
-                            uri: item.avatar_url || "https://via.placeholder.com/50",
-                          }}
-                          className="w-14 h-14 rounded-full mr-3"
-                        />
+                        <View className="w-14 h-14 rounded-full mr-3 bg-muted/30 items-center justify-center overflow-hidden">
+                          {item.avatar_url ? (
+                            <Image
+                              source={{ uri: item.avatar_url }}
+                              className="w-full h-full"
+                              style={{ resizeMode: 'cover' }}
+                            />
+                          ) : (
+                            <Text className="text-foreground font-bold text-lg">
+                              {item.full_name?.charAt(0).toUpperCase() || '?'}
+                            </Text>
+                          )}
+                        </View>
                         <View className="flex-1">
                           <Text className="text-base font-semibold text-foreground">
                             {item.full_name}
