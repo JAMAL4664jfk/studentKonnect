@@ -124,8 +124,18 @@ export default function ChatDetailScreen() {
         }
       );
     } else {
-      // Android: Show simple options
-      await handleChoosePhoto();
+      // Android: Show alert with options
+      Alert.alert(
+        "Add Attachment",
+        "Choose an option",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Take Photo", onPress: handleTakePhoto },
+          { text: "Choose from Library", onPress: handleChoosePhoto },
+          { text: "Choose File", onPress: handleChooseFile },
+        ],
+        { cancelable: true }
+      );
     }
   };
 
@@ -352,10 +362,19 @@ export default function ChatDetailScreen() {
         className={`flex-row mb-3 ${isMe ? "justify-end" : "justify-start"}`}
       >
         {!isMe && (
-          <Image
-            source={{ uri: otherUserPhoto || "https://via.placeholder.com/40" }}
-            className="w-8 h-8 rounded-full mr-2"
-          />
+          <View className="w-8 h-8 rounded-full mr-2 bg-muted/30 items-center justify-center overflow-hidden">
+            {otherUserPhoto ? (
+              <Image
+                source={{ uri: otherUserPhoto }}
+                className="w-full h-full"
+                style={{ resizeMode: 'cover' }}
+              />
+            ) : (
+              <Text className="text-foreground font-bold text-sm">
+                {otherUserName?.charAt(0).toUpperCase() || '?'}
+              </Text>
+            )}
+          </View>
         )}
         <View className={`max-w-[75%] ${isMe ? "items-end" : "items-start"}`}>
           <View
@@ -370,10 +389,17 @@ export default function ChatDetailScreen() {
           <Text className="text-xs text-muted mt-1">{messageTime}</Text>
         </View>
         {isMe && (
-          <Image
-            source={{ uri: currentUserPhoto || "https://via.placeholder.com/40" }}
-            className="w-8 h-8 rounded-full ml-2"
-          />
+          <View className="w-8 h-8 rounded-full ml-2 bg-primary/30 items-center justify-center overflow-hidden">
+            {currentUserPhoto ? (
+              <Image
+                source={{ uri: currentUserPhoto }}
+                className="w-full h-full"
+                style={{ resizeMode: 'cover' }}
+              />
+            ) : (
+              <Text className="text-white font-bold text-sm">Me</Text>
+            )}
+          </View>
         )}
       </View>
     );
@@ -390,10 +416,19 @@ export default function ChatDetailScreen() {
         >
           <IconSymbol name="arrow.left" size={24} color={colors.foreground} />
         </TouchableOpacity>
-        <Image
-          source={{ uri: otherUserPhoto || "https://via.placeholder.com/40" }}
-          className="w-10 h-10 rounded-full mr-3"
-        />
+        <View className="w-10 h-10 rounded-full mr-3 bg-muted/30 items-center justify-center overflow-hidden">
+          {otherUserPhoto ? (
+            <Image
+              source={{ uri: otherUserPhoto }}
+              className="w-full h-full"
+              style={{ resizeMode: 'cover' }}
+            />
+          ) : (
+            <Text className="text-foreground font-bold text-lg">
+              {otherUserName?.charAt(0).toUpperCase() || '?'}
+            </Text>
+          )}
+        </View>
         <View className="flex-1">
           <Text className="text-lg font-bold text-foreground">
             {otherUserName}
@@ -427,11 +462,11 @@ export default function ChatDetailScreen() {
         </TouchableOpacity>
         
         <TouchableOpacity
-          className="w-9 h-9 rounded-full items-center justify-center"
+          className="w-9 h-9 rounded-full items-center justify-center bg-muted/20"
           style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           onPress={() => setShowSettingsMenu(true)}
         >
-          <IconSymbol name="ellipsis.circle" size={20} color={colors.foreground} />
+          <IconSymbol name="ellipsis.circle.fill" size={20} color={colors.primary} />
         </TouchableOpacity>
       </View>
 

@@ -71,9 +71,11 @@ export default function DiscoverUsersScreen() {
           avatar_url,
           institution_name,
           course_program,
-          bio
+          bio,
+          created_at
         `)
         .neq("id", currentUser!.id)
+        .order("created_at", { ascending: false })
         .limit(50);
 
       // Add search filter
