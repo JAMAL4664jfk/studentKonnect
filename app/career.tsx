@@ -15,7 +15,31 @@ import { useColors } from "@/hooks/use-colors";
 import Toast from "react-native-toast-message";
 import * as DocumentPicker from "expo-document-picker";
 
-type JobType = "all" | "internships" | "jobs" | "learnerships";
+type JobType = "all" | "internships" | "jobs" | "learnerships" | "bursaries";
+
+interface Bursary {
+  id: string;
+  title: string;
+  provider: string;
+  provider_logo: string;
+  amount: string;
+  field_of_study: string;
+  requirements: string[];
+  benefits: string[];
+  deadline: string;
+  description: string;
+}
+
+interface JobProfile {
+  full_name: string;
+  email: string;
+  phone: string;
+  location: string;
+  bio: string;
+  skills: string[];
+  cv_url?: string;
+  available_for_work: boolean;
+}
 
 interface Job {
   id: string;
@@ -346,6 +370,75 @@ const JOBS: Job[] = [
   },
 ];
 
+const BURSARIES: Bursary[] = [
+  {
+    id: "1",
+    title: "Engineering Excellence Bursary",
+    provider: "TechCorp Foundation",
+    provider_logo: "https://ui-avatars.com/api/?name=TechCorp&background=3b82f6&color=fff&size=128",
+    amount: "R80,000/year",
+    field_of_study: "Engineering",
+    requirements: [
+      "Currently enrolled in Engineering degree",
+      "Minimum 65% average",
+      "South African citizen",
+      "Financial need",
+    ],
+    benefits: [
+      "Full tuition coverage",
+      "Monthly stipend R3,000",
+      "Vacation work opportunities",
+      "Mentorship program",
+    ],
+    deadline: "2024-12-31",
+    description: "Comprehensive bursary for engineering students covering tuition, books, and living expenses.",
+  },
+  {
+    id: "2",
+    title: "Business Leadership Bursary",
+    provider: "Future Leaders SA",
+    provider_logo: "https://ui-avatars.com/api/?name=Future+Leaders&background=10b981&color=fff&size=128",
+    amount: "R60,000/year",
+    field_of_study: "Business & Commerce",
+    requirements: [
+      "BCom or related degree",
+      "Leadership experience",
+      "Minimum 60% average",
+      "Community involvement",
+    ],
+    benefits: [
+      "Tuition coverage",
+      "Leadership development program",
+      "Networking events",
+      "Internship placement",
+    ],
+    deadline: "2024-11-30",
+    description: "Develop your business acumen with our comprehensive bursary program.",
+  },
+  {
+    id: "3",
+    title: "Science Innovation Bursary",
+    provider: "Research Institute ZA",
+    provider_logo: "https://ui-avatars.com/api/?name=Research+Institute&background=8b5cf6&color=fff&size=128",
+    amount: "R70,000/year",
+    field_of_study: "Science & Technology",
+    requirements: [
+      "BSc in Science or Technology",
+      "Research interest",
+      "Minimum 70% average",
+      "South African resident",
+    ],
+    benefits: [
+      "Full tuition and accommodation",
+      "Research opportunities",
+      "Conference attendance",
+      "Postgraduate support",
+    ],
+    deadline: "2025-01-15",
+    description: "Join cutting-edge research projects while completing your degree.",
+  },
+];
+
 export default function CareerScreen() {
   const colors = useColors();
   const router = useRouter();
@@ -356,6 +449,10 @@ export default function CareerScreen() {
   const [showJobDetail, setShowJobDetail] = useState(false);
   const [showPostJob, setShowPostJob] = useState(false);
   const [cvFileName, setCvFileName] = useState<string | null>(null);
+  const [showJobProfile, setShowJobProfile] = useState(false);
+  const [showAutoApply, setShowAutoApply] = useState(false);
+  const [showBursaryDetail, setShowBursaryDetail] = useState(false);
+  const [selectedBursary, setSelectedBursary] = useState<Bursary | null>(null);
 
   const filteredJobs = JOBS.filter((job) => {
     const matchesFilter =
@@ -591,6 +688,44 @@ export default function CareerScreen() {
                       <IconSymbol name="chevron.right" size={20} color={colors.muted} />
                     </View>
                   </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => setShowJobProfile(true)}
+                    className="bg-surface rounded-2xl p-4 border border-border active:opacity-90"
+                  >
+                    <View className="flex-row items-center mb-2">
+                      <View
+                        className="w-12 h-12 rounded-xl items-center justify-center mr-3"
+                        style={{ backgroundColor: colors.primary + "20" }}
+                      >
+                        <IconSymbol name="person.text.rectangle" size={24} color={colors.primary} />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-base font-bold text-foreground">My Job Profile</Text>
+                        <Text className="text-sm text-muted">Let recruiters find you</Text>
+                      </View>
+                      <IconSymbol name="chevron.right" size={20} color={colors.muted} />
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => setShowAutoApply(true)}
+                    className="bg-surface rounded-2xl p-4 border border-border active:opacity-90"
+                  >
+                    <View className="flex-row items-center mb-2">
+                      <View
+                        className="w-12 h-12 rounded-xl items-center justify-center mr-3"
+                        style={{ backgroundColor: colors.primary + "20" }}
+                      >
+                        <IconSymbol name="bolt.fill" size={24} color={colors.primary} />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-base font-bold text-foreground">Auto-Apply</Text>
+                        <Text className="text-sm text-muted">Automatically apply to matching jobs</Text>
+                      </View>
+                      <IconSymbol name="chevron.right" size={20} color={colors.muted} />
+                    </View>
+                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -655,7 +790,7 @@ export default function CareerScreen() {
                   showsHorizontalScrollIndicator={false}
                   className="flex-row gap-2"
                 >
-                  {(["all", "internships", "jobs", "learnerships"] as JobType[]).map((filter) => (
+                  {(["all", "internships", "jobs", "learnerships", "bursaries"] as JobType[]).map((filter) => (
                     <TouchableOpacity
                       key={filter}
                       onPress={() => setJobFilter(filter)}
