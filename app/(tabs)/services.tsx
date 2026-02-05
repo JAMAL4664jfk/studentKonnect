@@ -1,10 +1,11 @@
-import { ScrollView, View, Text, TouchableOpacity, ImageBackground } from "react-native";
+import { ScrollView, View, Text, TouchableOpacity, ImageBackgroimport React from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
+import { useInstitution } from "@/contexts/InstitutionContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { supabase } from "@/lib/supabase";
 
@@ -33,13 +34,13 @@ const SERVICES: ServiceItem[] = [
     name: "Chat",
     icon: "message.fill",
     description: "Message your connections",
-    backgroundImage: require("@/assets/images/hero-student-connect.jpg"),
+    backgroundImage: require("@/assets/images/chat-bg.jpg"),
     badgeText: "Coming Soon",
     badgeColor: "#8b5cf6",
   },
   {
     id: "campus-entertainment",
-    name: "Content on Demand",
+    name: "Edutainment",
     icon: "music.note",
     description: "Podcasts, campus radio & live stations",
     backgroundImage: require("@/assets/images/student-podcast-bg.jpg"),
@@ -97,7 +98,7 @@ const SERVICES: ServiceItem[] = [
     name: "Study Material",
     icon: "book.pages.fill",
     description: "Textbooks, stationery, and tech essentials",
-    backgroundImage: require("@/assets/images/lifestyle-rewards-banner.jpg"),
+    backgroundImage: require("@/assets/images/learning-hero-bg.jpg"),
     badgeText: "Shop Now",
     badgeColor: "#eab308",
   },
@@ -133,6 +134,7 @@ const SERVICES: ServiceItem[] = [
 export default function ServicesScreen() {
   const colors = useColors();
   const router = useRouter();
+  const { userInstitution } = useInstitution();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -198,20 +200,41 @@ export default function ServicesScreen() {
         <View className="flex-1 gap-6">
           {/* Logo and Tagline Header */}
           <View className="items-center gap-3 py-4">
-            <Image
-              source={require("@/assets/images/student-konnect-logo.png")}
-              style={{ width: 80, height: 80 }}
-              contentFit="contain"
-            />
-            <Text className="text-3xl font-bold text-foreground text-center">
-              Student Konnect
-            </Text>
-            <Text className="text-lg font-semibold text-primary text-center">
-              We care
-            </Text>
-            <Text className="text-base text-muted text-center px-4">
-              Connecting over 300 million students globally
-            </Text>
+            {userInstitution ? (
+              <>
+                <Image
+                  source={{ uri: userInstitution.logo }}
+                  style={{ width: 80, height: 80, backgroundColor: '#fff', borderRadius: 16 }}
+                  contentFit="contain"
+                />
+                <Text className="text-3xl font-bold text-foreground text-center">
+                  {userInstitution.shortName} Konnect
+                </Text>
+                <Text className="text-lg font-semibold text-primary text-center">
+                  We care
+                </Text>
+                <Text className="text-base text-muted text-center px-4">
+                  Connecting {userInstitution.name} students
+                </Text>
+              </>
+            ) : (
+              <>
+                <Image
+                  source={require("@/assets/images/student-konnect-logo.png")}
+                  style={{ width: 80, height: 80 }}
+                  contentFit="contain"
+                />
+                <Text className="text-3xl font-bold text-foreground text-center">
+                  Student Konnect
+                </Text>
+                <Text className="text-lg font-semibold text-primary text-center">
+                  We care
+                </Text>
+                <Text className="text-base text-muted text-center px-4">
+                  Connecting over 300 million students globally
+                </Text>
+              </>
+            )}
           </View>
 
           {/* Services Grid */}

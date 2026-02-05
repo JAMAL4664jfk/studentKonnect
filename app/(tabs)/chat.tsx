@@ -16,6 +16,7 @@ import {
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useChat } from "@/contexts/ChatContext";
+import { useInstitution } from "@/contexts/InstitutionContext";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { supabase } from "@/lib/supabase";
@@ -92,6 +93,7 @@ type TabType = "chats" | "groups" | "calls" | "status" | "discover";
 export default function ChatScreen() {
   const router = useRouter();
   const colors = useColors();
+  const { userInstitution } = useInstitution();
   const { conversations, setConversations, loadConversations } = useChat();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -833,7 +835,9 @@ export default function ChatScreen() {
         {/* Header */}
         <View className="px-4 py-3 border-b border-border">
           <View className="flex-row items-center justify-between">
-            <Text className="text-2xl font-bold text-foreground">Student Konnect</Text>
+            <Text className="text-2xl font-bold text-foreground">
+              {userInstitution ? `${userInstitution.shortName} Konnect` : "Student Konnect"}
+            </Text>
             <View className="flex-row gap-3">
               <TouchableOpacity onPress={() => router.push("/connection-requests" as any)}>
                 <IconSymbol name="person.badge.plus" size={24} color={colors.foreground} />

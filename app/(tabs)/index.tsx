@@ -8,9 +8,8 @@ import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useWallet } from "@/contexts/WalletContext";
+import { useInstitution } from "@/contexts/InstitutionContext";
 import { MoreOptionsModal } from "@/components/MoreOptionsModal";
-import { supabase } from "@/lib/supabase";
-import { SA_INSTITUTIONS } from "@/constants/sa-institutions-with-logos";
 
 import { BRAND_COLORS } from "@/constants/brand-colors";
 import { FEATURE_DESCRIPTIONS } from "@/constants/feature-descriptions";
@@ -57,33 +56,9 @@ export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
   const { balance, isLoading: walletLoading, refreshBalance } = useWallet();
+  const { userInstitution } = useInstitution();
   const [refreshing, setRefreshing] = useState(false);
   const [moreOptionsVisible, setMoreOptionsVisible] = useState(false);
-  const [userInstitution, setUserInstitution] = useState<any>(null);
-
-  useEffect(() => {
-    fetchUserInstitution();
-  }, []);
-
-  const fetchUserInstitution = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("institution_id")
-          .eq("id", user.id)
-          .single();
-        
-        if (profile?.institution_id) {
-          const institution = SA_INSTITUTIONS.find(inst => inst.id === profile.institution_id);
-          setUserInstitution(institution);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching user institution:", error);
-    }
-  };
 
   const onRefresh = async () => {
     setRefreshing(true);

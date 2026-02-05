@@ -1,78 +1,129 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { supabase } from "@/lib/supabase";
+import { SA_INSTITUTIONS } from "@/constants/sa-institutions-with-logos";
 
 export type Institution = {
   id: string;
   name: string;
-  logo?: string;
-  type: "university" | "partner" | "service";
+  shortName: string;
+  logo: string;
+  type: "university" | "tvet";
 };
 
 interface InstitutionContextType {
-  selectedInstitution: Institution | null;
-  setSelectedInstitution: (institution: Institution | null) => void;
-  institutions: Institution[];
+  userInstitution: Institution | null;
   isLoading: boolean;
+  refreshInstitution: () => Promise<void>;
 }
 
 const InstitutionContext = createContext<InstitutionContextType | undefined>(undefined);
 
-const STORAGE_KEY = "@scholar_fin_hub:selected_institution";
-
-// Default institutions (can be expanded)
-const DEFAULT_INSTITUTIONS: Institution[] = [
-  { id: "unisa", name: "UNISA", type: "university" },
-  { id: "vut", name: "VUT", type: "university" },
-  { id: "shoprite", name: "Shoprite", type: "partner" },
-  { id: "checkers", name: "Checkers", type: "partner" },
-  { id: "nsfas", name: "NSFAS", type: "service" },
-];
+const STORAGE_KEY = "@student_konnect:user_institution";
 
 export const InstitutionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [selectedInstitution, setSelectedInstitutionState] = useState<Institution | null>(null);
-  const [institutions] = useState<Institution[]>(DEFAULT_INSTITUTIONS);
+  const [userInstitution, setUserInstitution] = useState<Institution | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load selected institution from AsyncStorage on mount
-  useEffect(() => {
-    const loadSelectedInstitution = async () => {
-      try {
-        const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          setSelectedInstitutionState(parsed);
-        }
-      } catch (error) {
-        console.error("Error loading selected institution:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadSelectedInstitution();
-  }, []);
-
-  // Save selected institution to AsyncStorage when it changes
-  const setSelectedInstitution = async (institution: Institution | null) => {
+  // Fetch user's institution from database
+  const fetchUserInstitution = async () => {
     try {
-      if (institution) {
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(institution));
+      setIsLoading(true);
+      
+      // Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setUserInstitution(null);
+        await AsyncStorage.removeItem(STORAGE_KEY);
+        return;
+      }
+
+      // Fetch user's profile with institution_id
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("institution_id")
+        .eq("id", user.id)
+        .single();
+
+      if (error) {
+        console.error("Error fetching profile:", error);
+        setUserInstitution(null);
+        return;
+      }
+
+      if (profile?.institution_id) {
+        // Find institution in SA_INSTITUTIONS
+        const institution = SA_INSTITUTIONS.find(
+          (inst) => inst.id === profile.institution_id
+        );
+
+        if (institution) {
+          setUserInstitution(institution as Institution);
+          // Cache in AsyncStorage
+          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(institution));
+        } else {
+          setUserInstitution(null);
+          await AsyncStorage.removeItem(STORAGE_KEY);
+        }
       } else {
+        setUserInstitution(null);
         await AsyncStorage.removeItem(STORAGE_KEY);
       }
-      setSelectedInstitutionState(institution);
     } catch (error) {
-      console.error("Error saving selected institution:", error);
+      console.error("Error fetching user institution:", error);
+      setUserInstitution(null);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Load cached institution on mount, then fetch from database
+  useEffect(() => {
+    const loadCachedAndFetch = async () => {
+      try {
+        // Load from cache first for instant display
+        const cached = await AsyncStorage.getItem(STORAGE_KEY);
+        if (cached) {
+          setUserInstitution(JSON.parse(cached));
+        }
+      } catch (error) {
+        console.error("Error loading cached institution:", error);
+      }
+      
+      // Then fetch fresh data from database
+      await fetchUserInstitution();
+    };
+
+    loadCachedAndFetch();
+
+    // Listen for auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === "SIGNED_IN") {
+          await fetchUserInstitution();
+        } else if (event === "SIGNED_OUT") {
+          setUserInstitution(null);
+          await AsyncStorage.removeItem(STORAGE_KEY);
+        }
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const refreshInstitution = async () => {
+    await fetchUserInstitution();
   };
 
   return (
     <InstitutionContext.Provider
       value={{
-        selectedInstitution,
-        setSelectedInstitution,
-        institutions,
+        userInstitution,
         isLoading,
+        refreshInstitution,
       }}
     >
       {children}
