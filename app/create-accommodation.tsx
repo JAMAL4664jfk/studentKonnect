@@ -186,29 +186,29 @@ export default function CreateAccommodationScreen() {
         <View className="gap-4">
           {/* Title */}
           <View>
-            <Text className="text-sm font-semibold text-foreground mb-2">
+            <Text className="text-sm font-medium text-foreground mb-2">
               Title *
             </Text>
             <TextInput
               value={title}
               onChangeText={setTitle}
               placeholder="e.g., Modern 2-Bed Apartment Near Campus"
-              placeholderTextColor={colors.mutedForeground}
-              className="bg-surface rounded-xl px-4 py-3 text-foreground"
+              placeholderTextColor={colors.muted}
+              className="bg-surface border border-border rounded-xl px-4 py-3 text-foreground"
             />
           </View>
 
           {/* Description */}
           <View>
-            <Text className="text-sm font-semibold text-foreground mb-2">
+            <Text className="text-sm font-medium text-foreground mb-2">
               Description *
             </Text>
             <TextInput
               value={description}
               onChangeText={setDescription}
               placeholder="Describe your accommodation..."
-              placeholderTextColor={colors.mutedForeground}
-              className="bg-surface rounded-xl px-4 py-3 text-foreground"
+              placeholderTextColor={colors.muted}
+              className="bg-surface border border-border rounded-xl px-4 py-3 text-foreground"
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -217,24 +217,24 @@ export default function CreateAccommodationScreen() {
 
           {/* Address */}
           <View>
-            <Text className="text-sm font-semibold text-foreground mb-2">
+            <Text className="text-sm font-medium text-foreground mb-2">
               Address *
             </Text>
             <TextInput
               value={address}
               onChangeText={setAddress}
               placeholder="Street address"
-              placeholderTextColor={colors.mutedForeground}
-              className="bg-surface rounded-xl px-4 py-3 text-foreground"
+              placeholderTextColor={colors.muted}
+              className="bg-surface border border-border rounded-xl px-4 py-3 text-foreground"
             />
           </View>
 
           {/* City */}
           <View>
-            <Text className="text-sm font-semibold text-foreground mb-2">
+            <Text className="text-sm font-medium text-foreground mb-2">
               City *
             </Text>
-            <View className="bg-surface rounded-xl overflow-hidden">
+            <View className="bg-surface border border-border rounded-xl overflow-hidden">
               <Picker
                 selectedValue={city}
                 onValueChange={setCity}
@@ -250,10 +250,10 @@ export default function CreateAccommodationScreen() {
 
           {/* Property Type */}
           <View>
-            <Text className="text-sm font-semibold text-foreground mb-2">
+            <Text className="text-sm font-medium text-foreground mb-2">
               Property Type *
             </Text>
-            <View className="bg-surface rounded-xl overflow-hidden">
+            <View className="bg-surface border border-border rounded-xl overflow-hidden">
               <Picker
                 selectedValue={propertyType}
                 onValueChange={(value) => setPropertyType(value as PropertyType)}
@@ -270,15 +270,15 @@ export default function CreateAccommodationScreen() {
 
           {/* Price */}
           <View>
-            <Text className="text-sm font-semibold text-foreground mb-2">
+            <Text className="text-sm font-medium text-foreground mb-2">
               Monthly Rent (ZAR) *
             </Text>
             <TextInput
               value={price}
               onChangeText={setPrice}
               placeholder="e.g., 8500"
-              placeholderTextColor={colors.mutedForeground}
-              className="bg-surface rounded-xl px-4 py-3 text-foreground"
+              placeholderTextColor={colors.muted}
+              className="bg-surface border border-border rounded-xl px-4 py-3 text-foreground"
               keyboardType="numeric"
             />
           </View>
@@ -286,28 +286,28 @@ export default function CreateAccommodationScreen() {
           {/* Bedrooms & Bathrooms */}
           <View className="flex-row gap-3">
             <View className="flex-1">
-              <Text className="text-sm font-semibold text-foreground mb-2">
+              <Text className="text-sm font-medium text-foreground mb-2">
                 Bedrooms *
               </Text>
               <TextInput
                 value={bedrooms}
                 onChangeText={setBedrooms}
                 placeholder="1"
-                placeholderTextColor={colors.mutedForeground}
-                className="bg-surface rounded-xl px-4 py-3 text-foreground"
+                placeholderTextColor={colors.muted}
+                className="bg-surface border border-border rounded-xl px-4 py-3 text-foreground"
                 keyboardType="numeric"
               />
             </View>
             <View className="flex-1">
-              <Text className="text-sm font-semibold text-foreground mb-2">
+              <Text className="text-sm font-medium text-foreground mb-2">
                 Bathrooms *
               </Text>
               <TextInput
                 value={bathrooms}
                 onChangeText={setBathrooms}
                 placeholder="1"
-                placeholderTextColor={colors.mutedForeground}
-                className="bg-surface rounded-xl px-4 py-3 text-foreground"
+                placeholderTextColor={colors.muted}
+                className="bg-surface border border-border rounded-xl px-4 py-3 text-foreground"
                 keyboardType="numeric"
               />
             </View>
@@ -315,7 +315,7 @@ export default function CreateAccommodationScreen() {
 
           {/* Amenities */}
           <View>
-            <Text className="text-sm font-semibold text-foreground mb-2">
+            <Text className="text-sm font-medium text-foreground mb-2">
               Amenities
             </Text>
             <View className="flex-row flex-wrap gap-2">
@@ -323,11 +323,12 @@ export default function CreateAccommodationScreen() {
                 <TouchableOpacity
                   key={amenity}
                   onPress={() => toggleAmenity(amenity)}
-                  className={`px-4 py-2 rounded-xl ${
+                  className={`px-4 py-2 rounded-full ${
                     selectedAmenities.includes(amenity)
                       ? "bg-primary"
                       : "bg-surface"
                   }`}
+                  style={{ borderWidth: 1, borderColor: colors.border }}
                 >
                   <Text
                     className={`text-sm font-medium ${
@@ -345,15 +346,15 @@ export default function CreateAccommodationScreen() {
 
           {/* Images */}
           <View>
-            <Text className="text-sm font-semibold text-foreground mb-2">
+            <Text className="text-sm font-medium text-foreground mb-2">
               Photos
             </Text>
             <TouchableOpacity
               onPress={pickImage}
-              className="bg-surface rounded-xl p-6 items-center border-2 border-dashed border-border"
+              className="bg-surface border border-border rounded-xl p-6 items-center"
             >
-              <IconSymbol name="photo" size={32} color={colors.primary} />
-              <Text className="text-sm text-muted-foreground mt-2">
+              <IconSymbol name="photo.fill" size={32} color={colors.primary} />
+              <Text className="text-sm text-primary mt-2">
                 Tap to add photos
               </Text>
             </TouchableOpacity>
@@ -378,11 +379,10 @@ export default function CreateAccommodationScreen() {
           <TouchableOpacity
             onPress={handleSubmit}
             disabled={loading}
-            className={`bg-primary py-4 rounded-xl items-center mt-4 ${
-              loading ? "opacity-50" : ""
-            }`}
+            className="bg-primary rounded-xl py-4 items-center mt-4"
+            style={{ opacity: loading ? 0.5 : 1 }}
           >
-            <Text className="text-primary-foreground font-bold text-lg">
+            <Text className="text-white font-semibold text-base">
               {loading ? "Creating..." : "Create Listing"}
             </Text>
           </TouchableOpacity>
