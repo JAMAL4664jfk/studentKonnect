@@ -10,6 +10,7 @@ import { useColors } from "@/hooks/use-colors";
 import { useWallet } from "@/contexts/WalletContext";
 import { useInstitution } from "@/contexts/InstitutionContext";
 import { MoreOptionsModal } from "@/components/MoreOptionsModal";
+import { GazooAIChat } from "@/components/GazooAIChat";
 
 import { BRAND_COLORS } from "@/constants/brand-colors";
 import { FEATURE_DESCRIPTIONS } from "@/constants/feature-descriptions";
@@ -59,6 +60,7 @@ export default function HomeScreen() {
   const { userInstitution } = useInstitution();
   const [refreshing, setRefreshing] = useState(false);
   const [moreOptionsVisible, setMoreOptionsVisible] = useState(false);
+  const [gazooAIVisible, setGazooAIVisible] = useState(false);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -117,6 +119,31 @@ export default function HomeScreen() {
                 )}
                 <Text className="text-base text-white/90 mt-1">{FEATURE_DESCRIPTIONS.heroMessage}</Text>
                 <Text className="text-sm text-white/80 mt-2">{FEATURE_DESCRIPTIONS.tagline}</Text>
+
+                {/* Gazoo AI Button */}
+                <TouchableOpacity
+                  onPress={() => setGazooAIVisible(true)}
+                  className="mt-4 flex-row items-center bg-white/20 backdrop-blur-lg rounded-2xl px-4 py-3 active:opacity-70"
+                  style={{
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 5,
+                  }}
+                >
+                  <View
+                    className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                    style={{ backgroundColor: '#7c3aed' }}
+                  >
+                    <IconSymbol name="sparkles" size={20} color="#fff" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-white font-bold text-base">Chat with Gazoo AI</Text>
+                    <Text className="text-white/80 text-xs">Your intelligent student companion</Text>
+                  </View>
+                  <IconSymbol name="chevron.right" size={20} color="#fff" />
+                </TouchableOpacity>
               </View>
             <TouchableOpacity 
               onPress={() => router.push("/notifications" as any)}
@@ -260,4 +287,5 @@ export default function HomeScreen() {
       />
     </ScreenContainer>
   );
+      <GazooAIChat visible={gazooAIVisible} onClose={() => setGazooAIVisible(false)} />
 }
