@@ -1,5 +1,6 @@
-import { ScrollView, View, Text, TouchableOpacity, ImageBackgroimport React from "react";
+import React from "react";
 import { useState, useEffect } from "react";
+import { ScrollView, View, Text, TouchableOpacity, ImageBackground } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { ScreenContainer } from "@/components/screen-container";
