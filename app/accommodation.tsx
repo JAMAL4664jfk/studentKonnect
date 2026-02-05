@@ -557,56 +557,39 @@ export default function AccommodationScreen() {
       <View className="flex-1">
         <View>
         {/* Header */}
-        <View className="mb-6 -mx-4 -mt-4 px-4 pt-6 pb-8 rounded-b-3xl overflow-hidden"
-          style={{
-            backgroundColor: '#0ea5e9',
-            backgroundImage: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)'
-          }}
-        >
-          <View className="mb-2">
-            <View className="flex-row items-center justify-between mb-3">
-              <View className="flex-1 pr-12">
-                <View className="flex-row items-center gap-2 mb-1 flex-wrap">
-                  <Text className="text-3xl font-bold text-white" style={{ textShadowColor: 'rgba(0,0,0,0.1)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4 }}>{FEATURE_DESCRIPTIONS.features.accommodation.title}</Text>
-                  <Text className="text-lg">{FEATURE_DESCRIPTIONS.features.accommodation.badge}</Text>
-                </View>
-              </View>
-              <TouchableOpacity
-                onPress={() => router.back()}
-                className="w-10 h-10 rounded-full items-center justify-center absolute right-0 top-0"
-                style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-              >
-                <IconSymbol name="xmark" size={20} color="#fff" />
-              </TouchableOpacity>
-            </View>
-            <Text className="text-sm text-white" style={{ opacity: 0.9 }}>
-              {FEATURE_DESCRIPTIONS.features.accommodation.description}
-            </Text>
-          </View>
-        </View>
-
-        {/* Search Bar */}
-        <View className="bg-surface rounded-2xl px-4 py-3.5 flex-row items-center gap-3 mb-4"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 4,
-          }}
-        >
-          <IconSymbol name="magnifyingglass" size={22} color={colors.mutedForeground} />
-          <TextInput
-            placeholder="Search by name, location, or university..."
-            placeholderTextColor={colors.mutedForeground}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            className="flex-1 text-base text-foreground"
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <IconSymbol name="xmark.circle.fill" size={20} color={colors.mutedForeground} />
+        <View className="pt-4 pb-2">
+          <View className="flex-row items-center justify-between mb-4">
+            <TouchableOpacity onPress={() => router.back()}>
+              <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
             </TouchableOpacity>
-          )}
+            <View className="flex-1 ml-4">
+              <Text className="text-2xl font-bold text-foreground">Accommodation</Text>
+              <Text className="text-sm text-muted">Find your perfect student home</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => router.push("/create-accommodation")}
+              className="bg-primary px-4 py-2 rounded-full"
+            >
+              <Text className="text-white text-sm font-semibold">Post</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Search */}
+          <View className="flex-row items-center gap-3 rounded-2xl px-4 py-3 bg-surface border border-border mb-3">
+            <IconSymbol name="magnifyingglass" size={20} color={colors.muted} />
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search by location or university..."
+              placeholderTextColor={colors.muted}
+              className="flex-1 text-foreground text-base"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery("")}>
+                <IconSymbol name="xmark.circle.fill" size={20} color={colors.muted} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Property Type Dropdown */}

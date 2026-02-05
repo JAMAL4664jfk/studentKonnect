@@ -553,63 +553,40 @@ export default function MarketplaceScreen() {
     <ScreenContainer>
       <View className="flex-1">
         <View>
-        {/* Modern Header - Bold & Confident */}
-        {/* Compact Header */}
-        <View className="flex-row items-center justify-between mb-6">
-          <View className="flex-1">
-            <Text className="text-3xl font-bold text-foreground mb-1">
-              Marketplace
-            </Text>
-            <Text className="text-sm text-muted-foreground">
-              Buy and sell with fellow students
-            </Text>
-          </View>
-          <View className="flex-row items-center gap-2">
-            <TouchableOpacity
-              onPress={() => router.push("/my-marketplace")}
-              className="w-10 h-10 rounded-full bg-muted items-center justify-center"
-            >
-              <IconSymbol name="person.fill" size={18} color={colors.primary} />
+        {/* Header */}
+        <View className="pt-4 pb-2">
+          <View className="flex-row items-center justify-between mb-4">
+            <TouchableOpacity onPress={() => router.back()}>
+              <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
             </TouchableOpacity>
+            <View className="flex-1 ml-4">
+              <Text className="text-2xl font-bold text-foreground">Marketplace</Text>
+              <Text className="text-sm text-muted">Buy and sell with fellow students</Text>
+            </View>
             <TouchableOpacity
-              onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-muted items-center justify-center"
+              onPress={() => router.push("/create-marketplace")}
+              className="bg-primary px-4 py-2 rounded-full"
             >
-              <IconSymbol name="xmark" size={18} color={colors.foreground} />
+              <Text className="text-white text-sm font-semibold">Post</Text>
             </TouchableOpacity>
           </View>
-        </View>
 
-        {/* Search Bar */}
-        <View
-          className="bg-surface rounded-2xl px-5 py-4 flex-row items-center gap-3 mb-6"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 4,
-          }}
-        >
-          <IconSymbol name="magnifyingglass" size={22} color={colors.mutedForeground} />
-          <TextInput
-            placeholder="Search for items..."
-            placeholderTextColor={colors.mutedForeground}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            className="flex-1 text-base text-foreground"
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <IconSymbol name="xmark.circle.fill" size={20} color={colors.mutedForeground} />
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            className="bg-primary px-4 py-2.5 rounded-xl flex-row items-center gap-1.5"
-            onPress={() => router.push("/create-marketplace")}
-          >
-            <IconSymbol name="plus" size={18} color="#fff" />
-            <Text className="text-primary-foreground font-bold text-sm">Post</Text>
-          </TouchableOpacity>
+          {/* Search */}
+          <View className="flex-row items-center gap-3 rounded-2xl px-4 py-3 bg-surface border border-border mb-3">
+            <IconSymbol name="magnifyingglass" size={20} color={colors.muted} />
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search for items..."
+              placeholderTextColor={colors.muted}
+              className="flex-1 text-foreground text-base"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery("")}>
+                <IconSymbol name="xmark.circle.fill" size={20} color={colors.muted} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Category Dropdown */}
