@@ -450,14 +450,8 @@ export default function CareerScreen() {
   return (
     <ScreenContainer edges={["top", "left", "right"]}>
       <View className="flex-1">
-        {/* Header with Background */}
-        <View className="overflow-hidden">
-          <Image
-            source={{ uri: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&h=300&fit=crop" }}
-            className="absolute w-full h-full opacity-20"
-            contentFit="cover"
-          />
-          <View className="flex-row items-center justify-between p-4 border-b border-border" style={{ backgroundColor: 'rgba(0,0,0,0.05)' }}>
+        {/* Header */}
+        <View className="flex-row items-center justify-between p-4 border-b border-border">
           <View className="flex-row items-center flex-1">
             <TouchableOpacity onPress={() => router.back()}>
               <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
@@ -466,7 +460,6 @@ export default function CareerScreen() {
               <Text className="text-2xl font-bold text-foreground">Career</Text>
               <Text className="text-sm text-muted">Career development tools</Text>
             </View>
-          </View>
           </View>
         </View>
 
@@ -594,7 +587,81 @@ export default function CareerScreen() {
                 </View>
               </View>
 
+              {/* Features Grid */}
+              <View className="px-4 pb-4">
+                <Text className="text-lg font-semibold text-foreground mb-3">
+                  Career Development Features
+                </Text>
+                <View className="gap-3">
+                  <View className="bg-surface rounded-2xl p-4 border border-border">
+                    <View className="flex-row items-center mb-2">
+                      <View
+                        className="w-10 h-10 rounded-lg items-center justify-center mr-3"
+                        style={{ backgroundColor: colors.primary + "20" }}
+                      >
+                        <IconSymbol name="doc.text.fill" size={20} color={colors.primary} />
+                      </View>
+                      <Text className="text-base font-bold text-foreground flex-1">
+                        Professional CV Builder
+                      </Text>
+                    </View>
+                    <Text className="text-sm text-muted">
+                      Create ATS-friendly CVs with industry-standard templates
+                    </Text>
+                  </View>
 
+                  <View className="bg-surface rounded-2xl p-4 border border-border">
+                    <View className="flex-row items-center mb-2">
+                      <View
+                        className="w-10 h-10 rounded-lg items-center justify-center mr-3"
+                        style={{ backgroundColor: colors.primary + "20" }}
+                      >
+                        <IconSymbol name="person.2.fill" size={20} color={colors.primary} />
+                      </View>
+                      <Text className="text-base font-bold text-foreground flex-1">
+                        Interview Preparation
+                      </Text>
+                    </View>
+                    <Text className="text-sm text-muted">
+                      Practice common interview questions with AI feedback
+                    </Text>
+                  </View>
+
+                  <View className="bg-surface rounded-2xl p-4 border border-border">
+                    <View className="flex-row items-center mb-2">
+                      <View
+                        className="w-10 h-10 rounded-lg items-center justify-center mr-3"
+                        style={{ backgroundColor: colors.primary + "20" }}
+                      >
+                        <IconSymbol name="chart.bar.fill" size={20} color={colors.primary} />
+                      </View>
+                      <Text className="text-base font-bold text-foreground flex-1">
+                        Skills Assessment
+                      </Text>
+                    </View>
+                    <Text className="text-sm text-muted">
+                      Identify skill gaps and get personalized learning recommendations
+                    </Text>
+                  </View>
+
+                  <View className="bg-surface rounded-2xl p-4 border border-border">
+                    <View className="flex-row items-center mb-2">
+                      <View
+                        className="w-10 h-10 rounded-lg items-center justify-center mr-3"
+                        style={{ backgroundColor: colors.primary + "20" }}
+                      >
+                        <IconSymbol name="star.fill" size={20} color={colors.primary} />
+                      </View>
+                      <Text className="text-base font-bold text-foreground flex-1">
+                        Career Path Guidance
+                      </Text>
+                    </View>
+                    <Text className="text-sm text-muted">
+                      Explore career options aligned with your interests and skills
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </>
           ) : (
             <>
