@@ -10,7 +10,7 @@ import Toast from "react-native-toast-message";
 import { LinearGradient } from "expo-linear-gradient";
 
 const { width, height } = Dimensions.get("window");
-const CARD_HEIGHT = Math.min(height * 0.6, 600);
+const CARD_HEIGHT = Math.min(height * 0.55, 550);
 const CARD_WIDTH = Math.min(width - 32, 400);
 const SWIPE_THRESHOLD = width * 0.25;
 
@@ -476,7 +476,7 @@ export default function StudentHookupScreen() {
   const renderDashboard = () => (
     <View className="flex-1">
       {/* Swipe Cards */}
-      <View style={{ height: CARD_HEIGHT, marginBottom: 24, alignItems: 'center' }}>
+      <View style={{ height: CARD_HEIGHT, marginBottom: 24, alignItems: 'center', justifyContent: 'center', marginTop: 20 }}>
         {profiles.length === 0 ? (
           <View className="flex-1 items-center justify-center">
             <IconSymbol name="heart.slash.fill" size={64} color={colors.mutedForeground} />

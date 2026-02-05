@@ -69,9 +69,9 @@ const SERVICES: ServiceItem[] = [
 
   {
     id: "wellness",
-    name: "Wellness",
+    name: "Wellness Sports and Entertainment",
     icon: "heart.fill",
-    description: "Mental health support",
+    description: "Health, fitness & campus sports",
     backgroundImage: require("@/assets/images/mental-health-counselling.jpg"),
     badgeText: "24/7 Support",
     badgeColor: "#ec4899",
