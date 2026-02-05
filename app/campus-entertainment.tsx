@@ -240,7 +240,7 @@ export default function CampusEntertainmentScreen() {
     if (activeTab === "podcasts") {
       router.push("/podcasts");
     }
-  }, [activeTab]);
+  }, [activeTab, router]);
 
   const playRadioStation = async (station: RadioStation) => {
     try {
