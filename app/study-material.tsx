@@ -30,6 +30,21 @@ type Product = {
 
 type CartItem = Product & { quantity: number };
 
+type Institution = {
+  id: string;
+  name: string;
+  logo: string;
+};
+
+const INSTITUTIONS: Institution[] = [
+  { id: "ub", name: "University of Botswana", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/f/f3/University_of_Botswana_logo.svg/200px-University_of_Botswana_logo.svg.png" },
+  { id: "uct", name: "University of Cape Town", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/c/c5/University_of_Cape_Town_logo.svg/200px-University_of_Cape_Town_logo.svg.png" },
+  { id: "wits", name: "University of the Witwatersrand", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/f/f4/University_of_the_Witwatersrand_Logo.svg/200px-University_of_the_Witwatersrand_Logo.svg.png" },
+  { id: "up", name: "University of Pretoria", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/3/36/University_of_Pretoria_logo.svg/200px-University_of_Pretoria_logo.svg.png" },
+  { id: "sun", name: "Stellenbosch University", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/9/9a/Stellenbosch_University_Logo.svg/200px-Stellenbosch_University_Logo.svg.png" },
+  { id: "ukzn", name: "University of KwaZulu-Natal", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/3/35/University_of_KwaZulu-Natal_logo.svg/200px-University_of_KwaZulu-Natal_logo.svg.png" },
+];
+
 const PRODUCTS: Product[] = [
   // Engineering Textbooks - Year 1
   {
@@ -594,7 +609,7 @@ const PRODUCTS: Product[] = [
 ];
 
 const CATEGORIES = [
-  { key: "all" as Category, label: "All", icon: "square.grid.2x2" },
+  { key: "all" as Category, label: "All Categories", icon: "square.grid.2x2" },
   { key: "textbooks" as Category, label: "Textbooks", icon: "book.fill" },
   { key: "stationery" as Category, label: "Stationery", icon: "pencil" },
   { key: "tech" as Category, label: "Tech & Devices", icon: "laptopcomputer" },
@@ -624,10 +639,15 @@ export default function StudyMaterialScreen() {
   const [selectedCategory, setSelectedCategory] = useState<Category>("all");
   const [selectedFaculty, setSelectedFaculty] = useState<Faculty>("all");
   const [selectedYear, setSelectedYear] = useState<Year>("all");
+  const [selectedInstitution, setSelectedInstitution] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showFacultyDropdown, setShowFacultyDropdown] = useState(false);
+  const [showYearDropdown, setShowYearDropdown] = useState(false);
+  const [showInstitutionModal, setShowInstitutionModal] = useState(false);
 
   const filteredProducts = PRODUCTS.filter((product) => {
     const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
@@ -722,6 +742,11 @@ export default function StudyMaterialScreen() {
     </TouchableOpacity>
   );
 
+  const selectedCategoryLabel = CATEGORIES.find(c => c.key === selectedCategory)?.label || "All Categories";
+  const selectedFacultyLabel = FACULTIES.find(f => f.key === selectedFaculty)?.label || "All Faculties";
+  const selectedYearLabel = YEARS.find(y => y.key === selectedYear)?.label || "All Years";
+  const selectedInstitutionData = INSTITUTIONS.find(i => i.id === selectedInstitution);
+
   return (
     <ScreenContainer>
       <View className="flex-1">
@@ -781,104 +806,149 @@ export default function StudyMaterialScreen() {
           )}
         </View>
 
-        {/* Category Pills */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mb-4"
-          contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 12 }}
+        {/* Institution Selector */}
+        <TouchableOpacity
+          onPress={() => setShowInstitutionModal(true)}
+          className="bg-white border-2 border-gray-200 rounded-2xl px-5 py-4 flex-row items-center justify-between mb-4"
         >
-          {CATEGORIES.map((category) => (
-            <TouchableOpacity
-              key={category.key}
-              onPress={() => {
-                setSelectedCategory(category.key);
-                setSelectedFaculty("all");
-                setSelectedYear("all");
-              }}
-              className={`px-5 rounded-full flex-row items-center gap-2 ${
-                selectedCategory === category.key
-                  ? "bg-primary"
-                  : "bg-white border-2 border-gray-200"
-              }`}
-              style={{ height: 42, minHeight: 42, maxHeight: 42 }}
-            >
-              <IconSymbol
-                name={category.icon as any}
-                size={18}
-                color={selectedCategory === category.key ? "#fff" : "#1f2937"}
+          {selectedInstitutionData ? (
+            <View className="flex-row items-center gap-3 flex-1">
+              <Image
+                source={{ uri: selectedInstitutionData.logo }}
+                style={{ width: 32, height: 32 }}
+                contentFit="contain"
               />
-              <Text
-                className={`font-bold text-base ${
-                  selectedCategory === category.key ? "text-white" : "text-gray-900"
+              <Text className="text-base font-semibold text-gray-900 flex-1" numberOfLines={1}>
+                {selectedInstitutionData.name}
+              </Text>
+            </View>
+          ) : (
+            <Text className="text-base font-semibold text-gray-900">Select Institution</Text>
+          )}
+          <IconSymbol name="chevron.down" size={20} color="#1f2937" />
+        </TouchableOpacity>
+
+        {/* 3 Horizontal Dropdowns */}
+        <View className="flex-row gap-3 mb-6">
+          {/* Category Dropdown */}
+          <TouchableOpacity
+            onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
+            className="flex-1 bg-white border-2 border-gray-200 rounded-xl px-4 py-3 flex-row items-center justify-between"
+          >
+            <Text className="text-sm font-semibold text-gray-900" numberOfLines={1}>
+              {selectedCategoryLabel}
+            </Text>
+            <IconSymbol name="chevron.down" size={16} color="#1f2937" />
+          </TouchableOpacity>
+
+          {/* Faculty Dropdown */}
+          {(selectedCategory === "textbooks" || selectedCategory === "all") && (
+            <TouchableOpacity
+              onPress={() => setShowFacultyDropdown(!showFacultyDropdown)}
+              className="flex-1 bg-white border-2 border-gray-200 rounded-xl px-4 py-3 flex-row items-center justify-between"
+            >
+              <Text className="text-sm font-semibold text-gray-900" numberOfLines={1}>
+                {selectedFacultyLabel}
+              </Text>
+              <IconSymbol name="chevron.down" size={16} color="#1f2937" />
+            </TouchableOpacity>
+          )}
+
+          {/* Year Dropdown */}
+          {(selectedCategory === "textbooks" || selectedCategory === "all") && (
+            <TouchableOpacity
+              onPress={() => setShowYearDropdown(!showYearDropdown)}
+              className="flex-1 bg-white border-2 border-gray-200 rounded-xl px-4 py-3 flex-row items-center justify-between"
+            >
+              <Text className="text-sm font-semibold text-gray-900" numberOfLines={1}>
+                {selectedYearLabel}
+              </Text>
+              <IconSymbol name="chevron.down" size={16} color="#1f2937" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Category Dropdown Menu */}
+        {showCategoryDropdown && (
+          <View className="bg-white border-2 border-gray-200 rounded-xl mb-4 overflow-hidden">
+            {CATEGORIES.map((category) => (
+              <TouchableOpacity
+                key={category.key}
+                onPress={() => {
+                  setSelectedCategory(category.key);
+                  setShowCategoryDropdown(false);
+                  if (category.key !== "textbooks" && category.key !== "all") {
+                    setSelectedFaculty("all");
+                    setSelectedYear("all");
+                  }
+                }}
+                className={`px-4 py-3 flex-row items-center gap-3 ${
+                  selectedCategory === category.key ? "bg-primary/10" : ""
                 }`}
               >
-                {category.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+                <IconSymbol
+                  name={category.icon as any}
+                  size={18}
+                  color={selectedCategory === category.key ? colors.primary : "#1f2937"}
+                />
+                <Text
+                  className={`text-base font-semibold ${
+                    selectedCategory === category.key ? "text-primary" : "text-gray-900"
+                  }`}
+                >
+                  {category.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
-        {/* Faculty Pills (only for textbooks) */}
-        {(selectedCategory === "textbooks" || selectedCategory === "all") && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="mb-4"
-            contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 12 }}
-          >
+        {/* Faculty Dropdown Menu */}
+        {showFacultyDropdown && (selectedCategory === "textbooks" || selectedCategory === "all") && (
+          <View className="bg-white border-2 border-gray-200 rounded-xl mb-4 overflow-hidden">
             {FACULTIES.map((faculty) => (
               <TouchableOpacity
                 key={faculty.key}
-                onPress={() => setSelectedFaculty(faculty.key)}
-                className={`px-4 rounded-full ${
-                  selectedFaculty === faculty.key
-                    ? "bg-secondary"
-                    : "bg-white border-2 border-gray-200"
-                }`}
-                style={{ height: 36, minHeight: 36, maxHeight: 36, justifyContent: "center" }}
+                onPress={() => {
+                  setSelectedFaculty(faculty.key);
+                  setShowFacultyDropdown(false);
+                }}
+                className={`px-4 py-3 ${selectedFaculty === faculty.key ? "bg-secondary/10" : ""}`}
               >
                 <Text
-                  className={`font-semibold text-sm ${
-                    selectedFaculty === faculty.key ? "text-white" : "text-gray-900"
+                  className={`text-base font-semibold ${
+                    selectedFaculty === faculty.key ? "text-secondary" : "text-gray-900"
                   }`}
                 >
                   {faculty.label}
                 </Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
         )}
 
-        {/* Year Pills (only for textbooks) */}
-        {(selectedCategory === "textbooks" || selectedCategory === "all") && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="mb-6"
-            contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 12 }}
-          >
+        {/* Year Dropdown Menu */}
+        {showYearDropdown && (selectedCategory === "textbooks" || selectedCategory === "all") && (
+          <View className="bg-white border-2 border-gray-200 rounded-xl mb-4 overflow-hidden">
             {YEARS.map((year) => (
               <TouchableOpacity
                 key={year.key}
-                onPress={() => setSelectedYear(year.key)}
-                className={`px-4 rounded-full ${
-                  selectedYear === year.key
-                    ? "bg-accent"
-                    : "bg-white border-2 border-gray-200"
-                }`}
-                style={{ height: 36, minHeight: 36, maxHeight: 36, justifyContent: "center" }}
+                onPress={() => {
+                  setSelectedYear(year.key);
+                  setShowYearDropdown(false);
+                }}
+                className={`px-4 py-3 ${selectedYear === year.key ? "bg-accent/10" : ""}`}
               >
                 <Text
-                  className={`font-semibold text-sm ${
-                    selectedYear === year.key ? "text-white" : "text-gray-900"
+                  className={`text-base font-semibold ${
+                    selectedYear === year.key ? "text-accent" : "text-gray-900"
                   }`}
                 >
                   {year.label}
                 </Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
         )}
 
         {/* Products Grid */}
@@ -901,6 +971,52 @@ export default function StudyMaterialScreen() {
             contentContainerStyle={{ paddingTop: 16, paddingBottom: 20 }}
           />
         )}
+
+        {/* Institution Modal */}
+        <Modal visible={showInstitutionModal} animationType="slide" transparent>
+          <View className="flex-1 bg-black/50">
+            <View className="flex-1 mt-20 bg-background rounded-t-3xl">
+              <View className="flex-row items-center justify-between px-4 py-4 border-b border-border">
+                <Text className="text-xl font-bold text-foreground">Select Institution</Text>
+                <TouchableOpacity onPress={() => setShowInstitutionModal(false)}>
+                  <IconSymbol name="xmark" size={24} color={colors.foreground} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView className="flex-1 px-4 py-4">
+                {INSTITUTIONS.map((institution) => (
+                  <TouchableOpacity
+                    key={institution.id}
+                    onPress={() => {
+                      setSelectedInstitution(institution.id);
+                      setShowInstitutionModal(false);
+                      Toast.show({
+                        type: "success",
+                        text1: "Institution Selected",
+                        text2: institution.name,
+                      });
+                    }}
+                    className={`bg-surface rounded-xl p-4 mb-3 flex-row items-center gap-4 border ${
+                      selectedInstitution === institution.id ? "border-primary" : "border-border"
+                    }`}
+                  >
+                    <Image
+                      source={{ uri: institution.logo }}
+                      style={{ width: 48, height: 48 }}
+                      contentFit="contain"
+                    />
+                    <Text className="text-base font-semibold text-foreground flex-1">
+                      {institution.name}
+                    </Text>
+                    {selectedInstitution === institution.id && (
+                      <IconSymbol name="checkmark.circle.fill" size={24} color={colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
 
         {/* Product Detail Modal */}
         <Modal visible={!!selectedProduct} animationType="slide" transparent>
