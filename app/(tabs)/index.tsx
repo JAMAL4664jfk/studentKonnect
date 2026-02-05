@@ -99,7 +99,7 @@ export default function HomeScreen() {
               <View className="flex-1">
                 {userInstitution ? (
                   <View className="flex-row items-center gap-3 mb-2">
-                    <View className="w-12 h-12 rounded-lg bg-white p-2 items-center justify-center">
+                    <View className="w-12 h-12 rounded-lg bg-white/10 backdrop-blur-sm p-2 items-center justify-center">
                       <Image
                         source={{ uri: userInstitution.logo }}
                         style={{ width: '100%', height: '100%' }}

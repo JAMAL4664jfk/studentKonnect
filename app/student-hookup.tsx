@@ -10,8 +10,8 @@ import Toast from "react-native-toast-message";
 import { LinearGradient } from "expo-linear-gradient";
 
 const { width, height } = Dimensions.get("window");
-const CARD_HEIGHT = Math.min(height * 0.55, 550);
-const CARD_WIDTH = Math.min(width - 32, 400);
+const CARD_HEIGHT = Math.min(height * 0.65, 600);
+const CARD_WIDTH = Math.min(width - 48, 380);
 const SWIPE_THRESHOLD = width * 0.25;
 
 type DatingProfile = {
