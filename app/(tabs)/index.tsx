@@ -94,6 +94,7 @@ export default function HomeScreen() {
             <View className="flex-row items-center justify-between mb-4">
               <View className="flex-1">
                 <Text className="text-3xl font-bold text-white">Student Konnect</Text>
+                <Text className="text-lg font-semibold text-white mt-1">We care</Text>
                 <Text className="text-base text-white/90 mt-1">{FEATURE_DESCRIPTIONS.heroMessage}</Text>
                 <Text className="text-sm text-white/80 mt-2">{FEATURE_DESCRIPTIONS.tagline}</Text>
               </View>

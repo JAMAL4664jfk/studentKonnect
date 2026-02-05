@@ -93,12 +93,12 @@ const SERVICES: ServiceItem[] = [
     badgeColor: "#6366f1",
   },
   {
-    id: "gamification",
-    name: "Lifestyle & Rewards",
-    icon: "gift.fill",
-    description: "Earn points, badges, and streaks",
+    id: "study-material",
+    name: "Study Material",
+    icon: "book.pages.fill",
+    description: "Textbooks, stationery, and tech essentials",
     backgroundImage: require("@/assets/images/lifestyle-rewards-banner.jpg"),
-    badgeText: "Rewards System",
+    badgeText: "Shop Now",
     badgeColor: "#eab308",
   },
   {
@@ -180,7 +180,7 @@ export default function ServicesScreen() {
       wellness: "/wellness",
       hookup: "/student-hookup",
       career: "/career",
-      gamification: "/gamification",
+      "study-material": "/study-material",
       nsfas: "/nsfas",
       "health-cover": "/student-health-cover",
       lecturer: "/connect-lecturer",
@@ -205,6 +205,9 @@ export default function ServicesScreen() {
             />
             <Text className="text-3xl font-bold text-foreground text-center">
               Student Konnect
+            </Text>
+            <Text className="text-lg font-semibold text-primary text-center">
+              We care
             </Text>
             <Text className="text-base text-muted text-center px-4">
               Connecting over 300 million students globally

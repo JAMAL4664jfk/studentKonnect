@@ -130,6 +130,9 @@ export default function WalletLoginScreen() {
             <Text className="text-3xl font-bold text-foreground mb-2">
               My Student Account
             </Text>
+            <Text className="text-lg font-semibold text-primary text-center mb-1">
+              We care
+            </Text>
             <Text className="text-base text-muted text-center">
               Sign in to access your wallet and student services
             </Text>
