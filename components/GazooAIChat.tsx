@@ -10,9 +10,8 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { IconSymbol } from './ui/IconSymbol';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from '@/constants/Colors';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useColors } from '@/hooks/use-colors';
 
 interface Message {
   id: string;
@@ -27,8 +26,7 @@ interface GazooAIChatProps {
 }
 
 export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = useColors();
   
   const [messages, setMessages] = useState<Message[]>([
     {
