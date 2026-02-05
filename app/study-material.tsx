@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, FlatList, Dimensions } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import Toast from "react-native-toast-message";
+
+const { width } = Dimensions.get("window");
+const CARD_WIDTH = (width - 48) / 2; // 2 columns with padding
 
 type Category = "all" | "textbooks" | "stationery" | "tech";
 type Faculty = "all" | "engineering" | "business" | "science" | "arts" | "health" | "law";
@@ -602,8 +605,8 @@ const FACULTIES = [
   { key: "engineering" as Faculty, label: "Engineering" },
   { key: "business" as Faculty, label: "Business" },
   { key: "science" as Faculty, label: "Science" },
-  { key: "arts" as Faculty, label: "Arts & Humanities" },
-  { key: "health" as Faculty, label: "Health Sciences" },
+  { key: "arts" as Faculty, label: "Arts" },
+  { key: "health" as Faculty, label: "Health" },
   { key: "law" as Faculty, label: "Law" },
 ];
 
@@ -673,95 +676,171 @@ export default function StudyMaterialScreen() {
     router.push("/study-material-checkout" as any);
   };
 
+  const renderProduct = ({ item }: { item: Product }) => (
+    <TouchableOpacity
+      onPress={() => setSelectedProduct(item)}
+      className="mb-4 rounded-2xl overflow-hidden bg-surface"
+      style={{
+        width: CARD_WIDTH,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 3,
+      }}
+    >
+      <Image
+        source={{ uri: item.image }}
+        style={{ width: CARD_WIDTH, height: CARD_WIDTH * 0.85 }}
+        contentFit="cover"
+        cachePolicy="memory-disk"
+      />
+      <View className="p-3">
+        <Text className="text-sm font-bold text-foreground mb-1" numberOfLines={2}>
+          {item.name}
+        </Text>
+        <Text className="text-xs text-muted mb-2" numberOfLines={2}>
+          {item.description}
+        </Text>
+        <View className="flex-row items-center justify-between">
+          <Text className="text-lg font-bold text-primary">R{item.price.toFixed(2)}</Text>
+          {item.inStock ? (
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation();
+                addToCart(item);
+              }}
+              className="bg-primary rounded-full p-2"
+            >
+              <IconSymbol name="plus" size={16} color="white" />
+            </TouchableOpacity>
+          ) : (
+            <Text className="text-xs text-error font-semibold">Out of Stock</Text>
+          )}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
     <ScreenContainer>
       <View className="flex-1">
-        {/* Header */}
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-border">
-          <View className="flex-row items-center gap-3">
-            <TouchableOpacity onPress={() => router.back()}>
-              <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
-            </TouchableOpacity>
-            <Text className="text-2xl font-bold text-foreground">Study Material</Text>
+        {/* Marketplace-Style Header */}
+        <View className="flex-row items-center justify-between mb-6">
+          <View className="flex-1">
+            <Text className="text-3xl font-bold text-foreground mb-1">
+              Study Material
+            </Text>
+            <Text className="text-sm text-muted-foreground">
+              Textbooks, stationery & tech essentials
+            </Text>
           </View>
-          <TouchableOpacity onPress={() => setShowCart(true)} className="relative">
-            <IconSymbol name="cart.fill" size={24} color={colors.foreground} />
-            {cart.length > 0 && (
-              <View className="absolute -top-2 -right-2 bg-primary rounded-full w-5 h-5 items-center justify-center">
-                <Text className="text-white text-xs font-bold">{cart.length}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          <View className="flex-row items-center gap-2">
+            <TouchableOpacity
+              onPress={() => setShowCart(true)}
+              className="w-10 h-10 rounded-full bg-muted items-center justify-center relative"
+            >
+              <IconSymbol name="cart.fill" size={18} color={colors.primary} />
+              {cart.length > 0 && (
+                <View className="absolute -top-1 -right-1 bg-primary rounded-full w-5 h-5 items-center justify-center">
+                  <Text className="text-white text-xs font-bold">{cart.length}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="w-10 h-10 rounded-full bg-muted items-center justify-center"
+            >
+              <IconSymbol name="xmark" size={18} color={colors.foreground} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Search Bar */}
-        <View className="px-4 py-3">
-          <View className="bg-surface rounded-xl px-4 py-3 flex-row items-center gap-3 border border-border">
-            <IconSymbol name="magnifyingglass" size={20} color={colors.muted} />
-            <TextInput
-              placeholder="Search products..."
-              placeholderTextColor={colors.muted}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              className="flex-1 text-foreground"
-            />
-          </View>
+        <View
+          className="bg-surface rounded-2xl px-5 py-4 flex-row items-center gap-3 mb-6"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 4,
+          }}
+        >
+          <IconSymbol name="magnifyingglass" size={22} color={colors.mutedForeground} />
+          <TextInput
+            placeholder="Search for products..."
+            placeholderTextColor={colors.mutedForeground}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            className="flex-1 text-base text-foreground"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <IconSymbol name="xmark.circle.fill" size={20} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Category Filters */}
+        {/* Category Pills */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="px-4 mb-2"
-          contentContainerStyle={{ gap: 8 }}
+          className="mb-4"
+          contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 12 }}
         >
-          {CATEGORIES.map((cat) => (
+          {CATEGORIES.map((category) => (
             <TouchableOpacity
-              key={cat.key}
+              key={category.key}
               onPress={() => {
-                setSelectedCategory(cat.key);
+                setSelectedCategory(category.key);
                 setSelectedFaculty("all");
                 setSelectedYear("all");
               }}
-              className={`px-4 py-2 rounded-full flex-row items-center gap-2 ${
-                selectedCategory === cat.key ? "bg-primary" : "bg-surface border border-border"
+              className={`px-5 rounded-full flex-row items-center gap-2 ${
+                selectedCategory === category.key
+                  ? "bg-primary"
+                  : "bg-white border-2 border-gray-200"
               }`}
+              style={{ height: 42, minHeight: 42, maxHeight: 42 }}
             >
               <IconSymbol
-                name={cat.icon as any}
-                size={16}
-                color={selectedCategory === cat.key ? "white" : colors.foreground}
+                name={category.icon as any}
+                size={18}
+                color={selectedCategory === category.key ? "#fff" : "#1f2937"}
               />
               <Text
-                className={`font-semibold ${
-                  selectedCategory === cat.key ? "text-white" : "text-foreground"
+                className={`font-bold text-base ${
+                  selectedCategory === category.key ? "text-white" : "text-gray-900"
                 }`}
               >
-                {cat.label}
+                {category.label}
               </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        {/* Faculty Filters (only for textbooks) */}
+        {/* Faculty Pills (only for textbooks) */}
         {(selectedCategory === "textbooks" || selectedCategory === "all") && (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            className="px-4 mb-2"
-            contentContainerStyle={{ gap: 8 }}
+            className="mb-4"
+            contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 12 }}
           >
             {FACULTIES.map((faculty) => (
               <TouchableOpacity
                 key={faculty.key}
                 onPress={() => setSelectedFaculty(faculty.key)}
-                className={`px-3 py-1.5 rounded-full ${
-                  selectedFaculty === faculty.key ? "bg-secondary" : "bg-surface border border-border"
+                className={`px-4 rounded-full ${
+                  selectedFaculty === faculty.key
+                    ? "bg-secondary"
+                    : "bg-white border-2 border-gray-200"
                 }`}
+                style={{ height: 36, minHeight: 36, maxHeight: 36, justifyContent: "center" }}
               >
                 <Text
-                  className={`text-sm font-medium ${
-                    selectedFaculty === faculty.key ? "text-white" : "text-foreground"
+                  className={`font-semibold text-sm ${
+                    selectedFaculty === faculty.key ? "text-white" : "text-gray-900"
                   }`}
                 >
                   {faculty.label}
@@ -771,25 +850,28 @@ export default function StudyMaterialScreen() {
           </ScrollView>
         )}
 
-        {/* Year Filters (only for textbooks) */}
+        {/* Year Pills (only for textbooks) */}
         {(selectedCategory === "textbooks" || selectedCategory === "all") && (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            className="px-4 mb-3"
-            contentContainerStyle={{ gap: 8 }}
+            className="mb-6"
+            contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 12 }}
           >
             {YEARS.map((year) => (
               <TouchableOpacity
                 key={year.key}
                 onPress={() => setSelectedYear(year.key)}
-                className={`px-3 py-1.5 rounded-full ${
-                  selectedYear === year.key ? "bg-accent" : "bg-surface border border-border"
+                className={`px-4 rounded-full ${
+                  selectedYear === year.key
+                    ? "bg-accent"
+                    : "bg-white border-2 border-gray-200"
                 }`}
+                style={{ height: 36, minHeight: 36, maxHeight: 36, justifyContent: "center" }}
               >
                 <Text
-                  className={`text-sm font-medium ${
-                    selectedYear === year.key ? "text-white" : "text-foreground"
+                  className={`font-semibold text-sm ${
+                    selectedYear === year.key ? "text-white" : "text-gray-900"
                   }`}
                 >
                   {year.label}
@@ -800,49 +882,25 @@ export default function StudyMaterialScreen() {
         )}
 
         {/* Products Grid */}
-        <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
-          <View className="flex-row flex-wrap justify-between gap-4 pb-6">
-            {filteredProducts.map((product) => (
-              <TouchableOpacity
-                key={product.id}
-                onPress={() => setSelectedProduct(product)}
-                className="bg-surface rounded-xl overflow-hidden border border-border"
-                style={{ width: "48%" }}
-              >
-                <Image
-                  source={{ uri: product.image }}
-                  style={{ width: "100%", height: 150 }}
-                  contentFit="cover"
-                  cachePolicy="memory-disk"
-                />
-                <View className="p-3">
-                  <Text className="text-sm font-bold text-foreground mb-1" numberOfLines={2}>
-                    {product.name}
-                  </Text>
-                  <Text className="text-xs text-muted mb-2" numberOfLines={2}>
-                    {product.description}
-                  </Text>
-                  <View className="flex-row items-center justify-between">
-                    <Text className="text-lg font-bold text-primary">R{product.price.toFixed(2)}</Text>
-                    {product.inStock ? (
-                      <TouchableOpacity
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          addToCart(product);
-                        }}
-                        className="bg-primary rounded-full p-2"
-                      >
-                        <IconSymbol name="plus" size={16} color="white" />
-                      </TouchableOpacity>
-                    ) : (
-                      <Text className="text-xs text-error font-semibold">Out of Stock</Text>
-                    )}
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
+        {filteredProducts.length === 0 ? (
+          <View className="flex-1 items-center justify-center px-8">
+            <IconSymbol name="tray" size={64} color={colors.mutedForeground} />
+            <Text className="text-xl font-bold text-foreground mt-4 mb-2">No products found</Text>
+            <Text className="text-base text-muted-foreground text-center">
+              Try adjusting your filters or search query
+            </Text>
           </View>
-        </ScrollView>
+        ) : (
+          <FlatList
+            data={filteredProducts}
+            renderItem={renderProduct}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            columnWrapperStyle={{ justifyContent: "space-between" }}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingTop: 16, paddingBottom: 20 }}
+          />
+        )}
 
         {/* Product Detail Modal */}
         <Modal visible={!!selectedProduct} animationType="slide" transparent>
