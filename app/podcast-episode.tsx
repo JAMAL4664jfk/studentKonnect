@@ -135,6 +135,8 @@ export default function PodcastEpisodeScreen() {
 
   const fetchComments = async () => {
     try {
+      if (!episodeId) return;
+      
       const { data, error } = await supabase
         .from("podcast_comments")
         .select(`
@@ -145,7 +147,10 @@ export default function PodcastEpisodeScreen() {
         .is("parent_id", null)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching comments:", error);
+        return;
+      }
 
       // Fetch replies for each comment
       const commentsWithReplies = await Promise.all(
@@ -599,8 +604,8 @@ export default function PodcastEpisodeScreen() {
 
             <TouchableOpacity
               onPress={toggleLike}
-              className={`px-4 py-3 rounded-xl items-center justify-center ${
-                isLiked ? "bg-primary" : "bg-surface"
+              className={`px-4 py-3 rounded-xl flex-row items-center gap-2 ${
+                isLiked ? "bg-primary" : "bg-surface border border-border"
               }`}
             >
               <IconSymbol
@@ -608,6 +613,11 @@ export default function PodcastEpisodeScreen() {
                 size={20}
                 color={isLiked ? colors.primaryForeground : colors.foreground}
               />
+              <Text className={`text-sm font-semibold ${
+                isLiked ? "text-primary-foreground" : "text-foreground"
+              }`}>
+                {episode.likes_count || 0}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity

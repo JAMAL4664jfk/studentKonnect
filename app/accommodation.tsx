@@ -248,23 +248,14 @@ export default function AccommodationScreen() {
       >
         {/* Image Section */}
         <View className="relative">
-          {imageUrl && imageUrl.trim() !== "" ? (
-            <Image
-              source={{ uri: imageUrl }}
-              className="w-full h-56"
-              contentFit="cover"
-              transition={200}
-              cachePolicy="memory-disk"
-              placeholder={require("@/assets/images/accommodation-bg.jpg")}
-              placeholderContentFit="cover"
-            />
-          ) : (
-            <Image
-              source={require("@/assets/images/accommodation-bg.jpg")}
-              className="w-full h-56"
-              contentFit="cover"
-            />
-          )}
+          <Image
+            source={imageUrl && imageUrl.trim() !== "" ? { uri: imageUrl } : require("@/assets/images/accommodation-bg.jpg")}
+            className="w-full h-56"
+            contentFit="cover"
+            transition={200}
+            cachePolicy="memory-disk"
+            onError={() => console.log('Failed to load image:', imageUrl)}
+          />
           
           {/* Favorite Button */}
           <TouchableOpacity
@@ -419,15 +410,14 @@ export default function AccommodationScreen() {
             {imagesArray.length > 0 ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
                 {imagesArray.map((img: string, index: number) => (
-                  img && (
+                  img && img.trim() !== "" && (
                     <Image
                       key={index}
                       source={{ uri: img }}
                       className="w-80 h-64 rounded-2xl mr-3"
                       contentFit="cover"
                       cachePolicy="memory-disk"
-                      placeholder={require("@/assets/images/accommodation-bg.jpg")}
-                      placeholderContentFit="cover"
+                      onError={() => console.log('Failed to load detail image:', img)}
                     />
                   )
                 ))}

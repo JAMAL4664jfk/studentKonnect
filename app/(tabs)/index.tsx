@@ -97,11 +97,13 @@ export default function HomeScreen() {
               <View className="flex-1">
                 {userInstitution ? (
                   <View className="flex-row items-center gap-3 mb-2">
-                    <Image
-                      source={{ uri: userInstitution.logo }}
-                      className="w-12 h-12 rounded-lg bg-white"
-                      contentFit="contain"
-                    />
+                    <View className="w-12 h-12 rounded-lg bg-white p-2 items-center justify-center">
+                      <Image
+                        source={{ uri: userInstitution.logo }}
+                        style={{ width: '100%', height: '100%' }}
+                        contentFit="contain"
+                      />
+                    </View>
                     <View>
                       <Text className="text-3xl font-bold text-white">{userInstitution.shortName} Konnect</Text>
                       <Text className="text-lg font-semibold text-white mt-1">We care</Text>

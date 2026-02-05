@@ -203,11 +203,13 @@ export default function ServicesScreen() {
           <View className="items-center gap-3 py-4">
             {userInstitution ? (
               <>
-                <Image
-                  source={{ uri: userInstitution.logo }}
-                  style={{ width: 80, height: 80, backgroundColor: '#fff', borderRadius: 16 }}
-                  contentFit="contain"
-                />
+                <View style={{ width: 80, height: 80, backgroundColor: '#fff', borderRadius: 16, padding: 8, justifyContent: 'center', alignItems: 'center' }}>
+                  <Image
+                    source={{ uri: userInstitution.logo }}
+                    style={{ width: '100%', height: '100%' }}
+                    contentFit="contain"
+                  />
+                </View>
                 <Text className="text-3xl font-bold text-foreground text-center">
                   {userInstitution.shortName} Konnect
                 </Text>

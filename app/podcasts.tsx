@@ -463,7 +463,7 @@ export default function PodcastsScreen() {
         videoUrl = publicUrl;
       }
 
-      // Upload thumbnail if provided
+      // Upload thumbnail if provided, or use video URL as thumbnail for videos
       let thumbnailUrl = null;
       if (episodeThumbnail) {
         const thumbFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
@@ -480,6 +480,9 @@ export default function PodcastsScreen() {
           } = supabase.storage.from("podcasts").getPublicUrl(`thumbnails/${thumbFileName}`);
           thumbnailUrl = publicUrl;
         }
+      } else if (mediaType === "video" && videoUrl) {
+        // For videos without custom thumbnail, use video URL (player will show first frame)
+        thumbnailUrl = videoUrl;
       }
 
       // Create podcast episode
@@ -1181,7 +1184,10 @@ export default function PodcastsScreen() {
                     ) : (
                       <>
                         <IconSymbol name="photo.fill" size={32} color={colors.primary} />
-                        <Text className="text-sm text-primary mt-2">Tap to select thumbnail</Text>
+                        <Text className="text-sm text-primary mt-2">Tap to select thumbnail (optional)</Text>
+                        {mediaType === "video" && (
+                          <Text className="text-xs text-muted mt-1">Video thumbnail will be used if not provided</Text>
+                        )}
                       </>
                     )}
                   </TouchableOpacity>
@@ -1482,7 +1488,10 @@ export default function PodcastsScreen() {
                     ) : (
                       <>
                         <IconSymbol name="photo.fill" size={32} color={colors.primary} />
-                        <Text className="text-sm text-primary mt-2">Tap to select thumbnail</Text>
+                        <Text className="text-sm text-primary mt-2">Tap to select thumbnail (optional)</Text>
+                        {mediaType === "video" && (
+                          <Text className="text-xs text-muted mt-1">Video thumbnail will be used if not provided</Text>
+                        )}
                       </>
                     )}
                   </TouchableOpacity>
