@@ -327,7 +327,7 @@ export default function AuthScreen() {
                 }}
                 className="flex-row items-center py-4 border-b border-border"
               >
-                <View className="w-12 h-12 rounded-lg mr-3 bg-gray-100 items-center justify-center overflow-hidden">
+                <View className="w-12 h-12 rounded-lg mr-3 bg-white items-center justify-center overflow-hidden">
                   <Image
                     source={{ uri: institution.logo }}
                     className="w-full h-full"

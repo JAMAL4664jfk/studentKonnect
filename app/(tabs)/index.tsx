@@ -1,5 +1,5 @@
-// Home Screen with Visa/Mastercard Wallet and More Options
-import { useState } from "react";
+// Home Screen with Visa/Mastercaimport React from "react";
+import { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView, RefreshControl } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
@@ -9,6 +9,8 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useWallet } from "@/contexts/WalletContext";
 import { MoreOptionsModal } from "@/components/MoreOptionsModal";
+import { supabase } from "@/lib/supabase";
+import { SA_INSTITUTIONS } from "@/constants/sa-institutions-with-logos";
 
 import { BRAND_COLORS } from "@/constants/brand-colors";
 import { FEATURE_DESCRIPTIONS } from "@/constants/feature-descriptions";
@@ -54,9 +56,34 @@ const RECENT_TRANSACTIONS: Transaction[] = [
 export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
-  const { balance, isLoading } = useWallet();
+  const { balance, isLoading: walletLoading, refreshBalance } = useWallet();
   const [refreshing, setRefreshing] = useState(false);
   const [moreOptionsVisible, setMoreOptionsVisible] = useState(false);
+  const [userInstitution, setUserInstitution] = useState<any>(null);
+
+  useEffect(() => {
+    fetchUserInstitution();
+  }, []);
+
+  const fetchUserInstitution = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("institution_id")
+          .eq("id", user.id)
+          .single();
+        
+        if (profile?.institution_id) {
+          const institution = SA_INSTITUTIONS.find(inst => inst.id === profile.institution_id);
+          setUserInstitution(institution);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user institution:", error);
+    }
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -93,8 +120,24 @@ export default function HomeScreen() {
           >
             <View className="flex-row items-center justify-between mb-4">
               <View className="flex-1">
-                <Text className="text-3xl font-bold text-white">Student Konnect</Text>
-                <Text className="text-lg font-semibold text-white mt-1">We care</Text>
+                {userInstitution ? (
+                  <View className="flex-row items-center gap-3 mb-2">
+                    <Image
+                      source={{ uri: userInstitution.logo }}
+                      className="w-12 h-12 rounded-lg bg-white"
+                      contentFit="contain"
+                    />
+                    <View>
+                      <Text className="text-3xl font-bold text-white">{userInstitution.shortName} Konnect</Text>
+                      <Text className="text-lg font-semibold text-white mt-1">We care</Text>
+                    </View>
+                  </View>
+                ) : (
+                  <View>
+                    <Text className="text-3xl font-bold text-white">Student Konnect</Text>
+                    <Text className="text-lg font-semibold text-white mt-1">We care</Text>
+                  </View>
+                )}
                 <Text className="text-base text-white/90 mt-1">{FEATURE_DESCRIPTIONS.heroMessage}</Text>
                 <Text className="text-sm text-white/80 mt-2">{FEATURE_DESCRIPTIONS.tagline}</Text>
               </View>

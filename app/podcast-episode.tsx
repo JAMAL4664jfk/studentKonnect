@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Alert,
   ActivityIndicator,
+  Share,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
@@ -72,6 +73,9 @@ export default function PodcastEpisodeScreen() {
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const emojis = ["😀", "😂", "😍", "🔥", "👍", "👏", "❤️", "🎉", "💯", "🙌", "😎", "🤔", "😢", "😱", "🎵", "🎧"];
 
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
 
@@ -230,6 +234,28 @@ export default function PodcastEpisodeScreen() {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      const result = await Share.share({
+        message: `Check out this podcast episode: "${episode?.title}" by ${episode?.host_name}`,
+        title: episode?.title,
+      });
+      
+      if (result.action === Share.sharedAction) {
+        Toast.show({
+          type: "success",
+          text1: "Shared successfully",
+        });
+      }
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Error sharing",
+        text2: error.message,
+      });
+    }
+  };
+
   const toggleFavorite = async () => {
     if (!currentUser) {
       Toast.show({
@@ -356,6 +382,44 @@ export default function PodcastEpisodeScreen() {
     } finally {
       setSubmittingComment(false);
     }
+  };
+
+  const deleteComment = async (commentId: string) => {
+    if (!currentUser) return;
+
+    Alert.alert(
+      "Delete Comment",
+      "Are you sure you want to delete this comment?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await supabase
+                .from("podcast_comments")
+                .delete()
+                .eq("id", commentId)
+                .eq("user_id", currentUser.id);
+              
+              fetchComments();
+              fetchEpisode();
+              Toast.show({
+                type: "success",
+                text1: "Comment deleted",
+              });
+            } catch (error: any) {
+              Toast.show({
+                type: "error",
+                text1: "Error",
+                text2: error.message,
+              });
+            }
+          },
+        },
+      ]
+    );
   };
 
   const toggleCommentLike = async (commentId: string) => {
@@ -558,6 +622,17 @@ export default function PodcastEpisodeScreen() {
                 color={isFavorited ? colors.primaryForeground : colors.foreground}
               />
             </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleShare}
+              className="px-4 py-3 rounded-xl bg-surface items-center justify-center"
+            >
+              <IconSymbol
+                name="square.and.arrow.up"
+                size={20}
+                color={colors.foreground}
+              />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -577,33 +652,59 @@ export default function PodcastEpisodeScreen() {
                 </TouchableOpacity>
               </View>
             )}
-            <View className="flex-row gap-2">
-              <TextInput
-                value={newComment}
-                onChangeText={setNewComment}
-                placeholder="Add a comment..."
-                placeholderTextColor={colors.mutedForeground}
-                className="flex-1 bg-surface rounded-xl px-4 py-3 text-foreground"
-                multiline
-                maxLength={500}
-              />
-              <TouchableOpacity
-                onPress={submitComment}
-                disabled={!newComment.trim() || submittingComment}
-                className={`px-4 py-3 rounded-xl items-center justify-center ${
-                  newComment.trim() ? "bg-primary" : "bg-surface"
-                }`}
-              >
-                {submittingComment ? (
-                  <ActivityIndicator size="small" color={colors.primaryForeground} />
-                ) : (
-                  <IconSymbol
-                    name="paperplane.fill"
-                    size={20}
-                    color={newComment.trim() ? colors.primaryForeground : colors.mutedForeground}
-                  />
-                )}
-              </TouchableOpacity>
+            <View>
+              <View className="flex-row gap-2 mb-2">
+                <TextInput
+                  value={newComment}
+                  onChangeText={setNewComment}
+                  placeholder="Add a comment..."
+                  placeholderTextColor={colors.mutedForeground}
+                  className="flex-1 bg-surface rounded-xl px-4 py-3 text-foreground"
+                  multiline
+                  maxLength={500}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="px-4 py-3 rounded-xl bg-surface items-center justify-center"
+                >
+                  <Text className="text-xl">😀</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={submitComment}
+                  disabled={!newComment.trim() || submittingComment}
+                  className={`px-4 py-3 rounded-xl items-center justify-center ${
+                    newComment.trim() ? "bg-primary" : "bg-surface"
+                  }`}
+                >
+                  {submittingComment ? (
+                    <ActivityIndicator size="small" color={colors.primaryForeground} />
+                  ) : (
+                    <IconSymbol
+                      name="paperplane.fill"
+                      size={20}
+                      color={newComment.trim() ? colors.primaryForeground : colors.mutedForeground}
+                    />
+                  )}
+                </TouchableOpacity>
+              </View>
+              {showEmojiPicker && (
+                <View className="bg-surface rounded-xl p-3 mb-2">
+                  <View className="flex-row flex-wrap gap-2">
+                    {emojis.map((emoji, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        onPress={() => {
+                          setNewComment(newComment + emoji);
+                          setShowEmojiPicker(false);
+                        }}
+                        className="w-10 h-10 items-center justify-center"
+                      >
+                        <Text className="text-2xl">{emoji}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              )}
             </View>
           </View>
 
@@ -659,6 +760,15 @@ export default function PodcastEpisodeScreen() {
                           <IconSymbol name="arrowshape.turn.up.left" size={16} color={colors.mutedForeground} />
                           <Text className="text-xs text-muted-foreground">Reply</Text>
                         </TouchableOpacity>
+                        {currentUser && comment.user_id === currentUser.id && (
+                          <TouchableOpacity
+                            onPress={() => deleteComment(comment.id)}
+                            className="flex-row items-center gap-1"
+                          >
+                            <IconSymbol name="trash" size={16} color={colors.mutedForeground} />
+                            <Text className="text-xs text-muted-foreground">Delete</Text>
+                          </TouchableOpacity>
+                        )}
                       </View>
 
                       {/* Replies */}
