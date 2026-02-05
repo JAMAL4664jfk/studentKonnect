@@ -46,7 +46,14 @@ type Accommodation = {
   updatedAt: string;
 };
 
-const TYPES = ["All", "apartment", "room", "studio", "house", "dormitory"];
+const TYPES = [
+  { key: "All", label: "All", icon: "square.grid.2x2" },
+  { key: "apartment", label: "Apartment", icon: "building.2.fill" },
+  { key: "room", label: "Room", icon: "door.left.hand.open" },
+  { key: "studio", label: "Studio", icon: "house.fill" },
+  { key: "house", label: "House", icon: "house.fill" },
+  { key: "dormitory", label: "Dormitory", icon: "building.fill" },
+];
 
 // Helper function to parse JSON strings
 const parseJSON = (jsonString: string | null): any => {
@@ -100,6 +107,7 @@ export default function AccommodationScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("All");
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("all");
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -601,146 +609,56 @@ export default function AccommodationScreen() {
           )}
         </View>
 
-        {/* Single Row Navigation Pills with Icons */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mb-12"
-          contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 12 }}
-        >
+        {/* Property Type Dropdown */}
+        <View className="mb-6">
           <TouchableOpacity
-            onPress={() => setSelectedType("All")}
-            className={`px-5 rounded-full flex-row items-center gap-2 ${
-              selectedType === "All"
-                ? "bg-primary"
-                : "bg-white border-2 border-gray-200"
-            }`}
-            style={{ height: 42, minHeight: 42, maxHeight: 42 }}
+            onPress={() => setShowTypeDropdown(!showTypeDropdown)}
+            className="bg-white border-2 border-gray-200 rounded-xl px-5 py-4 flex-row items-center justify-between"
           >
-            <IconSymbol
-              name="square.grid.2x2"
-              size={18}
-              color={selectedType === "All" ? "#fff" : "#1f2937"}
-            />
-            <Text
-              className={`font-bold text-base ${
-                selectedType === "All" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              All
-            </Text>
+            <View className="flex-row items-center gap-3">
+              <IconSymbol
+                name={TYPES.find(t => t.key === selectedType)?.icon || "square.grid.2x2"}
+                size={20}
+                color="#1f2937"
+              />
+              <Text className="text-base font-semibold text-gray-900">
+                {TYPES.find(t => t.key === selectedType)?.label || "All"}
+              </Text>
+            </View>
+            <IconSymbol name="chevron.down" size={20} color="#1f2937" />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedType("apartment")}
-            className={`px-5 rounded-full flex-row items-center gap-2 ${
-              selectedType === "apartment"
-                ? "bg-primary"
-                : "bg-white border-2 border-gray-200"
-            }`}
-            style={{ height: 42, minHeight: 42, maxHeight: 42 }}
-          >
-            <IconSymbol
-              name="building.2.fill"
-              size={18}
-              color={selectedType === "apartment" ? "#fff" : "#1f2937"}
-            />
-            <Text
-              className={`font-bold text-base capitalize ${
-                selectedType === "apartment" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Apartment
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedType("room")}
-            className={`px-5 rounded-full flex-row items-center gap-2 ${
-              selectedType === "room"
-                ? "bg-primary"
-                : "bg-white border-2 border-gray-200"
-            }`}
-            style={{ height: 42, minHeight: 42, maxHeight: 42 }}
-          >
-            <IconSymbol
-              name="door.left.hand.open"
-              size={18}
-              color={selectedType === "room" ? "#fff" : "#1f2937"}
-            />
-            <Text
-              className={`font-bold text-base capitalize ${
-                selectedType === "room" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Room
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedType("studio")}
-            className={`px-5 rounded-full flex-row items-center gap-2 ${
-              selectedType === "studio"
-                ? "bg-primary"
-                : "bg-white border-2 border-gray-200"
-            }`}
-            style={{ height: 42, minHeight: 42, maxHeight: 42 }}
-          >
-            <IconSymbol
-              name="house.fill"
-              size={18}
-              color={selectedType === "studio" ? "#fff" : "#1f2937"}
-            />
-            <Text
-              className={`font-bold text-base capitalize ${
-                selectedType === "studio" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Studio
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedType("house")}
-            className={`px-5 rounded-full flex-row items-center gap-2 ${
-              selectedType === "house"
-                ? "bg-primary"
-                : "bg-white border-2 border-gray-200"
-            }`}
-            style={{ height: 42, minHeight: 42, maxHeight: 42 }}
-          >
-            <IconSymbol
-              name="house.fill"
-              size={18}
-              color={selectedType === "house" ? "#fff" : "#1f2937"}
-            />
-            <Text
-              className={`font-bold text-base capitalize ${
-                selectedType === "house" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              House
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedType("dormitory")}
-            className={`px-5 rounded-full flex-row items-center gap-2 ${
-              selectedType === "dormitory"
-                ? "bg-primary"
-                : "bg-white border-2 border-gray-200"
-            }`}
-            style={{ height: 42, minHeight: 42, maxHeight: 42 }}
-          >
-            <IconSymbol
-              name="building.fill"
-              size={18}
-              color={selectedType === "dormitory" ? "#fff" : "#1f2937"}
-            />
-            <Text
-              className={`font-bold text-base capitalize ${
-                selectedType === "dormitory" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Dormitory
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
+
+          {/* Dropdown Menu */}
+          {showTypeDropdown && (
+            <View className="bg-white border-2 border-gray-200 rounded-xl mt-2 overflow-hidden">
+              {TYPES.map((type) => (
+                <TouchableOpacity
+                  key={type.key}
+                  onPress={() => {
+                    setSelectedType(type.key);
+                    setShowTypeDropdown(false);
+                  }}
+                  className={`px-5 py-4 flex-row items-center gap-3 ${
+                    selectedType === type.key ? "bg-primary/10" : ""
+                  }`}
+                >
+                  <IconSymbol
+                    name={type.icon}
+                    size={20}
+                    color={selectedType === type.key ? colors.primary : "#1f2937"}
+                  />
+                  <Text
+                    className={`text-base font-semibold ${
+                      selectedType === type.key ? "text-primary" : "text-gray-900"
+                    }`}
+                  >
+                    {type.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
 
         {/* Action Buttons */}
         <View className="flex-row gap-3 mb-4">

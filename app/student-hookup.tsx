@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, Animated, PanResponder, Dimensions, Modal, TextInput, ImageBackground } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Animated, PanResponder, Dimensions, Modal, TextInput, ImageBackground, FlatList } from "react-native";
 import { Image } from "expo-image";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "expo-router";
@@ -10,6 +10,8 @@ import Toast from "react-native-toast-message";
 import { LinearGradient } from "expo-linear-gradient";
 
 const { width, height } = Dimensions.get("window");
+const CARD_HEIGHT = Math.min(height * 0.6, 600);
+const CARD_WIDTH = Math.min(width - 32, 400);
 const SWIPE_THRESHOLD = width * 0.25;
 
 type DatingProfile = {
@@ -352,8 +354,8 @@ export default function StudentHookupScreen() {
           key={profile.id}
           style={{
             position: "absolute",
-            width: width - 32,
-            height: height * 0.65,
+            width: CARD_WIDTH,
+            height: CARD_HEIGHT,
             transform: [{ scale: 0.95 }],
             opacity: 0.5,
           }}
@@ -372,8 +374,8 @@ export default function StudentHookupScreen() {
         {...panResponder.panHandlers}
         style={{
           position: "absolute",
-          width: width - 32,
-          height: height * 0.65,
+          width: CARD_WIDTH,
+          height: CARD_HEIGHT,
           transform: [{ translateX: position.x }, { translateY: position.y }, { rotate }],
         }}
       >
@@ -474,7 +476,7 @@ export default function StudentHookupScreen() {
   const renderDashboard = () => (
     <View className="flex-1">
       {/* Swipe Cards */}
-      <View style={{ height: height * 0.65, marginBottom: 24 }}>
+      <View style={{ height: CARD_HEIGHT, marginBottom: 24, alignItems: 'center' }}>
         {profiles.length === 0 ? (
           <View className="flex-1 items-center justify-center">
             <IconSymbol name="heart.slash.fill" size={64} color={colors.mutedForeground} />
@@ -547,7 +549,7 @@ export default function StudentHookupScreen() {
         <View className="-mx-4 -mt-4 mb-4">
           <ImageBackground
             source={require("@/assets/images/student-hookup-bg.jpg")}
-            style={{ height: 200 }}
+            style={{ height: Math.min(height * 0.25, 200) }}
             resizeMode="cover"
           >
             <LinearGradient
@@ -585,8 +587,8 @@ export default function StudentHookupScreen() {
 
               {/* Title */}
               <View className="items-center">
-                <Text className="text-4xl font-bold text-white mb-1">💖 Student Hook-Up! 💖</Text>
-                <Text className="text-base text-white/90">🌹 Find your perfect match on campus 💘</Text>
+                <Text className="text-2xl font-bold text-white mb-1" numberOfLines={1}>💖 Student Hook-Up! 💖</Text>
+                <Text className="text-sm text-white/90" numberOfLines={1}>🌹 Find your perfect match 💘</Text>
               </View>
             </LinearGradient>
           </ImageBackground>

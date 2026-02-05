@@ -98,6 +98,7 @@ export default function MarketplaceScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedFilter, setSelectedFilter] = useState<FilterTab>("all");
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [items, setItems] = useState<MarketplaceItem[]>([]);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -611,39 +612,56 @@ export default function MarketplaceScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Single Row Navigation Pills with Icons */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mb-12"
-          contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 12 }}
-        >
-          {CATEGORIES.map((category) => (
-            <TouchableOpacity
-              key={category.key}
-              onPress={() => setSelectedCategory(category.key)}
-              className={`px-5 rounded-full flex-row items-center gap-2 ${
-                selectedCategory === category.key
-                  ? "bg-primary"
-                  : "bg-white border-2 border-gray-200"
-              }`}
-              style={{ height: 42, minHeight: 42, maxHeight: 42 }}
-            >
+        {/* Category Dropdown */}
+        <View className="mb-6">
+          <TouchableOpacity
+            onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
+            className="bg-white border-2 border-gray-200 rounded-xl px-5 py-4 flex-row items-center justify-between"
+          >
+            <View className="flex-row items-center gap-3">
               <IconSymbol
-                name={category.icon}
-                size={18}
-                color={selectedCategory === category.key ? "#fff" : "#1f2937"}
+                name={CATEGORIES.find(c => c.key === selectedCategory)?.icon || "square.grid.2x2"}
+                size={20}
+                color="#1f2937"
               />
-              <Text
-                className={`font-bold text-base ${
-                  selectedCategory === category.key ? "text-white" : "text-gray-900"
-                }`}
-              >
-                {category.label}
+              <Text className="text-base font-semibold text-gray-900">
+                {CATEGORIES.find(c => c.key === selectedCategory)?.label || "All"}
               </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+            </View>
+            <IconSymbol name="chevron.down" size={20} color="#1f2937" />
+          </TouchableOpacity>
+
+          {/* Dropdown Menu */}
+          {showCategoryDropdown && (
+            <View className="bg-white border-2 border-gray-200 rounded-xl mt-2 overflow-hidden">
+              {CATEGORIES.map((category) => (
+                <TouchableOpacity
+                  key={category.key}
+                  onPress={() => {
+                    setSelectedCategory(category.key);
+                    setShowCategoryDropdown(false);
+                  }}
+                  className={`px-5 py-4 flex-row items-center gap-3 ${
+                    selectedCategory === category.key ? "bg-primary/10" : ""
+                  }`}
+                >
+                  <IconSymbol
+                    name={category.icon}
+                    size={20}
+                    color={selectedCategory === category.key ? colors.primary : "#1f2937"}
+                  />
+                  <Text
+                    className={`text-base font-semibold ${
+                      selectedCategory === category.key ? "text-primary" : "text-gray-900"
+                    }`}
+                  >
+                    {category.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
 
         {/* Action Buttons */}
         <View className="flex-row gap-3 mb-6">
