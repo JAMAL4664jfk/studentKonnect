@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { supabase } from "@/lib/supabase";
+import { supabase, safeGetUser } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -198,7 +198,7 @@ export default function StudentHookupScreen() {
     try {
       setLoading(true);
       // Get current user to exclude from profiles
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await safeGetUser();
       
       // Get real users from profiles table
       let query = supabase
@@ -265,7 +265,7 @@ export default function StudentHookupScreen() {
 
   const loadInteractions = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await safeGetUser();
       if (!user) return;
       
       // Load likes (people who liked me)
@@ -363,7 +363,7 @@ export default function StudentHookupScreen() {
       
       // Save interaction to database
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await safeGetUser();
         if (!user) return;
         
         // Save the like
@@ -421,7 +421,7 @@ export default function StudentHookupScreen() {
       
       // Save pass interaction to database
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await safeGetUser();
         if (!user) return;
         
         await supabase.from("dating_interactions").insert({

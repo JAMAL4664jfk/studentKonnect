@@ -15,7 +15,7 @@ import { Image } from "expo-image";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { supabase } from "@/lib/supabase";
+import { supabase, safeGetUser } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
 import { PodcastPlayer } from "@/components/PodcastPlayer";
 
@@ -87,7 +87,7 @@ export default function PodcastEpisodeScreen() {
   }, [episodeId]);
 
   const fetchCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await safeGetUser();
     setCurrentUser(user);
   };
 

@@ -13,7 +13,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useWallet } from "@/contexts/WalletContext";
-import { supabase } from "@/lib/supabase";
+import { supabase, safeGetUser } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
 import { generateTransactionStatement, shareTransactionStatement } from "@/lib/pdf-generator";
 import { ActivityIndicator } from "react-native";
@@ -170,7 +170,7 @@ export default function TransactionsScreen() {
 
   const loadUserProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await safeGetUser();
       if (user) {
         setUserEmail(user.email || "scholar@student.ac.za");
         

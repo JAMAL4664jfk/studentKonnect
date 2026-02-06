@@ -8,7 +8,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useInstitution } from "@/contexts/InstitutionContext";
 import { LinearGradient } from "expo-linear-gradient";
-import { supabase } from "@/lib/supabase";
+import { supabase, safeGetUser } from "@/lib/supabase";
 
 type ServiceItem = {
   id: string;
@@ -156,7 +156,7 @@ export default function ServicesScreen() {
 
   const loadUnreadCount = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await safeGetUser();
       if (!user) return;
 
       const { count } = await supabase
