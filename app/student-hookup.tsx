@@ -454,7 +454,15 @@ export default function StudentHookupScreen() {
       );
     }
 
-    const images = JSON.parse(profile.images || "[]");
+    // Handle both string URL and JSON array formats
+    let images: string[] = [];
+    try {
+      images = typeof profile.images === 'string' && profile.images.startsWith('[') 
+        ? JSON.parse(profile.images) 
+        : [profile.images];
+    } catch {
+      images = [profile.images];
+    }
     const mainImage = images[0] || "";
 
     return (
@@ -546,7 +554,15 @@ export default function StudentHookupScreen() {
   };
 
   const ProfileCard = ({ profile }: { profile: DatingProfile }) => {
-    const images = JSON.parse(profile.images || "[]");
+    // Handle both string URL and JSON array formats
+    let images: string[] = [];
+    try {
+      images = typeof profile.images === 'string' && profile.images.startsWith('[') 
+        ? JSON.parse(profile.images) 
+        : [profile.images];
+    } catch {
+      images = [profile.images];
+    }
     const mainImage = images[0] || "";
 
     return (
