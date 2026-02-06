@@ -99,11 +99,14 @@ export default function HomeScreen() {
               <View className="flex-1">
                 {userInstitution ? (
                   <View className="flex-row items-center gap-3 mb-2">
-                    <View className="w-12 h-12 rounded-lg bg-white/10 backdrop-blur-sm p-2 items-center justify-center">
+                    <View style={{ width: 64, height: 64, borderRadius: 12, backgroundColor: "#ffffff", padding: 8, justifyContent: "center", alignItems: "center" }}>
                       <Image
                         source={{ uri: userInstitution.logo }}
                         style={{ width: '100%', height: '100%' }}
                         contentFit="contain"
+                        placeholder={require("@/assets/images/student-konnect-logo.png")}
+                        placeholderContentFit="contain"
+                        transition={200}
                       />
                     </View>
                     <View>

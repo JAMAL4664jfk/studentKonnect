@@ -28,6 +28,87 @@ type DatingProfile = {
   distance?: number;
 };
 
+const SAMPLE_PROFILES: DatingProfile[] = [
+  {
+    id: 1,
+    userId: 101,
+    name: "Thandi Mabaso",
+    age: 21,
+    institution: "University of Pretoria",
+    course: "Business Management",
+    bio: "Love hiking, coffee dates, and deep conversations. Looking for someone genuine!",
+    images: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800",
+    interests: "Hiking, Coffee, Music, Travel",
+    isVerified: true,
+    distance: 2,
+  },
+  {
+    id: 2,
+    userId: 102,
+    name: "Lerato Ndlovu",
+    age: 22,
+    institution: "Stellenbosch University",
+    course: "Computer Science",
+    bio: "Tech enthusiast and bookworm. Lets grab coffee and talk about our favorite series!",
+    images: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800",
+    interests: "Technology, Reading, Gaming, Coding",
+    isVerified: true,
+    distance: 5,
+  },
+  {
+    id: 3,
+    userId: 103,
+    name: "Sipho Khumalo",
+    age: 23,
+    institution: "University of Cape Town",
+    course: "Engineering",
+    bio: "Gym rat and adventure seeker. Always up for trying new things!",
+    images: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800",
+    interests: "Fitness, Adventure, Sports, Travel",
+    isVerified: false,
+    distance: 8,
+  },
+  {
+    id: 4,
+    userId: 104,
+    name: "Nomsa Dlamini",
+    age: 20,
+    institution: "University of Johannesburg",
+    course: "Psychology",
+    bio: "Aspiring psychologist who loves art and meaningful conversations.",
+    images: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800",
+    interests: "Art, Psychology, Music, Yoga",
+    isVerified: true,
+    distance: 3,
+  },
+  {
+    id: 5,
+    userId: 105,
+    name: "Bongani Zulu",
+    age: 24,
+    institution: "University of the Witwatersrand",
+    course: "Law",
+    bio: "Future lawyer with a passion for justice and good food!",
+    images: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800",
+    interests: "Law, Food, Politics, Debate",
+    isVerified: true,
+    distance: 6,
+  },
+  {
+    id: 6,
+    userId: 106,
+    name: "Zanele Mokoena",
+    age: 21,
+    institution: "Stellenbosch University",
+    course: "Medicine",
+    bio: "Med student who loves dancing and helping others. Lets make memories!",
+    images: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=800",
+    interests: "Medicine, Dancing, Volunteering, Fitness",
+    isVerified: true,
+    distance: 4,
+  },
+];
+
 type TabType = "dashboard" | "profiles" | "likes" | "liked" | "passed" | "matches" | "events" | "edit";
 
 export default function StudentHookupScreen() {
@@ -37,6 +118,14 @@ export default function StudentHookupScreen() {
   const [profiles, setProfiles] = useState<DatingProfile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Load sample profiles
+    setTimeout(() => {
+      setProfiles(SAMPLE_PROFILES);
+      setLoading(false);
+    }, 1000);
+  }, []);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     minAge: 18,
