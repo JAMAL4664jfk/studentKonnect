@@ -44,7 +44,7 @@
     "dotenv": "^16.6.1",
     "drizzle-orm": "^0.44.7",
     "ethers": "^6.13.0",
-    "expo": "~54.0.29",
+    "expo": "~54.0.33",
     "expo-audio": "~1.1.0",
     "expo-av": "^16.0.8",
     "expo-build-properties": "^1.0.10",
