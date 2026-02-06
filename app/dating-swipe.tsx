@@ -14,7 +14,7 @@ import { Image } from "expo-image";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { supabase } from "@/lib/supabase";
+import { supabase, safeGetUser } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
@@ -62,7 +62,7 @@ export default function DatingSwipeScreen() {
 
   const checkProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await safeGetUser();
       if (!user) {
         router.replace("/auth" as any);
         return;
@@ -108,7 +108,7 @@ export default function DatingSwipeScreen() {
 
   const loadProfiles = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await safeGetUser();
       if (!user) return;
 
       // Get profiles excluding current user and already swiped
@@ -146,7 +146,7 @@ export default function DatingSwipeScreen() {
 
   const uploadPhoto = async (uri: string): Promise<string | null> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await safeGetUser();
       if (!user) return null;
 
       const response = await fetch(uri);
@@ -177,7 +177,7 @@ export default function DatingSwipeScreen() {
 
     setSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await safeGetUser();
       if (!user) return;
 
       let photoUrl = photoUri;
@@ -226,7 +226,7 @@ export default function DatingSwipeScreen() {
     const swipedProfile = profiles[currentIndex];
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await safeGetUser();
       if (!user) return;
 
       // Record swipe

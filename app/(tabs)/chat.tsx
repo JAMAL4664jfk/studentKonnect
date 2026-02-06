@@ -19,7 +19,7 @@ import { useChat } from "@/contexts/ChatContext";
 import { useInstitution } from "@/contexts/InstitutionContext";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { supabase } from "@/lib/supabase";
+import { supabase, safeGetUser } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -164,7 +164,7 @@ export default function ChatScreen() {
 
   useEffect(() => {
     const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await safeGetUser();
       if (user) {
         setCurrentUserId(user.id);
         loadConversations(user.id);

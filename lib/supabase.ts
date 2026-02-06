@@ -81,8 +81,86 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false, // Disable for mobile
+    flowType: 'pkce', // Use PKCE flow for better security
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'studentkonnect-mobile',
+    },
+  },
+  db: {
+    schema: 'public',
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
   },
 });
+
+/**
+ * Helper function to safely get user with retry logic
+ * Handles the "signal is aborted without reason" error
+ */
+export async function safeGetUser(retries = 3, delayMs = 500) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.warn(`Attempt ${i + 1}/${retries} - Auth error:`, error.message);
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          continue;
+        }
+        throw error;
+      }
+      return { data, error: null };
+    } catch (err: any) {
+      // Handle abort errors specifically
+      if (err?.name === 'AbortError' || err?.message?.includes('aborted')) {
+        console.warn(`Attempt ${i + 1}/${retries} - Request aborted, retrying...`);
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          continue;
+        }
+      }
+      console.error('safeGetUser failed after retries:', err);
+      return { data: { user: null }, error: err };
+    }
+  }
+  return { data: { user: null }, error: new Error('Failed after retries') };
+}
+
+/**
+ * Helper function to safely get session with retry logic
+ */
+export async function safeGetSession(retries = 3, delayMs = 500) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.warn(`Attempt ${i + 1}/${retries} - Session error:`, error.message);
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          continue;
+        }
+        throw error;
+      }
+      return { data, error: null };
+    } catch (err: any) {
+      if (err?.name === 'AbortError' || err?.message?.includes('aborted')) {
+        console.warn(`Attempt ${i + 1}/${retries} - Request aborted, retrying...`);
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          continue;
+        }
+      }
+      console.error('safeGetSession failed after retries:', err);
+      return { data: { session: null }, error: err };
+    }
+  }
+  return { data: { session: null }, error: new Error('Failed after retries') };
+}
 
 // Database types (simplified - expand as needed)
 export type Profile = {

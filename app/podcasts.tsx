@@ -18,7 +18,7 @@ import * as ImagePicker from "expo-image-picker";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { supabase } from "@/lib/supabase";
+import { supabase, safeGetUser } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
 
 type Podcast = {
@@ -152,7 +152,7 @@ export default function PodcastsScreen() {
   const checkAuth = async () => {
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = await safeGetUser();
     setCurrentUser(user);
   };
 

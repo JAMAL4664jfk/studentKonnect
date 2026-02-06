@@ -12,7 +12,7 @@ import { Image } from "expo-image";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { supabase } from "@/lib/supabase";
+import { supabase, safeGetUser } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
 
 interface ConnectionRequest {
@@ -58,7 +58,7 @@ export default function ConnectionRequestsScreen() {
   }, [currentUser]);
 
   const fetchCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await safeGetUser();
     if (user) {
       setCurrentUser({ id: user.id });
     }

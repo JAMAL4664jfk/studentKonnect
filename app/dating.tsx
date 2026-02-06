@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { supabase } from "@/lib/supabase";
+import { supabase, safeGetUser } from "@/lib/supabase";
 
 export default function DatingScreen() {
   const colors = useColors();
@@ -19,7 +19,7 @@ export default function DatingScreen() {
 
   const checkUserProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await safeGetUser();
       if (user) {
         const { data: profile } = await supabase
           .from('dating_profiles')
