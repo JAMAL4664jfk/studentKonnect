@@ -122,31 +122,6 @@ export default function HomeScreen() {
                 )}
                 <Text className="text-base text-white/90 mt-1">{FEATURE_DESCRIPTIONS.heroMessage}</Text>
                 <Text className="text-sm text-white/80 mt-2">{FEATURE_DESCRIPTIONS.tagline}</Text>
-
-                {/* Gazoo AI Button */}
-                <TouchableOpacity
-                  onPress={() => setGazooAIVisible(true)}
-                  className="mt-4 flex-row items-center bg-white/20 backdrop-blur-lg rounded-2xl px-4 py-3 active:opacity-70"
-                  style={{
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 8,
-                    elevation: 5,
-                  }}
-                >
-                  <View
-                    className="w-10 h-10 rounded-full items-center justify-center mr-3"
-                    style={{ backgroundColor: '#7c3aed' }}
-                  >
-                    <IconSymbol name="sparkles" size={20} color="#fff" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-white font-bold text-base">Chat with Gazoo AI</Text>
-                    <Text className="text-white/80 text-xs">Your intelligent student companion</Text>
-                  </View>
-                  <IconSymbol name="chevron.right" size={20} color="#fff" />
-                </TouchableOpacity>
               </View>
             <TouchableOpacity 
               onPress={() => router.push("/notifications" as any)}
@@ -253,6 +228,47 @@ export default function HomeScreen() {
           <View className="gap-3">
             <Text className="text-lg font-semibold text-foreground">Featured Services</Text>
             <View className="flex-row flex-wrap gap-3">
+              {/* Gazoo AI Chat Service */}
+              <View style={{ width: "48%" }}>
+                <TouchableOpacity
+                  onPress={() => setGazooAIVisible(true)}
+                  className="rounded-2xl overflow-hidden active:opacity-90"
+                  style={{
+                    height: 140,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                    elevation: 2,
+                    backgroundColor: '#1a0b2e',
+                  }}
+                >
+                  <LinearGradient
+                    colors={['#7c3aed', '#5b21b6', '#4c1d95']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{ width: "100%", height: "100%", justifyContent: "center", alignItems: "center", padding: 16 }}
+                  >
+                    <View
+                      className="w-12 h-12 rounded-full items-center justify-center mb-2"
+                      style={{ backgroundColor: '#ffffff30' }}
+                    >
+                      <IconSymbol name="sparkles" size={24} color="#fff" />
+                    </View>
+                    <Text className="text-white font-bold text-sm text-center">
+                      Chat with Gazoo AI
+                    </Text>
+                    <Text className="text-white/70 text-xs text-center mt-1">
+                      Your AI companion
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <Text className="text-sm font-semibold text-foreground mt-2 text-center">
+                  Gazoo AI
+                </Text>
+              </View>
+
+              {/* Existing Featured Services */}
               {FEATURED_SERVICES.map((service) => (
                 <View key={service.id} style={{ width: "48%" }}>
                   <TouchableOpacity
@@ -288,7 +304,9 @@ export default function HomeScreen() {
         visible={moreOptionsVisible}
         onClose={() => setMoreOptionsVisible(false)}
       />
+
+      {/* Gazoo AI Chat Modal */}
+      <GazooAIChat visible={gazooAIVisible} onClose={() => setGazooAIVisible(false)} />
     </ScreenContainer>
   );
-      <GazooAIChat visible={gazooAIVisible} onClose={() => setGazooAIVisible(false)} />
 }
