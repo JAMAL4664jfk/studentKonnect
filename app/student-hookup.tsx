@@ -784,7 +784,6 @@ export default function StudentHookupScreen() {
             </View>
           )}
         </View>
-        </ScrollView>
 
         {/* Content */}
         {activeTab === "dashboard" && renderDashboard()}
