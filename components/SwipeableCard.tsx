@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Dimensions, StyleSheet } from "react-native";
+import { View, Text, Dimensions, StyleSheet, Platform } from "react-native";
 import { Image } from "expo-image";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -15,8 +15,13 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
-const ROTATION_ANGLE = 60;
+const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
+const ROTATION_ANGLE = 30;
+
+// Calculate responsive card dimensions
+const CARD_WIDTH = Math.min(SCREEN_WIDTH - 40, 420);
+const CARD_HEIGHT = Math.min(SCREEN_HEIGHT * 0.68, 650);
+const IMAGE_HEIGHT_RATIO = 0.65;
 
 interface DatingProfile {
   id: string;
@@ -57,13 +62,13 @@ export function SwipeableCard({ profile, onSwipeLeft, onSwipeRight, isTop }: Swi
 
       if (shouldSwipeRight) {
         // Swipe right - Like
-        translateX.value = withSpring(SCREEN_WIDTH * 1.5, {}, () => {
+        translateX.value = withSpring(SCREEN_WIDTH * 1.5, { damping: 15 }, () => {
           runOnJS(onSwipeRight)();
         });
         translateY.value = withSpring(0);
       } else if (shouldSwipeLeft) {
         // Swipe left - Pass
-        translateX.value = withSpring(-SCREEN_WIDTH * 1.5, {}, () => {
+        translateX.value = withSpring(-SCREEN_WIDTH * 1.5, { damping: 15 }, () => {
           runOnJS(onSwipeLeft)();
         });
         translateY.value = withSpring(0);
@@ -83,7 +88,7 @@ export function SwipeableCard({ profile, onSwipeLeft, onSwipeRight, isTop }: Swi
     );
 
     const opacity = isTop ? 1 : 0.5;
-    const scale = isTop ? 1 : 0.95;
+    const scale = isTop ? 1 : 0.92;
 
     return {
       transform: [
@@ -126,52 +131,79 @@ export function SwipeableCard({ profile, onSwipeLeft, onSwipeRight, isTop }: Swi
               source={{ uri: profile.profile_photo_url }}
               style={styles.image}
               contentFit="cover"
+              priority="high"
+              cachePolicy="memory-disk"
             />
           ) : (
             <View style={[styles.image, styles.placeholderImage, { backgroundColor: colors.surface }]}>
-              <IconSymbol name="person.fill" size={80} color={colors.mutedForeground} />
+              <IconSymbol name="person.fill" size={100} color={colors.mutedForeground} />
             </View>
           )}
 
+          {/* Gradient Overlay for better text readability */}
+          <View style={styles.gradientOverlay} />
+
           {/* Like Overlay */}
           <Animated.View style={[styles.likeOverlay, likeOpacityStyle]}>
-            <View style={[styles.likeLabel, { borderColor: "#10B981" }]}>
+            <View style={styles.likeLabel}>
               <Text style={styles.likeText}>LIKE</Text>
             </View>
           </Animated.View>
 
           {/* Nope Overlay */}
           <Animated.View style={[styles.nopeOverlay, nopeOpacityStyle]}>
-            <View style={[styles.nopeLabel, { borderColor: "#EF4444" }]}>
+            <View style={styles.nopeLabel}>
               <Text style={styles.nopeText}>NOPE</Text>
             </View>
           </Animated.View>
         </View>
 
         {/* Profile Info */}
-        <View style={[styles.infoContainer, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.name, { color: colors.foreground }]}>
-            {profile.display_name}, {profile.age}
-          </Text>
-          {profile.institution && (
-            <Text style={[styles.institution, { color: colors.mutedForeground }]}>
-              {profile.institution}
-            </Text>
-          )}
-          {profile.bio && (
-            <Text style={[styles.bio, { color: colors.foreground }]} numberOfLines={2}>
-              {profile.bio}
-            </Text>
-          )}
-          {profile.interests && profile.interests.length > 0 && (
-            <View style={styles.interestsContainer}>
-              {profile.interests.slice(0, 3).map((interest, index) => (
-                <View key={index} style={[styles.interestTag, { backgroundColor: `${colors.primary}20` }]}>
-                  <Text style={[styles.interestText, { color: colors.primary }]}>{interest}</Text>
-                </View>
-              ))}
+        <View style={[styles.infoContainer, { backgroundColor: colors.card }]}>
+          <View style={styles.infoContent}>
+            <View style={styles.nameRow}>
+              <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={1}>
+                {profile.display_name}
+              </Text>
+              <Text style={[styles.age, { color: colors.foreground }]}>, {profile.age}</Text>
             </View>
-          )}
+            
+            {profile.institution && (
+              <View style={styles.institutionRow}>
+                <IconSymbol name="building.2.fill" size={14} color={colors.mutedForeground} />
+                <Text style={[styles.institution, { color: colors.mutedForeground }]} numberOfLines={1}>
+                  {profile.institution}
+                </Text>
+              </View>
+            )}
+
+            {profile.course && (
+              <View style={styles.courseRow}>
+                <IconSymbol name="book.fill" size={14} color={colors.mutedForeground} />
+                <Text style={[styles.course, { color: colors.mutedForeground }]} numberOfLines={1}>
+                  {profile.course}
+                </Text>
+              </View>
+            )}
+            
+            {profile.bio && (
+              <Text style={[styles.bio, { color: colors.foreground }]} numberOfLines={3}>
+                {profile.bio}
+              </Text>
+            )}
+            
+            {profile.interests && profile.interests.length > 0 && (
+              <View style={styles.interestsContainer}>
+                {profile.interests.slice(0, 4).map((interest, index) => (
+                  <View key={index} style={[styles.interestTag, { backgroundColor: `${colors.primary}20`, borderColor: `${colors.primary}40` }]}>
+                    <Text style={[styles.interestText, { color: colors.primary }]} numberOfLines={1}>
+                      {interest}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
         </View>
       </Animated.View>
     </GestureDetector>
@@ -181,19 +213,26 @@ export function SwipeableCard({ profile, onSwipeLeft, onSwipeRight, isTop }: Swi
 const styles = StyleSheet.create({
   card: {
     position: "absolute",
-    width: SCREEN_WIDTH - 32,
-    height: SCREEN_HEIGHT * 0.7,
-    borderRadius: 24,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    borderRadius: 20,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: "#fff",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   imageContainer: {
     width: "100%",
-    height: "70%",
+    height: `${IMAGE_HEIGHT_RATIO * 100}%`,
     position: "relative",
   },
   image: {
@@ -204,66 +243,112 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  gradientOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
+    backgroundColor: "transparent",
+  },
   likeOverlay: {
     position: "absolute",
-    top: 40,
-    left: 40,
+    top: 30,
+    left: 30,
   },
   likeLabel: {
     borderWidth: 4,
+    borderColor: "#10B981",
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     transform: [{ rotate: "-20deg" }],
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
   },
   likeText: {
-    fontSize: 32,
-    fontWeight: "bold",
+    fontSize: 36,
+    fontWeight: "900",
     color: "#10B981",
+    letterSpacing: 2,
   },
   nopeOverlay: {
     position: "absolute",
-    top: 40,
-    right: 40,
+    top: 30,
+    right: 30,
   },
   nopeLabel: {
     borderWidth: 4,
+    borderColor: "#EF4444",
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     transform: [{ rotate: "20deg" }],
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
   },
   nopeText: {
-    fontSize: 32,
-    fontWeight: "bold",
+    fontSize: 36,
+    fontWeight: "900",
     color: "#EF4444",
+    letterSpacing: 2,
   },
   infoContainer: {
-    padding: 24,
-    height: "30%",
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    justifyContent: "center",
+  },
+  infoContent: {
+    gap: 8,
+  },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    flexWrap: "wrap",
   },
   name: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "bold",
+    flexShrink: 1,
+  },
+  age: {
+    fontSize: 26,
+    fontWeight: "600",
+  },
+  institutionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   institution: {
     fontSize: 14,
-    marginTop: 4,
+    fontWeight: "500",
+    flex: 1,
+  },
+  courseRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  course: {
+    fontSize: 13,
+    flex: 1,
   },
   bio: {
     fontSize: 14,
-    marginTop: 8,
+    lineHeight: 20,
+    marginTop: 4,
   },
   interestsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    marginTop: 12,
+    marginTop: 4,
   },
   interestTag: {
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
   },
   interestText: {
     fontSize: 12,

@@ -487,7 +487,7 @@ export default function DatingSwipeScreen() {
           </View>
 
           {/* Swipeable Cards Stack */}
-          <View className="flex-1 items-center justify-center mb-4">
+          <View className="flex-1 items-center justify-center" style={{ marginBottom: 20, marginTop: 10 }}>
             {profiles.slice(currentIndex, currentIndex + 2).reverse().map((profile, index) => (
               <SwipeableCard
                 key={profile.id}
@@ -500,33 +500,45 @@ export default function DatingSwipeScreen() {
           </View>
 
           {/* Action Buttons */}
-          <View className="flex-row items-center justify-center gap-6 pb-4">
+          <View className="flex-row items-center justify-center gap-8" style={{ paddingBottom: 20 }}>
             <TouchableOpacity
               onPress={() => handleSwipe(false)}
-              className="bg-red-500 rounded-full p-4"
+              activeOpacity={0.7}
               style={{
+                backgroundColor: "#EF4444",
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                alignItems: "center",
+                justifyContent: "center",
                 shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.2,
-                shadowRadius: 4,
-                elevation: 4,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 6,
+                elevation: 6,
               }}
             >
-              <IconSymbol name="xmark" size={32} color="white" />
+              <IconSymbol name="xmark" size={36} color="white" />
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => handleSwipe(true)}
-              className="bg-green-500 rounded-full p-4"
+              activeOpacity={0.7}
               style={{
+                backgroundColor: "#10B981",
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                alignItems: "center",
+                justifyContent: "center",
                 shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.2,
-                shadowRadius: 4,
-                elevation: 4,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 6,
+                elevation: 6,
               }}
             >
-              <IconSymbol name="heart.fill" size={32} color="white" />
+              <IconSymbol name="heart.fill" size={36} color="white" />
             </TouchableOpacity>
           </View>
         </View>
