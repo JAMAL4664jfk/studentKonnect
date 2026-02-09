@@ -98,6 +98,7 @@ export default function ChatScreen() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("chats");
+  const [showTabDropdown, setShowTabDropdown] = useState(false);
 
   // Format last message for display
   const formatLastMessage = (message: string | null): string => {
@@ -852,48 +853,64 @@ export default function ChatScreen() {
           </View>
         </View>
 
-        {/* Tabs with Background */}
-        <View className="border-b border-border" style={{
-          backgroundImage: activeTab === 'chats' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' :
-                          activeTab === 'groups' ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' :
-                          activeTab === 'calls' ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' :
-                          activeTab === 'status' ? 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' :
-                          'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-          paddingVertical: 2
-        }}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="flex-row"
+        {/* Dropdown Menu */}
+        <View className="px-4 py-3 border-b border-border">
+          <TouchableOpacity
+            onPress={() => setShowTabDropdown(!showTabDropdown)}
+            className="flex-row items-center justify-between p-3 rounded-xl"
+            style={{ backgroundColor: colors.surface }}
           >
-          {tabs.map((tab, index) => (
-            <TouchableOpacity
-              key={tab.key}
-              onPress={() => setActiveTab(tab.key)}
-              className={index === 0 ? "pl-2 pr-4 py-1" : "px-4 py-1"}
-              style={{
-                borderBottomWidth: 2,
-                borderBottomColor: activeTab === tab.key ? colors.primary : "transparent",
-              }}
-            >
-              <View className="flex-row items-center gap-2">
-                <IconSymbol
-                  name={tab.icon as any}
-                  size={18}
-                  color={activeTab === tab.key ? colors.primary : colors.muted}
-                />
-                <Text
-                  className="font-semibold"
+            <View className="flex-row items-center gap-3">
+              <IconSymbol
+                name={tabs.find(t => t.key === activeTab)?.icon as any}
+                size={20}
+                color={colors.primary}
+              />
+              <Text className="text-base font-semibold" style={{ color: colors.foreground }}>
+                {tabs.find(t => t.key === activeTab)?.label}
+              </Text>
+            </View>
+            <IconSymbol
+              name={showTabDropdown ? "chevron.up" : "chevron.down"}
+              size={20}
+              color={colors.muted}
+            />
+          </TouchableOpacity>
+          
+          {showTabDropdown && (
+            <View className="mt-2 rounded-xl overflow-hidden" style={{ backgroundColor: colors.surface }}>
+              {tabs.map((tab) => (
+                <TouchableOpacity
+                  key={tab.key}
+                  onPress={() => {
+                    setActiveTab(tab.key);
+                    setShowTabDropdown(false);
+                  }}
+                  className="flex-row items-center gap-3 p-3 border-b border-border"
                   style={{
-                    color: activeTab === tab.key ? colors.primary : colors.muted,
+                    backgroundColor: activeTab === tab.key ? colors.primary + '15' : 'transparent',
                   }}
                 >
-                  {tab.label}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-          </ScrollView>
+                  <IconSymbol
+                    name={tab.icon as any}
+                    size={20}
+                    color={activeTab === tab.key ? colors.primary : colors.muted}
+                  />
+                  <Text
+                    className="text-base font-medium flex-1"
+                    style={{
+                      color: activeTab === tab.key ? colors.primary : colors.foreground,
+                    }}
+                  >
+                    {tab.label}
+                  </Text>
+                  {activeTab === tab.key && (
+                    <IconSymbol name="checkmark" size={20} color={colors.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Content */}
