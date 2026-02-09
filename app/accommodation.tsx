@@ -213,6 +213,7 @@ export default function AccommodationScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [headerExpanded, setHeaderExpanded] = useState(true);
 
   useEffect(() => {
     fetchAccommodations();
@@ -657,105 +658,114 @@ export default function AccommodationScreen() {
               <Text className="text-sm text-muted">Find your perfect student home</Text>
             </View>
             <TouchableOpacity
-              onPress={() => router.push("/create-accommodation")}
-              className="bg-primary px-4 py-2 rounded-full"
+              onPress={() => setHeaderExpanded(!headerExpanded)}
+              className="w-10 h-10 rounded-full bg-surface items-center justify-center"
             >
-              <Text className="text-white text-sm font-semibold">Post</Text>
+              <IconSymbol
+                name={headerExpanded ? "chevron.up" : "chevron.down"}
+                size={20}
+                color={colors.foreground}
+              />
             </TouchableOpacity>
           </View>
 
-          {/* Search */}
-          <View className="flex-row items-center gap-3 rounded-2xl px-4 py-3 bg-surface border border-border mb-3">
-            <IconSymbol name="magnifyingglass" size={20} color={colors.muted} />
-            <TextInput
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder="Search by location or university..."
-              placeholderTextColor={colors.muted}
-              className="flex-1 text-foreground text-base"
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")}>
-                <IconSymbol name="xmark.circle.fill" size={20} color={colors.muted} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+          {/* Collapsible Content */}
+          {headerExpanded && (
+            <View>
+              {/* Search */}
+              <View className="flex-row items-center gap-3 rounded-2xl px-4 py-3 bg-surface border border-border mb-3">
+                <IconSymbol name="magnifyingglass" size={20} color={colors.muted} />
+                <TextInput
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  placeholder="Search by location or university..."
+                  placeholderTextColor={colors.muted}
+                  className="flex-1 text-foreground text-base"
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchQuery("")}>
+                    <IconSymbol name="xmark.circle.fill" size={20} color={colors.muted} />
+                  </TouchableOpacity>
+                )}
+              </View>
 
-        {/* Property Type Dropdown */}
-        <View className="mb-6">
-          <TouchableOpacity
-            onPress={() => setShowTypeDropdown(!showTypeDropdown)}
-            className="bg-white border-2 border-gray-200 rounded-xl px-5 py-4 flex-row items-center justify-between"
-          >
-            <View className="flex-row items-center gap-3">
-              <IconSymbol
-                name={TYPES.find(t => t.key === selectedType)?.icon || "square.grid.2x2"}
-                size={20}
-                color="#1f2937"
-              />
-              <Text className="text-base font-semibold text-gray-900">
-                {TYPES.find(t => t.key === selectedType)?.label || "All"}
-              </Text>
-            </View>
-            <IconSymbol name="chevron.down" size={20} color="#1f2937" />
-          </TouchableOpacity>
-
-          {/* Dropdown Menu */}
-          {showTypeDropdown && (
-            <View className="bg-white border-2 border-gray-200 rounded-xl mt-2 overflow-hidden">
-              {TYPES.map((type) => (
+              {/* Property Type Dropdown */}
+              <View className="mb-3">
                 <TouchableOpacity
-                  key={type.key}
-                  onPress={() => {
-                    setSelectedType(type.key);
-                    setShowTypeDropdown(false);
-                  }}
-                  className={`px-5 py-4 flex-row items-center gap-3 ${
-                    selectedType === type.key ? "bg-primary/10" : ""
-                  }`}
+                  onPress={() => setShowTypeDropdown(!showTypeDropdown)}
+                  className="bg-white border-2 border-gray-200 rounded-xl px-5 py-4 flex-row items-center justify-between"
                 >
-                  <IconSymbol
-                    name={type.icon}
-                    size={20}
-                    color={selectedType === type.key ? colors.primary : "#1f2937"}
-                  />
-                  <Text
-                    className={`text-base font-semibold ${
-                      selectedType === type.key ? "text-primary" : "text-gray-900"
-                    }`}
-                  >
-                    {type.label}
-                  </Text>
+                  <View className="flex-row items-center gap-3">
+                    <IconSymbol
+                      name={TYPES.find(t => t.key === selectedType)?.icon || "square.grid.2x2"}
+                      size={20}
+                      color="#1f2937"
+                    />
+                    <Text className="text-base font-semibold text-gray-900">
+                      {TYPES.find(t => t.key === selectedType)?.label || "All"}
+                    </Text>
+                  </View>
+                  <IconSymbol name="chevron.down" size={20} color="#1f2937" />
                 </TouchableOpacity>
-              ))}
+
+                {/* Dropdown Menu */}
+                {showTypeDropdown && (
+                  <View className="bg-white border-2 border-gray-200 rounded-xl mt-2 overflow-hidden">
+                    {TYPES.map((type) => (
+                      <TouchableOpacity
+                        key={type.key}
+                        onPress={() => {
+                          setSelectedType(type.key);
+                          setShowTypeDropdown(false);
+                        }}
+                        className={`px-5 py-4 flex-row items-center gap-3 ${
+                          selectedType === type.key ? "bg-primary/10" : ""
+                        }`}
+                      >
+                        <IconSymbol
+                          name={type.icon}
+                          size={20}
+                          color={selectedType === type.key ? colors.primary : "#1f2937"}
+                        />
+                        <Text
+                          className={`text-base font-semibold ${
+                            selectedType === type.key ? "text-primary" : "text-gray-900"
+                          }`}
+                        >
+                          {type.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              {/* Action Buttons */}
+              <View className="flex-row gap-3 mb-3">
+                <TouchableOpacity
+                  className="flex-1 bg-primary px-5 py-3.5 rounded-xl flex-row items-center justify-center gap-2"
+                  onPress={() => router.push("/create-accommodation")}
+                >
+                  <IconSymbol name="plus.circle.fill" size={20} color="#fff" />
+                  <Text className="text-white font-bold text-base">Post Your Listing</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="flex-1 bg-white border-2 border-primary px-5 py-3.5 rounded-xl flex-row items-center justify-center gap-2"
+                  onPress={() => router.push("/my-accommodation-listings")}
+                >
+                  <IconSymbol name="list.bullet" size={20} color={colors.primary} />
+                  <Text className="text-primary font-bold text-base">Manage Listings</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
-        </View>
 
-        {/* Action Buttons */}
-        <View className="flex-row gap-3 mb-4">
-          <TouchableOpacity
-            className="flex-1 bg-primary px-5 py-3.5 rounded-xl flex-row items-center justify-center gap-2"
-            onPress={() => router.push("/create-accommodation")}
-          >
-            <IconSymbol name="plus.circle.fill" size={20} color="#fff" />
-            <Text className="text-white font-bold text-base">Post Your Listing</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-1 bg-white border-2 border-primary px-5 py-3.5 rounded-xl flex-row items-center justify-center gap-2"
-            onPress={() => router.push("/my-accommodation-listings")}
-          >
-            <IconSymbol name="list.bullet" size={20} color={colors.primary} />
-            <Text className="text-primary font-bold text-base">Manage Listings</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Stats */}
-        <View className="flex-row items-center gap-2 mb-4">
-          <Text className="text-sm font-medium text-foreground">
-            Found {filteredAccommodations.length} accommodations
-          </Text>
+          {/* Stats - Always Visible */}
+          <View className="flex-row items-center gap-2 mb-4">
+            <Text className="text-sm font-medium text-foreground">
+              Found {filteredAccommodations.length} accommodations
+            </Text>
+          </View>
         </View>
         </View>
 

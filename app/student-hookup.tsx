@@ -127,6 +127,7 @@ export default function StudentHookupScreen() {
     }, 1000);
   }, []);
   const [showFilters, setShowFilters] = useState(false);
+  const [showTabDropdown, setShowTabDropdown] = useState(false);
   const [filters, setFilters] = useState({
     minAge: 18,
     maxAge: 30,
@@ -698,53 +699,91 @@ export default function StudentHookupScreen() {
             </LinearGradient>
           </ImageBackground>
         </View>
-
-        {/* Tabs - Matching Marketplace Style */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mb-6"
-          contentContainerStyle={{ gap: 12, paddingRight: 16, paddingBottom: 12 }}
-        >
-          {[
-            { key: "dashboard", label: "Dashboard", icon: "house.fill" },
-            { key: "profiles", label: "Profiles", icon: "person.3.fill" },
-            { key: "likes", label: "Likes You", icon: "heart.fill", badge: likes.length },
-            { key: "liked", label: "Liked", icon: "heart", badge: liked.length },
-            { key: "passed", label: "Passed", icon: "xmark.circle", badge: passed.length },
-            { key: "matches", label: "Matches", icon: "sparkles", badge: matches.length },
-            { key: "events", label: "Events", icon: "calendar" },
-            { key: "edit", label: "Edit Profile", icon: "pencil" },
-          ].map((tab) => (
-            <TouchableOpacity
-              key={tab.key}
-              onPress={() => setActiveTab(tab.key as TabType)}
-              className={`px-5 rounded-full flex-row items-center gap-2 ${
-                activeTab === tab.key
-                  ? "bg-primary"
-                  : "bg-white border-2 border-gray-200"
-              }`}
-              style={{ height: 42, minHeight: 42, maxHeight: 42 }}
-            >
+        {/* Tabs Dropdown */}
+        <View className="mb-6 px-4">
+          <TouchableOpacity
+            onPress={() => setShowTabDropdown(!showTabDropdown)}
+            className="bg-white border-2 border-gray-200 rounded-xl px-5 py-4 flex-row items-center justify-between"
+          >
+            <View className="flex-row items-center gap-3">
               <IconSymbol
-                name={tab.icon}
-                size={18}
-                color={activeTab === tab.key ? "#fff" : "#1f2937"}
+                name={
+                  activeTab === "dashboard" ? "house.fill" :
+                  activeTab === "profiles" ? "person.3.fill" :
+                  activeTab === "likes" ? "heart.fill" :
+                  activeTab === "liked" ? "heart" :
+                  activeTab === "passed" ? "xmark.circle" :
+                  activeTab === "matches" ? "sparkles" :
+                  activeTab === "events" ? "calendar" :
+                  "pencil"
+                }
+                size={20}
+                color={colors.primary}
               />
-              <Text
-                className={`font-bold text-base ${
-                  activeTab === tab.key ? "text-white" : "text-gray-900"
-                }`}
-              >
-                {tab.label}
+              <Text className="text-base font-semibold text-gray-900">
+                {
+                  activeTab === "dashboard" ? "Dashboard" :
+                  activeTab === "profiles" ? "Profiles" :
+                  activeTab === "likes" ? "Likes You" :
+                  activeTab === "liked" ? "Liked" :
+                  activeTab === "passed" ? "Passed" :
+                  activeTab === "matches" ? "Matches" :
+                  activeTab === "events" ? "Events" :
+                  "Edit Profile"
+                }
               </Text>
-              {tab.badge !== undefined && tab.badge > 0 && (
-                <View className="bg-error w-5 h-5 rounded-full items-center justify-center ml-1">
-                  <Text className="text-white text-xs font-bold">{tab.badge}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
+            </View>
+            <IconSymbol name={showTabDropdown ? "chevron.up" : "chevron.down"} size={20} color="#1f2937" />
+          </TouchableOpacity>
+
+          {/* Dropdown Menu */}
+          {showTabDropdown && (
+            <View className="bg-white border-2 border-gray-200 rounded-xl mt-2 overflow-hidden">
+              {[
+                { key: "dashboard", label: "Dashboard", icon: "house.fill" },
+                { key: "profiles", label: "Profiles", icon: "person.3.fill" },
+                { key: "likes", label: "Likes You", icon: "heart.fill", badge: likes.length },
+                { key: "liked", label: "Liked", icon: "heart", badge: liked.length },
+                { key: "passed", label: "Passed", icon: "xmark.circle", badge: passed.length },
+                { key: "matches", label: "Matches", icon: "sparkles", badge: matches.length },
+                { key: "events", label: "Events", icon: "calendar" },
+                { key: "edit", label: "Edit Profile", icon: "pencil" },
+              ].map((tab) => (
+                <TouchableOpacity
+                  key={tab.key}
+                  onPress={() => {
+                    setActiveTab(tab.key as TabType);
+                    setShowTabDropdown(false);
+                  }}
+                  className={`px-5 py-4 flex-row items-center gap-3 ${
+                    activeTab === tab.key ? "bg-primary/10" : ""
+                  }`}
+                >
+                  <IconSymbol
+                    name={tab.icon}
+                    size={20}
+                    color={activeTab === tab.key ? colors.primary : "#1f2937"}
+                  />
+                  <Text
+                    className={`text-base font-semibold flex-1 ${
+                      activeTab === tab.key ? "text-primary" : "text-gray-900"
+                    }`}
+                  >
+                    {tab.label}
+                  </Text>
+                  {tab.badge !== undefined && tab.badge > 0 && (
+                    <View className="bg-error w-5 h-5 rounded-full items-center justify-center">
+                      <Text className="text-white text-xs font-bold">{tab.badge}</Text>
+                    </View>
+                  )}
+                  {activeTab === tab.key && (
+                    <IconSymbol name="checkmark" size={20} color={colors.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
         </ScrollView>
 
         {/* Content */}
