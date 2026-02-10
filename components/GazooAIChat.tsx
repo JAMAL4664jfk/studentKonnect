@@ -302,6 +302,8 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
           throw new Error('Please log in to use Gazoo AI');
         }
 
+        console.log('Calling Edge Function:', `${supabase.supabaseUrl}/functions/v1/gazoo-chat`);
+        
         const response = await fetch(
           `${supabase.supabaseUrl}/functions/v1/gazoo-chat`,
           {
@@ -326,12 +328,24 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
           }
         );
 
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || 'Failed to get response from Gazoo AI');
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch (e) {
+            errorData = { error: errorText };
+          }
+          throw new Error(errorData.error || `Server error: ${response.status}`);
         }
 
         const data = await response.json();
+        console.log('Success response:', data);
+        
         if (!data.success || !data.message) {
           throw new Error('Invalid response from Gazoo AI');
         }
@@ -349,15 +363,30 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
       
       // Auto-save conversation after each exchange
       setTimeout(() => saveConversation(), 500);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+      
+      // Show actual error to user for debugging
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        content: `Error: ${error.message}\n\nPlease check:\n1. Edge Function is deployed\n2. OPENAI_API_KEY secret is set\n3. You're logged in\n4. Internet connection is working`,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
+      
+      // Also show toast
+      Toast.show({
+        type: 'error',
+        text1: 'Gazoo AI Error',
+        text2: error.message,
+        visibilityTime: 5000,
+      });
     } finally {
       setIsLoading(false);
     }
