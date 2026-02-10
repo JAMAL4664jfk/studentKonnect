@@ -303,6 +303,11 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
         }
 
         console.log('Calling Edge Function:', `${supabase.supabaseUrl}/functions/v1/gazoo-chat`);
+        console.log('Session exists:', !!session);
+        console.log('Access token exists:', !!session.access_token);
+        
+        // Get the anon key from supabase client
+        const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydGpqZWttZXhteXZra290aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwOTkyODAsImV4cCI6MjA4NDY3NTI4MH0.__lyxX1wdkAkO7xUj5cBuc1x9ae_h-cggfVl_yXby6A';
         
         const response = await fetch(
           `${supabase.supabaseUrl}/functions/v1/gazoo-chat`,
@@ -311,6 +316,7 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${session.access_token}`,
+              'apikey': anonKey,
             },
             body: JSON.stringify({
               messages: [
