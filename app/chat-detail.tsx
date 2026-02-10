@@ -285,7 +285,33 @@ export default function ChatDetailScreen() {
     if (!currentUserId) return;
 
     setSending(true);
+    setShowUploadProgress(true);
+    setUploadProgress(0);
+    setUploadFileName("Video");
+    setUploadType("video");
+    
     try {
+      // Check file size (50MB limit for videos)
+      const fileInfo = await FileSystem.getInfoAsync(videoUri);
+      const fileSizeMB = fileInfo.size ? fileInfo.size / (1024 * 1024) : 0;
+      const maxSizeMB = 50;
+      
+      setUploadProgress(10);
+      
+      if (fileSizeMB > maxSizeMB) {
+        Toast.show({
+          type: "error",
+          text1: "File Too Large",
+          text2: `Video size is ${fileSizeMB.toFixed(1)}MB. Please upload a video smaller than ${maxSizeMB}MB.`,
+          visibilityTime: 5000,
+        });
+        setSending(false);
+        setShowUploadProgress(false);
+        return;
+      }
+      
+      setUploadProgress(20);
+      
       // Upload video to Supabase storage using FormData
       const fileName = `chat-videos/${Date.now()}.mp4`;
       
@@ -297,6 +323,8 @@ export default function ChatDetailScreen() {
         name: fileName.split('/').pop(),
       } as any);
 
+      setUploadProgress(40);
+      
       const { data, error } = await supabase.storage
         .from("chat-attachments")
         .upload(fileName, formData, {
@@ -311,9 +339,12 @@ export default function ChatDetailScreen() {
           text2: error.message || "Could not upload video",
         });
         setSending(false);
+        setShowUploadProgress(false);
         return;
       }
 
+      setUploadProgress(70);
+      
       const { data: urlData } = supabase.storage
         .from("chat-attachments")
         .getPublicUrl(fileName);
@@ -321,12 +352,18 @@ export default function ChatDetailScreen() {
       console.log('Sending video message:', `[Video] ${urlData.publicUrl}`);
       await sendMessage(conversationId, `[Video] ${urlData.publicUrl}`, currentUserId);
       
+      setUploadProgress(90);
+      
       // Reload messages to show the attachment immediately
       await loadMessages(conversationId);
+      
+      setUploadProgress(100);
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       Toast.show({
         type: "success",
         text1: "Video sent",
+        text2: `${fileSizeMB.toFixed(1)}MB uploaded successfully`,
       });
     } catch (error: any) {
       console.error('Error sending video:', error);
@@ -337,6 +374,8 @@ export default function ChatDetailScreen() {
       });
     } finally {
       setSending(false);
+      setShowUploadProgress(false);
+      setUploadProgress(0);
     }
   };
 
@@ -350,6 +389,25 @@ export default function ChatDetailScreen() {
     setUploadType("file");
     
     try {
+      // Check file size (25MB limit for documents)
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      const fileSizeMB = fileInfo.size ? fileInfo.size / (1024 * 1024) : 0;
+      const maxSizeMB = 25;
+      
+      setUploadProgress(10);
+      
+      if (fileSizeMB > maxSizeMB) {
+        Toast.show({
+          type: "error",
+          text1: "File Too Large",
+          text2: `File size is ${fileSizeMB.toFixed(1)}MB. Please upload a file smaller than ${maxSizeMB}MB.`,
+          visibilityTime: 5000,
+        });
+        setSending(false);
+        setShowUploadProgress(false);
+        return;
+      }
+      
       const storageFileName = `chat-files/${Date.now()}-${fileName}`;
       
       setUploadProgress(20);
@@ -421,7 +479,7 @@ export default function ChatDetailScreen() {
       Toast.show({
         type: "success",
         text1: "File sent",
-        text2: fileName,
+        text2: `${fileName} (${fileSizeMB.toFixed(1)}MB)`,
       });
     } catch (error: any) {
       console.error('Error sending file:', error);
