@@ -404,7 +404,10 @@ export default function PodcastsScreen() {
   };
 
   const handleUploadEpisode = async () => {
+    console.log('Upload Episode button pressed');
+    
     if (!currentUser) {
+      console.log('No current user');
       Toast.show({
         type: "info",
         text1: "Sign In Required",
@@ -413,6 +416,8 @@ export default function PodcastsScreen() {
       return;
     }
 
+    console.log('Validating fields:', { title: newEpisode.title, mediaType, audioFile, videoFile });
+    
     if (!newEpisode.title || (mediaType === "audio" && !audioFile) || (mediaType === "video" && !videoFile)) {
       Toast.show({
         type: "error",
@@ -431,7 +436,15 @@ export default function PodcastsScreen() {
       return;
     }
 
+    console.log('Starting upload...');
     setUploading(true);
+    
+    Toast.show({
+      type: "info",
+      text1: "Uploading...",
+      text2: "Please wait while we upload your episode",
+    });
+    
     try {
       let audioUrl = null;
       let videoUrl = null;
@@ -453,20 +466,30 @@ export default function PodcastsScreen() {
         } = supabase.storage.from("podcasts").getPublicUrl(`audio/${audioFileName}`);
         audioUrl = publicUrl;
       } else if (mediaType === "video" && videoFile) {
+        console.log('Uploading video:', videoFile.name);
         const videoFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.mp4`;
+        
+        console.log('Fetching video file from URI:', videoFile.uri);
         const videoResponse = await fetch(videoFile.uri);
         const videoBlob = await videoResponse.blob();
+        console.log('Video blob size:', videoBlob.size, 'bytes');
 
+        console.log('Uploading to Supabase storage...');
         const { error: videoUploadError } = await supabase.storage
           .from("podcasts")
           .upload(`videos/${videoFileName}`, videoBlob);
 
-        if (videoUploadError) throw videoUploadError;
+        if (videoUploadError) {
+          console.error('Video upload error:', videoUploadError);
+          throw videoUploadError;
+        }
 
+        console.log('Getting public URL...');
         const {
           data: { publicUrl },
         } = supabase.storage.from("podcasts").getPublicUrl(`videos/${videoFileName}`);
         videoUrl = publicUrl;
+        console.log('Video uploaded successfully:', videoUrl);
       }
 
       // Use video URL as thumbnail for videos (player will show first frame)
@@ -476,7 +499,8 @@ export default function PodcastsScreen() {
       }
 
       // Create podcast episode
-      const { error } = await supabase.from("podcasts").insert({
+      console.log('Creating podcast episode in database...');
+      const podcastData = {
         title: newEpisode.title,
         description: newEpisode.description || null,
         host_name: newEpisode.host || "Anonymous",
@@ -492,9 +516,18 @@ export default function PodcastsScreen() {
         season_number: newEpisode.seasonNumber ? parseInt(newEpisode.seasonNumber) : null,
         release_date: new Date().toISOString(),
         featured: false,
-      });
+      };
+      
+      console.log('Podcast data:', podcastData);
+      
+      const { error } = await supabase.from("podcasts").insert(podcastData);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database insert error:', error);
+        throw error;
+      }
+      
+      console.log('Episode created successfully');
 
       Toast.show({
         type: "success",
@@ -519,12 +552,15 @@ export default function PodcastsScreen() {
       setShowUploadEpisode(false);
       await fetchPodcasts(false);
     } catch (error: any) {
+      console.error('Upload episode error:', error);
       Toast.show({
         type: "error",
-        text1: "Error",
-        text2: "Failed to upload episode",
+        text1: "Upload Failed",
+        text2: error.message || "Failed to upload episode. Please try again.",
+        visibilityTime: 5000,
       });
     } finally {
+      console.log('Upload process completed');
       setUploading(false);
     }
   };
