@@ -43,3 +43,6 @@ enable_confirmations = false
 
 [edge_functions]
 enabled = true
+
+[edge_functions.gazoo-chat]
+verify_jwt = false
