@@ -31,6 +31,8 @@ export default function CreateAccommodationScreen() {
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
+  const [customCity, setCustomCity] = useState("");
+  const [showCustomCityInput, setShowCustomCityInput] = useState(false);
   const [price, setPrice] = useState("");
   const [propertyType, setPropertyType] = useState<PropertyType>("apartment");
   const [bedrooms, setBedrooms] = useState("1");
@@ -62,6 +64,13 @@ export default function CreateAccommodationScreen() {
     "Port Elizabeth",
     "Bloemfontein",
     "East London",
+    "Polokwane",
+    "Nelspruit",
+    "Kimberley",
+    "Rustenburg",
+    "Pietermaritzburg",
+    "Potchefstroom",
+    "Other (Type your city/town)",
   ];
 
   const toggleAmenity = (amenity: string) => {
@@ -106,6 +115,10 @@ export default function CreateAccommodationScreen() {
       Toast.show({ type: "error", text1: "City is required" });
       return false;
     }
+    if (city === "Other (Type your city/town)" && !customCity.trim()) {
+      Toast.show({ type: "error", text1: "Please enter your city/town name" });
+      return false;
+    }
     if (!price || isNaN(parseFloat(price))) {
       Toast.show({ type: "error", text1: "Valid price is required" });
       return false;
@@ -136,7 +149,7 @@ export default function CreateAccommodationScreen() {
           title: title.trim(),
           description: description.trim(),
           address: address.trim(),
-          city,
+          city: city === "Other (Type your city/town)" ? customCity.trim() : city,
           country: "South Africa",
           price: parseFloat(price),
           currency: "ZAR",
@@ -253,7 +266,13 @@ export default function CreateAccommodationScreen() {
             <View className="bg-surface border border-border rounded-xl overflow-hidden">
               <Picker
                 selectedValue={city}
-                onValueChange={setCity}
+                onValueChange={(value) => {
+                  setCity(value);
+                  setShowCustomCityInput(value === "Other (Type your city/town)");
+                  if (value !== "Other (Type your city/town)") {
+                    setCustomCity("");
+                  }
+                }}
                 style={{ color: colors.foreground }}
               >
                 <Picker.Item label="Select city..." value="" />
@@ -262,6 +281,19 @@ export default function CreateAccommodationScreen() {
                 ))}
               </Picker>
             </View>
+            
+            {/* Custom City Input */}
+            {showCustomCityInput && (
+              <View className="mt-3">
+                <TextInput
+                  value={customCity}
+                  onChangeText={setCustomCity}
+                  placeholder="Enter your city or town name"
+                  placeholderTextColor={colors.muted}
+                  className="bg-surface border border-border rounded-xl px-4 py-3 text-foreground"
+                />
+              </View>
+            )}
           </View>
 
           {/* Property Type */}

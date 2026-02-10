@@ -40,13 +40,23 @@ export default function MyAccommodationsScreen() {
 
   const fetchMyListings = async () => {
     try {
-      // For now using userId 1, replace with actual auth
-      const userId = 1;
+      // Get authenticated user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        Toast.show({
+          type: "error",
+          text1: "Not logged in",
+          text2: "Please log in to view your listings",
+        });
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from("accommodations")
         .select("*")
-        .eq("userId", userId)
+        .eq("userId", user.id)
         .order("createdAt", { ascending: false });
 
       if (error) throw error;
