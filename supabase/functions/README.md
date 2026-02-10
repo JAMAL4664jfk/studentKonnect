@@ -179,3 +179,84 @@ npx supabase functions logs create-wallet
 ```
 
 Or in dashboard: https://supabase.com/dashboard/project/ortjjekmexmyvkkotioo/logs/edge-functions
+
+
+---
+
+## 5. gazoo-chat
+Handles Gazoo AI chat requests securely by keeping the OpenAI API key on the server side.
+
+**Endpoint:** `/functions/v1/gazoo-chat`
+
+**Request:**
+```json
+{
+  "messages": [
+    {"role": "user", "content": "Hello, can you help me with studying?"}
+  ],
+  "conversationId": "optional-conversation-uuid"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Hi! I'd be happy to help you with studying..."
+}
+```
+
+### Deployment
+
+#### Using Supabase CLI
+
+```bash
+# Set OpenAI API key as secret
+supabase secrets set OPENAI_API_KEY=sk-proj-YOUR_OPENAI_API_KEY_HERE
+
+# Deploy the function
+supabase functions deploy gazoo-chat
+```
+
+#### Manual Deployment (Dashboard)
+
+1. Go to Supabase Dashboard → Edge Functions
+2. Click "Create a new function"
+3. Name it "gazoo-chat"
+4. Copy code from `supabase/functions/gazoo-chat/index.ts`
+5. Go to Edge Functions → Secrets
+6. Add secret: `OPENAI_API_KEY` = `sk-proj-YOUR_OPENAI_API_KEY_HERE`
+7. Deploy
+
+### Required Secrets
+
+| Secret | Description |
+|--------|-------------|
+| `OPENAI_API_KEY` | Your OpenAI API key |
+| `SUPABASE_URL` | Automatically provided |
+| `SUPABASE_ANON_KEY` | Automatically provided |
+
+### Testing
+
+```bash
+# Test deployed function
+curl -X POST \
+  'https://ortjjekmexmyvkkotioo.supabase.co/functions/v1/gazoo-chat' \
+  -H 'Authorization: Bearer YOUR_ANON_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{"messages":[{"role":"user","content":"Hello!"}]}'
+```
+
+### Security
+
+✅ **API Key is secure**: Stored as environment variable on server  
+✅ **CORS enabled**: Allows requests from your app  
+✅ **Authentication**: Uses Supabase auth headers  
+✅ **No client-side exposure**: Key never sent to mobile app  
+
+### Cost
+
+- Edge Function: Free (500K requests/month on Supabase free tier)
+- OpenAI gpt-4o-mini: ~$0.15 per 1M input tokens, ~$0.60 per 1M output tokens
+
+Very affordable for student app usage!
