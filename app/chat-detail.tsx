@@ -344,20 +344,58 @@ export default function ChatDetailScreen() {
     if (!currentUserId) return;
 
     setSending(true);
+    setShowUploadProgress(true);
+    setUploadProgress(0);
+    setUploadFileName(fileName);
+    setUploadType("file");
+    
     try {
       const storageFileName = `chat-files/${Date.now()}-${fileName}`;
+      
+      setUploadProgress(10);
+      
+      // Read file as blob for React Native
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      if (!fileInfo.exists) {
+        throw new Error('File not found');
+      }
+      
+      setUploadProgress(20);
+      
+      // Get MIME type based on file extension
+      const getFileType = (name: string) => {
+        const ext = name.split('.').pop()?.toLowerCase();
+        const mimeTypes: { [key: string]: string } = {
+          'pdf': 'application/pdf',
+          'doc': 'application/msword',
+          'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'xls': 'application/vnd.ms-excel',
+          'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'ppt': 'application/vnd.ms-powerpoint',
+          'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          'txt': 'text/plain',
+          'zip': 'application/zip',
+        };
+        return mimeTypes[ext || ''] || 'application/octet-stream';
+      };
+      
+      const fileType = getFileType(fileName);
       
       // Create FormData for React Native file upload
       const formData = new FormData();
       formData.append('file', {
         uri: fileUri,
-        type: 'application/octet-stream',
+        type: fileType,
         name: fileName,
       } as any);
 
+      setUploadProgress(40);
+      
       const { data, error } = await supabase.storage
         .from("chat-attachments")
-        .upload(storageFileName, formData);
+        .upload(storageFileName, formData, {
+          contentType: fileType,
+        });
 
       if (error) {
         console.error('File upload error:', error);
@@ -367,9 +405,12 @@ export default function ChatDetailScreen() {
           text2: error.message || "Could not upload file",
         });
         setSending(false);
+        setShowUploadProgress(false);
         return;
       }
 
+      setUploadProgress(70);
+      
       const { data: urlData } = supabase.storage
         .from("chat-attachments")
         .getPublicUrl(storageFileName);
@@ -377,12 +418,18 @@ export default function ChatDetailScreen() {
       console.log('Sending file message:', `[File: ${fileName}] ${urlData.publicUrl}`);
       await sendMessage(conversationId, `[File: ${fileName}] ${urlData.publicUrl}`, currentUserId);
       
+      setUploadProgress(90);
+      
       // Reload messages to show the attachment immediately
       await loadMessages(conversationId);
+      
+      setUploadProgress(100);
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       Toast.show({
         type: "success",
         text1: "File sent",
+        text2: fileName,
       });
     } catch (error: any) {
       console.error('Error sending file:', error);
@@ -393,6 +440,8 @@ export default function ChatDetailScreen() {
       });
     } finally {
       setSending(false);
+      setShowUploadProgress(false);
+      setUploadProgress(0);
     }
   };
 
@@ -687,7 +736,7 @@ export default function ChatDetailScreen() {
       style={{ flex: 1 }}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
-      <ScreenContainer edges={["top", "left", "right"]} className="flex-1">
+      <ScreenContainer edges={["top", "left", "right", "bottom"]} className="flex-1">
       {/* Header with Gradient Background */}
       <View 
         className="border-b border-border"
