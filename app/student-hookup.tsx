@@ -461,6 +461,9 @@ export default function StudentHookupScreen() {
   const renderCard = (profile: DatingProfile, index: number) => {
     if (index < currentIndex) return null;
     if (index > currentIndex) {
+      // Only show the immediate next card, hide others
+      if (index > currentIndex + 1) return null;
+      
       return (
         <Animated.View
           key={profile.id}
@@ -469,6 +472,8 @@ export default function StudentHookupScreen() {
             width: CARD_WIDTH,
             height: CARD_HEIGHT,
             transform: [{ scale: 0.95 }],
+            zIndex: -1, // Behind the current card
+            opacity: 0.5, // Slightly transparent
           }}
         >
           <ProfileCard profile={profile} />
@@ -496,6 +501,7 @@ export default function StudentHookupScreen() {
           width: CARD_WIDTH,
           height: CARD_HEIGHT,
           transform: [{ translateX: position.x }, { translateY: position.y }, { rotate }],
+          zIndex: 10, // Ensure current card is on top
         }}
       >
         <View className="flex-1 rounded-3xl overflow-hidden bg-surface" style={{
@@ -690,6 +696,34 @@ export default function StudentHookupScreen() {
         >
           <IconSymbol name="slider.horizontal.3" size={20} color={colors.primary} />
         </TouchableOpacity>
+
+        {/* Chat Button */}
+        {profiles.length > 0 && currentIndex < profiles.length && (
+          <TouchableOpacity
+            onPress={() => {
+              const currentProfile = profiles[currentIndex];
+              if (currentProfile?.userId) {
+                router.push(`/chat-conversation?userId=${currentProfile.userId}&userName=${encodeURIComponent(currentProfile.name)}`);
+              } else {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Chat Unavailable',
+                  text2: 'This is a demo profile',
+                });
+              }
+            }}
+            className="w-14 h-14 rounded-full bg-blue-500 items-center justify-center"
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.2,
+              shadowRadius: 8,
+              elevation: 4,
+            }}
+          >
+            <IconSymbol name="message.fill" size={24} color="#fff" />
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           onPress={handleSwipeRight}
