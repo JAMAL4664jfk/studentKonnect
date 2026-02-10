@@ -1063,6 +1063,7 @@ export default function ChatScreen() {
 
 
                   {/* People to Connect With */}
+                  {allUsers.length > 0 && (
                   <View className="mb-6">
                     <Text className="text-lg font-bold text-foreground mb-4">People to Connect With</Text>
                     {allUsers.slice(0, 5).map((user) => (
@@ -1116,6 +1117,7 @@ export default function ChatScreen() {
                       <IconSymbol name="chevron.right" size={16} color={colors.primary} />
                     </TouchableOpacity>
                   </View>
+                  )}
 
                   {/* Quick Actions */}
                   <View className="mb-6">
