@@ -405,7 +405,6 @@ export default function ChatScreen() {
           full_name: "Thabo Mokoena",
           email: "thabo.m@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=12",
-          institution_name: "University of Pretoria",
           course_program: "BSc Computer Science",
         },
         {
@@ -413,7 +412,6 @@ export default function ChatScreen() {
           full_name: "Nomsa Dlamini",
           email: "nomsa.d@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=45",
-          institution_name: "University of Cape Town",
           course_program: "BCom Accounting",
         },
         {
@@ -421,7 +419,6 @@ export default function ChatScreen() {
           full_name: "Sipho Ndlovu",
           email: "sipho.n@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=33",
-          institution_name: "University of Witwatersrand",
           course_program: "LLB Law",
         },
         {
@@ -429,7 +426,6 @@ export default function ChatScreen() {
           full_name: "Lerato Khumalo",
           email: "lerato.k@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=27",
-          institution_name: "Stellenbosch University",
           course_program: "BEng Mechanical Engineering",
         },
         {
@@ -437,7 +433,6 @@ export default function ChatScreen() {
           full_name: "Bongani Zulu",
           email: "bongani.z@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=51",
-          institution_name: "Rhodes University",
           course_program: "BA Psychology",
         },
         {
@@ -445,7 +440,6 @@ export default function ChatScreen() {
           full_name: "Zanele Mthembu",
           email: "zanele.m@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=38",
-          institution_name: "University of KwaZulu-Natal",
           course_program: "MBChB Medicine",
         },
         {
@@ -453,7 +447,6 @@ export default function ChatScreen() {
           full_name: "Mandla Sithole",
           email: "mandla.s@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=15",
-          institution_name: "Nelson Mandela University",
           course_program: "BSc Information Systems",
         },
         {
@@ -461,7 +454,6 @@ export default function ChatScreen() {
           full_name: "Precious Mahlangu",
           email: "precious.m@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=42",
-          institution_name: "University of Johannesburg",
           course_program: "BCom Marketing",
         },
       ];
@@ -475,7 +467,6 @@ export default function ChatScreen() {
           full_name: "Thabo Mokoena",
           email: "thabo.m@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=12",
-          institution_name: "University of Pretoria",
           course_program: "BSc Computer Science",
         },
         {
@@ -483,7 +474,6 @@ export default function ChatScreen() {
           full_name: "Nomsa Dlamini",
           email: "nomsa.d@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=45",
-          institution_name: "University of Cape Town",
           course_program: "BCom Accounting",
         },
         {
@@ -491,7 +481,6 @@ export default function ChatScreen() {
           full_name: "Sipho Ndlovu",
           email: "sipho.n@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=33",
-          institution_name: "University of Witwatersrand",
           course_program: "LLB Law",
         },
         {
@@ -499,7 +488,6 @@ export default function ChatScreen() {
           full_name: "Lerato Khumalo",
           email: "lerato.k@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=27",
-          institution_name: "Stellenbosch University",
           course_program: "BEng Mechanical Engineering",
         },
         {
@@ -507,7 +495,6 @@ export default function ChatScreen() {
           full_name: "Bongani Zulu",
           email: "bongani.z@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=51",
-          institution_name: "Rhodes University",
           course_program: "BA Psychology",
         },
         {
@@ -515,7 +502,6 @@ export default function ChatScreen() {
           full_name: "Zanele Mthembu",
           email: "zanele.m@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=38",
-          institution_name: "University of KwaZulu-Natal",
           course_program: "MBChB Medicine",
         },
         {
@@ -523,7 +509,6 @@ export default function ChatScreen() {
           full_name: "Mandla Sithole",
           email: "mandla.s@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=15",
-          institution_name: "Nelson Mandela University",
           course_program: "BSc Information Systems",
         },
         {
@@ -531,7 +516,6 @@ export default function ChatScreen() {
           full_name: "Precious Mahlangu",
           email: "precious.m@student.ac.za",
           avatar_url: "https://i.pravatar.cc/150?img=42",
-          institution_name: "University of Johannesburg",
           course_program: "BCom Marketing",
         },
       ];
