@@ -26,7 +26,7 @@ import { CallingModal } from "@/components/CallingModal";
 import { UserProfileModal } from "@/components/UserProfileModal";
 import { AttachmentPicker } from "@/components/AttachmentPicker";
 import { UploadProgress } from "@/components/UploadProgress";
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import * as Linking from 'expo-linking';
@@ -351,14 +351,6 @@ export default function ChatDetailScreen() {
     
     try {
       const storageFileName = `chat-files/${Date.now()}-${fileName}`;
-      
-      setUploadProgress(10);
-      
-      // Read file as blob for React Native
-      const fileInfo = await FileSystem.getInfoAsync(fileUri);
-      if (!fileInfo.exists) {
-        throw new Error('File not found');
-      }
       
       setUploadProgress(20);
       
