@@ -33,6 +33,8 @@ export default function AuthScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showInstitutionPicker, setShowInstitutionPicker] = useState(false);
   const [signupMethod, setSignupMethod] = useState<SignupMethod>(null);
+  const [showPopiaConsent, setShowPopiaConsent] = useState(false);
+  const [popiaAccepted, setPopiaAccepted] = useState<boolean | null>(null);
 
   // Form state
   const [email, setEmail] = useState("");
@@ -164,6 +166,11 @@ export default function AuthScreen() {
   const handleSignup = async () => {
     if (!validateSignupForm()) return;
 
+    // Show POPIA consent popup first
+    setShowPopiaConsent(true);
+  };
+
+  const proceedWithSignup = async () => {
     setLoading(true);
     try {
       const formattedPhone = phoneNumber.startsWith("0")
@@ -203,6 +210,8 @@ export default function AuthScreen() {
             institution_name: selectedInstitution!.name,
             course_program: courseProgram,
             year_of_study: yearOfStudy,
+            popia_consent: popiaAccepted,
+            popia_consent_date: new Date().toISOString(),
           });
         
         // Log error but don't fail signup
@@ -892,6 +901,119 @@ export default function AuthScreen() {
       </KeyboardAvoidingView>
 
       {renderInstitutionPicker()}
+
+      {/* POPIA Consent Modal */}
+      <Modal
+        visible={showPopiaConsent}
+        animationType="slide"
+        transparent
+        onRequestClose={() => {}}
+      >
+        <View className="flex-1 justify-center items-center" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <View className="bg-white rounded-3xl p-6 mx-6 max-w-lg w-full">
+            <View className="items-center mb-4">
+              <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center mb-3">
+                <IconSymbol name="shield.checkmark.fill" size={32} color={colors.primary} />
+              </View>
+              <Text className="text-2xl font-bold text-gray-900 text-center mb-2">
+                Privacy & Data Protection
+              </Text>
+              <Text className="text-sm text-gray-500 text-center">
+                POPIA Act Compliance
+              </Text>
+            </View>
+
+            <ScrollView className="max-h-96 mb-6" showsVerticalScrollIndicator={true}>
+              <View className="bg-gray-50 rounded-xl p-4 mb-4">
+                <Text className="text-base text-gray-800 font-semibold mb-3">
+                  Protection of Personal Information Act (POPIA)
+                </Text>
+                <Text className="text-sm text-gray-700 leading-6 mb-3">
+                  By creating an account on StudentKonnect, you acknowledge and consent to the following:
+                </Text>
+                
+                <View className="mb-3">
+                  <Text className="text-sm font-semibold text-gray-800 mb-1">1. Information Collection</Text>
+                  <Text className="text-sm text-gray-700 leading-5">
+                    We collect and process your personal information including name, email, phone number, student ID, institution details, and profile information.
+                  </Text>
+                </View>
+
+                <View className="mb-3">
+                  <Text className="text-sm font-semibold text-gray-800 mb-1">2. Purpose of Processing</Text>
+                  <Text className="text-sm text-gray-700 leading-5">
+                    Your data is used to provide services, facilitate connections with other students, enable marketplace transactions, accommodation listings, and improve user experience.
+                  </Text>
+                </View>
+
+                <View className="mb-3">
+                  <Text className="text-sm font-semibold text-gray-800 mb-1">3. Data Security</Text>
+                  <Text className="text-sm text-gray-700 leading-5">
+                    We implement appropriate security measures to protect your personal information from unauthorized access, alteration, or disclosure.
+                  </Text>
+                </View>
+
+                <View className="mb-3">
+                  <Text className="text-sm font-semibold text-gray-800 mb-1">4. Your Rights</Text>
+                  <Text className="text-sm text-gray-700 leading-5">
+                    You have the right to access, correct, or delete your personal information at any time. You may also withdraw consent by deleting your account.
+                  </Text>
+                </View>
+
+                <View className="mb-3">
+                  <Text className="text-sm font-semibold text-gray-800 mb-1">5. Data Sharing</Text>
+                  <Text className="text-sm text-gray-700 leading-5">
+                    Your profile information may be visible to other verified students on the platform. We do not sell your data to third parties.
+                  </Text>
+                </View>
+
+                <View>
+                  <Text className="text-sm font-semibold text-gray-800 mb-1">6. Retention Period</Text>
+                  <Text className="text-sm text-gray-700 leading-5">
+                    Your data will be retained for as long as your account is active or as needed to provide services. You may request deletion at any time.
+                  </Text>
+                </View>
+              </View>
+
+              <Text className="text-xs text-gray-600 leading-5">
+                By accepting, you confirm that you have read and understood this notice and consent to the processing of your personal information in accordance with POPIA and our Privacy Policy.
+              </Text>
+            </ScrollView>
+
+            <View className="gap-3">
+              <TouchableOpacity
+                onPress={() => {
+                  setPopiaAccepted(true);
+                  setShowPopiaConsent(false);
+                  proceedWithSignup();
+                }}
+                className="bg-primary py-4 rounded-2xl items-center"
+              >
+                <Text className="text-white font-bold text-base">
+                  I Accept - Continue Sign Up
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setPopiaAccepted(false);
+                  setShowPopiaConsent(false);
+                  Toast.show({
+                    type: "info",
+                    text1: "Sign Up Cancelled",
+                    text2: "You must accept the POPIA terms to create an account",
+                  });
+                }}
+                className="bg-gray-200 py-4 rounded-2xl items-center"
+              >
+                <Text className="text-gray-700 font-semibold text-base">
+                  I Decline - Cancel Sign Up
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }
