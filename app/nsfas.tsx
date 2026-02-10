@@ -19,7 +19,7 @@ export default function GazooAIScreen() {
   return (
     <ScreenContainer>
       <ImageBackground
-        source={require("@/assets/images/chat-bg.jpg")}
+        source={require("@/assets/images/gazoo-ai-bg.jpg")}
         style={{ flex: 1 }}
         imageStyle={{ opacity: 0.1 }}
       >
