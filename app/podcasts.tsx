@@ -469,25 +469,9 @@ export default function PodcastsScreen() {
         videoUrl = publicUrl;
       }
 
-      // Upload thumbnail if provided, or use video URL as thumbnail for videos
+      // Use video URL as thumbnail for videos (player will show first frame)
       let thumbnailUrl = null;
-      if (episodeThumbnail) {
-        const thumbFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
-        const thumbResponse = await fetch(episodeThumbnail);
-        const thumbBlob = await thumbResponse.blob();
-
-        const { error: thumbUploadError } = await supabase.storage
-          .from("podcasts")
-          .upload(`thumbnails/${thumbFileName}`, thumbBlob);
-
-        if (!thumbUploadError) {
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("podcasts").getPublicUrl(`thumbnails/${thumbFileName}`);
-          thumbnailUrl = publicUrl;
-        }
-      } else if (mediaType === "video" && videoUrl) {
-        // For videos without custom thumbnail, use video URL (player will show first frame)
+      if (mediaType === "video" && videoUrl) {
         thumbnailUrl = videoUrl;
       }
 
@@ -1521,30 +1505,7 @@ export default function PodcastsScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <View>
-                  <Text className="text-sm font-medium text-foreground mb-2">Thumbnail</Text>
-                  <TouchableOpacity
-                    onPress={() => pickThumbnail("episode")}
-                    className="bg-surface border border-border rounded-xl p-4 items-center justify-center"
-                    style={{ minHeight: 100 }}
-                  >
-                    {episodeThumbnail ? (
-                      <Image
-                        source={{ uri: episodeThumbnail }}
-                        className="w-full h-32 rounded-xl"
-                        contentFit="cover"
-                      />
-                    ) : (
-                      <>
-                        <IconSymbol name="photo.fill" size={32} color={colors.primary} />
-                        <Text className="text-sm text-primary mt-2">Tap to select thumbnail (optional)</Text>
-                        {mediaType === "video" && (
-                          <Text className="text-xs text-muted mt-1">Video thumbnail will be used if not provided</Text>
-                        )}
-                      </>
-                    )}
-                  </TouchableOpacity>
-                </View>
+                {/* Thumbnail removed - video thumbnail will be used automatically */}
               </View>
             </ScrollView>
 
