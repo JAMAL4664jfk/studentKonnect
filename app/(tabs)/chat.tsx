@@ -90,6 +90,17 @@ interface User {
 
 type TabType = "chats" | "groups" | "calls" | "status" | "discover";
 
+// Safety function to ensure we always render strings, never objects
+const safeString = (value: any): string => {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object') {
+    // Extract name from object if it exists
+    return value.name || value.shortName || value.displayName || '';
+  }
+  return String(value);
+};
+
 export default function ChatScreen() {
   const router = useRouter();
   const colors = useColors();
@@ -876,8 +887,8 @@ export default function ChatScreen() {
     (user) =>
       user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.institution_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.course_program?.toLowerCase().includes(searchQuery.toLowerCase())
+      safeString(user.institution_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (user.course_program?.toLowerCase().includes(searchQuery.toLowerCase()) || false)
   );
 
   const tabs: { key: TabType; label: string; icon: string }[] = [
@@ -1632,7 +1643,7 @@ export default function ChatScreen() {
                           </Text>
                           {item.institution_name && (
                             <Text className="text-sm text-muted" numberOfLines={1}>
-                              {item.institution_name}
+                              {safeString(item.institution_name)}
                             </Text>
                           )}
                           {item.course_program && (
