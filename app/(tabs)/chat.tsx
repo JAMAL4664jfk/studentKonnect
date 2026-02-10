@@ -84,7 +84,7 @@ interface User {
   full_name: string;
   email: string;
   avatar_url: string | null;
-  institution_name: string | { id: string; name: string; shortName: string; logo: string; type: string } | null;
+  institution_name: string | null;
   course_program: string | null;
 }
 
@@ -385,7 +385,14 @@ export default function ChatScreen() {
 
       // If Supabase query succeeds and has data, use it
       if (!error && data && data.length > 0) {
-        setAllUsers(data);
+        // Normalize institution_name to always be a string
+        const normalizedData = data.map(user => ({
+          ...user,
+          institution_name: typeof user.institution_name === 'object' && user.institution_name !== null
+            ? (user.institution_name.name || user.institution_name.shortName || null)
+            : user.institution_name
+        }));
+        setAllUsers(normalizedData);
         return;
       }
 
@@ -575,7 +582,14 @@ export default function ChatScreen() {
         return;
       }
 
-      setSuggestedUsers(data || []);
+      // Normalize institution_name to always be a string
+      const normalizedData = (data || []).map(user => ({
+        ...user,
+        institution_name: typeof user.institution_name === 'object' && user.institution_name !== null
+          ? (user.institution_name.name || user.institution_name.shortName || null)
+          : user.institution_name
+      }));
+      setSuggestedUsers(normalizedData);
     } catch (error) {
       console.error("Error loading suggested users:", error);
     }
@@ -837,16 +851,11 @@ export default function ChatScreen() {
   });
 
   const filteredUsers = allUsers.filter(
-    (user) => {
-      const institutionName = typeof user.institution_name === 'object' 
-        ? (user.institution_name?.name || user.institution_name?.shortName || '')
-        : (user.institution_name || '');
-      
-      return user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        institutionName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (user.course_program?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
-    }
+    (user) =>
+      user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.institution_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.course_program?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const tabs: { key: TabType; label: string; icon: string }[] = [
@@ -1601,7 +1610,7 @@ export default function ChatScreen() {
                           </Text>
                           {item.institution_name && (
                             <Text className="text-sm text-muted" numberOfLines={1}>
-                              {typeof item.institution_name === 'object' ? item.institution_name.name || item.institution_name.shortName || 'Student' : item.institution_name}
+                              {item.institution_name}
                             </Text>
                           )}
                           {item.course_program && (
