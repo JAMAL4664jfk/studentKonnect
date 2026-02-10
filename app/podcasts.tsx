@@ -26,9 +26,11 @@ type Podcast = {
   title: string;
   description: string | null;
   category: string;
-  audio_url: string;
+  audio_url: string | null;
+  video_url: string | null;
   thumbnail_url: string | null;
   duration: string | null;
+  media_type: "audio" | "video";
   release_date: string;
   featured: boolean;
   host_name: string;
@@ -36,6 +38,9 @@ type Podcast = {
   series_id: string | null;
   episode_number: number | null;
   season_number: number | null;
+  views_count?: number;
+  likes_count?: number;
+  comments_count?: number;
 };
 
 type Series = {
@@ -783,17 +788,28 @@ export default function PodcastsScreen() {
         activeOpacity={0.7}
       >
         <View className="flex-row">
-          {item.thumbnail_url ? (
-            <Image
-              source={{ uri: item.thumbnail_url }}
-              className="w-20 h-20 rounded-xl mr-4"
-              contentFit="cover"
-            />
-          ) : (
-            <View className="w-20 h-20 rounded-xl mr-4 bg-primary/20 items-center justify-center">
-              <IconSymbol name="mic.fill" size={32} color={colors.primary} />
-            </View>
-          )}
+          <View className="relative">
+            {item.thumbnail_url ? (
+              <Image
+                source={{ uri: item.thumbnail_url }}
+                className="w-20 h-20 rounded-xl mr-4"
+                contentFit="cover"
+              />
+            ) : (
+              <View className="w-20 h-20 rounded-xl mr-4 bg-primary/20 items-center justify-center">
+                <IconSymbol 
+                  name={item.media_type === "video" ? "video.fill" : "mic.fill"} 
+                  size={32} 
+                  color={colors.primary} 
+                />
+              </View>
+            )}
+            {item.media_type === "video" && (
+              <View className="absolute top-1 right-5 bg-black/70 px-2 py-1 rounded-md">
+                <IconSymbol name="video.fill" size={12} color="white" />
+              </View>
+            )}
+          </View>
           <View className="flex-1">
             <Text className="text-base font-semibold text-foreground mb-1" numberOfLines={2}>
               {item.title}

@@ -14,6 +14,7 @@ import { Picker } from "@react-native-picker/picker";
 import { supabase } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
 import * as ImagePicker from "expo-image-picker";
+import { UploadProgress } from "@/components/UploadProgress";
 
 type Category = "books" | "electronics" | "furniture" | "clothing" | "sports" | "services" | "other";
 type Condition = "new" | "like-new" | "good" | "fair" | "poor";
@@ -22,6 +23,8 @@ export default function CreateMarketplaceScreen() {
   const colors = useColors();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [showUploadProgress, setShowUploadProgress] = useState(false);
 
   // Form state
   const [title, setTitle] = useState("");
@@ -98,10 +101,17 @@ export default function CreateMarketplaceScreen() {
     if (!validateForm()) return;
 
     setLoading(true);
+    setShowUploadProgress(true);
+    setUploadProgress(0);
     try {
       // Get current user (for now using userId 1, you'll replace with actual auth)
       const userId = 1;
 
+      // Simulate upload progress
+      setUploadProgress(30);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      setUploadProgress(60);
       const { data, error } = await supabase
         .from("marketplaceItems")
         .insert({
@@ -123,6 +133,9 @@ export default function CreateMarketplaceScreen() {
 
       if (error) throw error;
 
+      setUploadProgress(100);
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       Toast.show({
         type: "success",
         text1: "Success!",
@@ -139,6 +152,8 @@ export default function CreateMarketplaceScreen() {
       });
     } finally {
       setLoading(false);
+      setShowUploadProgress(false);
+      setUploadProgress(0);
     }
   };
 
@@ -313,6 +328,13 @@ export default function CreateMarketplaceScreen() {
 
         <View className="h-8" />
       </ScrollView>
+      
+      <UploadProgress
+        visible={showUploadProgress}
+        progress={uploadProgress}
+        fileName={title || "Marketplace item"}
+        uploadType="image"
+      />
     </ScreenContainer>
   );
 }

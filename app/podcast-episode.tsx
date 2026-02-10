@@ -68,6 +68,7 @@ export default function PodcastEpisodeScreen() {
   // User interactions
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   
   // Comments
   const [newComment, setNewComment] = useState("");
@@ -135,7 +136,10 @@ export default function PodcastEpisodeScreen() {
 
   const fetchComments = async () => {
     try {
-      if (!episodeId) return;
+      if (!episodeId) {
+        console.log("No episode ID provided");
+        return;
+      }
       
       const { data, error } = await supabase
         .from("podcast_comments")
@@ -149,6 +153,11 @@ export default function PodcastEpisodeScreen() {
 
       if (error) {
         console.error("Error fetching comments:", error);
+        Toast.show({
+          type: "error",
+          text1: "Error loading comments",
+          text2: error.message || "Please try again",
+        });
         return;
       }
 
@@ -187,6 +196,11 @@ export default function PodcastEpisodeScreen() {
       setComments(commentsWithReplies);
     } catch (error: any) {
       console.error("Error fetching comments:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error loading comments",
+        text2: error.message || "Please try again",
+      });
     }
   };
 
@@ -240,6 +254,7 @@ export default function PodcastEpisodeScreen() {
   };
 
   const handleShare = async () => {
+    setIsSharing(true);
     try {
       const result = await Share.share({
         message: `Check out this podcast episode: "${episode?.title}" by ${episode?.host_name}`,
@@ -258,6 +273,8 @@ export default function PodcastEpisodeScreen() {
         text1: "Error sharing",
         text2: error.message,
       });
+    } finally {
+      setTimeout(() => setIsSharing(false), 500);
     }
   };
 
@@ -359,30 +376,43 @@ export default function PodcastEpisodeScreen() {
       return;
     }
 
-    if (!newComment.trim()) return;
+    if (!newComment.trim()) {
+      Toast.show({
+        type: "info",
+        text1: "Comment is empty",
+        text2: "Please write something before posting",
+      });
+      return;
+    }
 
     setSubmittingComment(true);
     try {
-      await supabase.from("podcast_comments").insert({
+      const { data, error } = await supabase.from("podcast_comments").insert({
         podcast_id: episodeId,
         user_id: currentUser.id,
         content: newComment.trim(),
         parent_id: replyingTo,
-      });
+      }).select();
+
+      if (error) {
+        console.error("Error posting comment:", error);
+        throw error;
+      }
 
       setNewComment("");
       setReplyingTo(null);
-      fetchComments();
-      fetchEpisode();
+      await fetchComments();
+      await fetchEpisode();
       Toast.show({
         type: "success",
         text1: "Comment posted",
       });
     } catch (error: any) {
+      console.error("Comment submission error:", error);
       Toast.show({
         type: "error",
-        text1: "Error",
-        text2: error.message,
+        text1: "Failed to post comment",
+        text2: error.message || "Please try again",
       });
     } finally {
       setSubmittingComment(false);
@@ -635,12 +665,14 @@ export default function PodcastEpisodeScreen() {
 
             <TouchableOpacity
               onPress={handleShare}
-              className="px-4 py-3 rounded-xl bg-surface items-center justify-center"
+              className={`px-4 py-3 rounded-xl items-center justify-center ${
+                isSharing ? "bg-primary" : "bg-surface border border-border"
+              }`}
             >
               <IconSymbol
                 name="square.and.arrow.up"
                 size={20}
-                color={colors.foreground}
+                color={isSharing ? colors.primaryForeground : colors.foreground}
               />
             </TouchableOpacity>
           </View>

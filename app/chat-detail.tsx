@@ -25,6 +25,7 @@ import { ActionSheetIOS } from "react-native";
 import { CallingModal } from "@/components/CallingModal";
 import { UserProfileModal } from "@/components/UserProfileModal";
 import { AttachmentPicker } from "@/components/AttachmentPicker";
+import { UploadProgress } from "@/components/UploadProgress";
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
@@ -59,6 +60,10 @@ export default function ChatDetailScreen() {
   const [showCallingModal, setShowCallingModal] = useState(false);
   const [callType, setCallType] = useState<"voice" | "video">("voice");
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [showUploadProgress, setShowUploadProgress] = useState(false);
+  const [uploadFileName, setUploadFileName] = useState("");
+  const [uploadType, setUploadType] = useState<"image" | "video" | "file">("image");
   const flatListRef = useRef<FlatList>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -205,9 +210,16 @@ export default function ChatDetailScreen() {
     if (!currentUserId) return;
 
     setSending(true);
+    setShowUploadProgress(true);
+    setUploadProgress(0);
+    setUploadFileName("Image");
+    setUploadType("image");
+    
     try {
       // Upload image to Supabase storage using FormData
       const fileName = `chat-images/${Date.now()}.jpg`;
+      
+      setUploadProgress(20);
       
       // Create FormData for React Native file upload
       const formData = new FormData();
@@ -217,6 +229,7 @@ export default function ChatDetailScreen() {
         name: fileName.split('/').pop(),
       } as any);
 
+      setUploadProgress(40);
       const { data, error } = await supabase.storage
         .from("chat-attachments")
         .upload(fileName, formData, {
@@ -231,9 +244,11 @@ export default function ChatDetailScreen() {
           text2: error.message || "Could not upload image",
         });
         setSending(false);
+        setShowUploadProgress(false);
         return;
       }
 
+      setUploadProgress(70);
       const { data: urlData } = supabase.storage
         .from("chat-attachments")
         .getPublicUrl(fileName);
@@ -241,8 +256,12 @@ export default function ChatDetailScreen() {
       console.log('Sending image message:', `[Image] ${urlData.publicUrl}`);
       await sendMessage(conversationId, `[Image] ${urlData.publicUrl}`, currentUserId);
       
+      setUploadProgress(90);
       // Reload messages to show the attachment immediately
       await loadMessages(conversationId);
+      
+      setUploadProgress(100);
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       Toast.show({
         type: "success",
@@ -257,6 +276,8 @@ export default function ChatDetailScreen() {
       });
     } finally {
       setSending(false);
+      setShowUploadProgress(false);
+      setUploadProgress(0);
     }
   };
 
@@ -957,6 +978,12 @@ export default function ChatDetailScreen() {
 
       <Toast />
     </ScreenContainer>
+      <UploadProgress
+        visible={showUploadProgress}
+        progress={uploadProgress}
+        fileName={uploadFileName}
+        uploadType={uploadType}
+      />
     </KeyboardAvoidingView>
   );
 }
