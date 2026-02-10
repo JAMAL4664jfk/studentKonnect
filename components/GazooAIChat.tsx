@@ -57,8 +57,8 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [askedTopics, setAskedTopics] = useState<Set<string>>(new Set());
 
-  // Using mock responses for now - can be replaced with actual API later
-  const USE_MOCK_RESPONSES = true;
+  // Using OpenAI API with provided key
+  const USE_MOCK_RESPONSES = false;
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -295,19 +295,26 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
         // Context-aware mock responses
         assistantContent = getContextAwareResponse(userMessage.content, messages);
       } else {
-        // Actual API call (for future implementation)
+        // OpenAI API call using environment variable
+        // Note: In production, this should go through a backend API to keep the key secure
+        const apiKey = process.env.OPENAI_API_KEY;
+        
+        if (!apiKey) {
+          throw new Error('OpenAI API key not configured');
+        }
+
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+            'Authorization': `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
             model: 'gpt-4.1-mini',
             messages: [
               {
                 role: 'system',
-                content: 'You are Gazoo AI, an intelligent student companion. You help students with studying, budgeting, career advice, wellness tips, and academic support. Be friendly, encouraging, and provide practical advice. Keep responses concise and helpful.',
+                content: 'You are Gazoo AI, an intelligent student companion for Student Konnect app. You help students with studying, budgeting, career advice, wellness tips, academic support, and campus life. Be friendly, encouraging, and provide practical, actionable advice. Keep responses concise but comprehensive. Use emojis sparingly for emphasis. Remember context from previous messages in the conversation.',
               },
               ...messages.map((msg) => ({
                 role: msg.role,
@@ -318,17 +325,20 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
                 content: userMessage.content,
               },
             ],
-            temperature: 0.7,
-            max_tokens: 500,
+            temperature: 0.8,
+            max_tokens: 800,
+            presence_penalty: 0.6,
+            frequency_penalty: 0.5,
           }),
         });
 
         if (!response.ok) {
-          throw new Error('Failed to get response from Gazoo AI');
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error?.message || 'Failed to get response from Gazoo AI');
         }
 
         const data = await response.json();
-        assistantContent = data.choices[0].message.content;
+        assistantContent = data.choices[0]?.message?.content || 'I apologize, but I received an empty response. Please try again.';
       }
 
       const assistantMessage: Message = {
