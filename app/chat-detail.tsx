@@ -135,7 +135,7 @@ export default function ChatDetailScreen() {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: "images" as any,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 0.8,
     });
@@ -157,7 +157,7 @@ export default function ChatDetailScreen() {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: "videos" as any,
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
       allowsEditing: true,
       quality: 0.8,
       videoMaxDuration: 60, // 60 seconds max
@@ -180,7 +180,7 @@ export default function ChatDetailScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "all" as any,
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: false,
       quality: 0.8,
     });
