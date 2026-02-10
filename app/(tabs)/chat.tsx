@@ -1597,14 +1597,14 @@ export default function ChatScreen() {
                           <Text className="text-base font-semibold text-foreground">
                             {item.full_name}
                           </Text>
-                          {item.institution_name && (
+                          {item.course_program && (
                             <Text className="text-sm text-muted" numberOfLines={1}>
-                              {safeString(item.institution_name)}
+                              {item.course_program}
                             </Text>
                           )}
-                          {item.course_program && (
+                          {item.email && (
                             <Text className="text-xs text-muted" numberOfLines={1}>
-                              {item.course_program}
+                              {item.email}
                             </Text>
                           )}
                         </View>
