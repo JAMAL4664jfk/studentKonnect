@@ -910,11 +910,36 @@ export default function StudentHookupScreen() {
                     contentFit="cover"
                   />
                   <View className="flex-1 p-4">
-                    <View className="flex-row items-center gap-2 mb-1">
-                      <Text className="text-lg font-bold text-gray-900">{profile.name}, {profile.age}</Text>
-                      {profile.isVerified && (
-                        <IconSymbol name="checkmark.seal.fill" size={16} color={colors.primary} />
-                      )}
+                    <View className="flex-row items-center justify-between mb-1">
+                      <View className="flex-row items-center gap-2">
+                        <Text className="text-lg font-bold text-gray-900">{profile.name}, {profile.age}</Text>
+                        {profile.isVerified && (
+                          <IconSymbol name="checkmark.seal.fill" size={16} color={colors.primary} />
+                        )}
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (profile.userId) {
+                            router.push(`/chat-conversation?userId=${profile.userId}&userName=${encodeURIComponent(profile.name)}`);
+                          } else {
+                            Toast.show({
+                              type: 'info',
+                              text1: 'Chat Unavailable',
+                              text2: 'This is a demo profile',
+                            });
+                          }
+                        }}
+                        className="w-10 h-10 rounded-full bg-blue-500 items-center justify-center"
+                        style={{
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.2,
+                          shadowRadius: 4,
+                          elevation: 3,
+                        }}
+                      >
+                        <IconSymbol name="message.fill" size={18} color="#fff" />
+                      </TouchableOpacity>
                     </View>
                     <Text className="text-sm text-gray-600 mb-1">{profile.institution}</Text>
                     <Text className="text-sm text-gray-600 mb-2">{profile.course}</Text>
@@ -956,9 +981,34 @@ export default function StudentHookupScreen() {
                       contentFit="cover"
                     />
                     <View className="flex-1 p-4">
-                      <View className="flex-row items-center gap-2 mb-1">
-                        <Text className="text-lg font-bold text-gray-900">{profile.name}, {profile.age}</Text>
-                        <IconSymbol name="heart.fill" size={16} color="#ef4444" />
+                      <View className="flex-row items-center justify-between mb-1">
+                        <View className="flex-row items-center gap-2">
+                          <Text className="text-lg font-bold text-gray-900">{profile.name}, {profile.age}</Text>
+                          <IconSymbol name="heart.fill" size={16} color="#ef4444" />
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (profile.userId) {
+                              router.push(`/chat-conversation?userId=${profile.userId}&userName=${encodeURIComponent(profile.name)}`);
+                            } else {
+                              Toast.show({
+                                type: 'info',
+                                text1: 'Chat Unavailable',
+                                text2: 'This is a demo profile',
+                              });
+                            }
+                          }}
+                          className="w-10 h-10 rounded-full bg-blue-500 items-center justify-center"
+                          style={{
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.2,
+                            shadowRadius: 4,
+                            elevation: 3,
+                          }}
+                        >
+                          <IconSymbol name="message.fill" size={18} color="#fff" />
+                        </TouchableOpacity>
                       </View>
                       <Text className="text-sm text-gray-600 mb-1">{profile.institution}</Text>
                       <Text className="text-sm text-gray-600">{profile.course}</Text>
@@ -1000,8 +1050,33 @@ export default function StudentHookupScreen() {
                       contentFit="cover"
                     />
                     <View className="flex-1 p-4">
-                      <View className="flex-row items-center gap-2 mb-1">
-                        <Text className="text-lg font-bold text-gray-900">{profile.name}, {profile.age}</Text>
+                      <View className="flex-row items-center justify-between mb-1">
+                        <View className="flex-row items-center gap-2">
+                          <Text className="text-lg font-bold text-gray-900">{profile.name}, {profile.age}</Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (profile.userId) {
+                              router.push(`/chat-conversation?userId=${profile.userId}&userName=${encodeURIComponent(profile.name)}`);
+                            } else {
+                              Toast.show({
+                                type: 'info',
+                                text1: 'Chat Unavailable',
+                                text2: 'This is a demo profile',
+                              });
+                            }
+                          }}
+                          className="w-10 h-10 rounded-full bg-blue-500 items-center justify-center"
+                          style={{
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.2,
+                            shadowRadius: 4,
+                            elevation: 3,
+                          }}
+                        >
+                          <IconSymbol name="message.fill" size={18} color="#fff" />
+                        </TouchableOpacity>
                       </View>
                       <Text className="text-sm text-gray-600 mb-1">{profile.institution}</Text>
                       <Text className="text-sm text-gray-600">{profile.course}</Text>
@@ -1092,12 +1167,37 @@ export default function StudentHookupScreen() {
                       style={{ width: 100, height: 120 }}
                       contentFit="cover"
                     />
-                    <View className="flex-1 p-4">
-                      <View className="flex-row items-center gap-2 mb-1">
+                  <View className="flex-1 p-4">
+                    <View className="flex-row items-center justify-between mb-1">
+                      <View className="flex-row items-center gap-2">
                         <Text className="text-lg font-bold text-gray-900">{profile.name}, {profile.age}</Text>
                         <IconSymbol name="sparkles" size={16} color={colors.primary} />
                       </View>
-                      <Text className="text-sm text-gray-600 mb-1">{profile.institution}</Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (profile.userId) {
+                            router.push(`/chat-conversation?userId=${profile.userId}&userName=${encodeURIComponent(profile.name)}`);
+                          } else {
+                            Toast.show({
+                              type: 'info',
+                              text1: 'Chat Unavailable',
+                              text2: 'This is a demo profile',
+                            });
+                          }
+                        }}
+                        className="w-10 h-10 rounded-full bg-blue-500 items-center justify-center"
+                        style={{
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.2,
+                          shadowRadius: 4,
+                          elevation: 3,
+                        }}
+                      >
+                        <IconSymbol name="message.fill" size={18} color="#fff" />
+                      </TouchableOpacity>
+                    </View>
+                    <Text className="text-sm text-gray-600 mb-1">{profile.institution}</Text>
                       <Text className="text-sm text-gray-600 mb-2">{profile.course}</Text>
                       <View className="bg-primary/10 px-3 py-1 rounded-full self-start">
                         <Text className="text-xs font-semibold text-primary">💬 Start Chat</Text>
