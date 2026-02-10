@@ -99,6 +99,7 @@ export default function ChatScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("chats");
   const [showTabDropdown, setShowTabDropdown] = useState(false);
+  const [suggestedUsers, setSuggestedUsers] = useState<User[]>([]);
 
   // Format last message for display
   const formatLastMessage = (message: string | null): string => {
@@ -174,6 +175,7 @@ export default function ChatScreen() {
         loadStatuses(user.id);
         loadAllUsers(user.id);
         loadConnections(user.id);
+        loadSuggestedUsers(user.id);
       }
     };
 
@@ -556,6 +558,26 @@ export default function ChatScreen() {
       setPendingRequests(pendingIds);
     } catch (error) {
       console.error("Error loading connections:", error);
+    }
+  };
+
+  const loadSuggestedUsers = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, avatar_url, institution_name, course_program")
+        .neq("id", userId)
+        .eq("institution_name", userInstitution || "")
+        .limit(10);
+
+      if (error) {
+        console.error("Error loading suggested users:", error);
+        return;
+      }
+
+      setSuggestedUsers(data || []);
+    } catch (error) {
+      console.error("Error loading suggested users:", error);
     }
   };
 
