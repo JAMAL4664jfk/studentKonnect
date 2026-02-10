@@ -133,7 +133,43 @@ export default function HomeScreen() {
           </View>
           </LinearGradient>
 
-
+          {/* Chat with Gazoo AI Button */}
+          <TouchableOpacity
+            onPress={() => setGazooAIVisible(true)}
+            className="rounded-2xl overflow-hidden active:opacity-90"
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.15,
+              shadowRadius: 8,
+              elevation: 4,
+            }}
+          >
+            <LinearGradient
+              colors={['#7c3aed', '#5b21b6', '#4c1d95']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ padding: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+            >
+              <View className="flex-row items-center gap-4">
+                <View
+                  className="w-14 h-14 rounded-full items-center justify-center"
+                  style={{ backgroundColor: '#ffffff30' }}
+                >
+                  <IconSymbol name="sparkles" size={28} color="#fff" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-white font-bold text-lg">
+                    Chat with Gazoo AI
+                  </Text>
+                  <Text className="text-white/80 text-sm mt-1">
+                    Your intelligent AI companion for student life
+                  </Text>
+                </View>
+              </View>
+              <IconSymbol name="chevron.right" size={24} color="#fff" />
+            </LinearGradient>
+          </TouchableOpacity>
 
           {/* Quick Actions */}
           <View className="gap-3">

@@ -105,6 +105,7 @@ export default function MarketplaceScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MarketplaceItem | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [headerExpanded, setHeaderExpanded] = useState(true);
 
   useEffect(() => {
     fetchItems();
@@ -564,13 +565,20 @@ export default function MarketplaceScreen() {
               <Text className="text-sm text-muted">Buy and sell with fellow students</Text>
             </View>
             <TouchableOpacity
-              onPress={() => router.push("/create-marketplace")}
-              className="bg-primary px-4 py-2 rounded-full"
+              onPress={() => setHeaderExpanded(!headerExpanded)}
+              className="w-10 h-10 rounded-full bg-surface items-center justify-center"
             >
-              <Text className="text-white text-sm font-semibold">Post</Text>
+              <IconSymbol
+                name={headerExpanded ? "chevron.up" : "chevron.down"}
+                size={20}
+                color={colors.foreground}
+              />
             </TouchableOpacity>
           </View>
 
+          {/* Collapsible Content */}
+          {headerExpanded && (
+            <View>
           {/* Search */}
           <View className="flex-row items-center gap-3 rounded-2xl px-4 py-3 bg-surface border border-border mb-3">
             <IconSymbol name="magnifyingglass" size={20} color={colors.muted} />
@@ -587,10 +595,9 @@ export default function MarketplaceScreen() {
               </TouchableOpacity>
             )}
           </View>
-        </View>
 
         {/* Category Dropdown */}
-        <View className="mb-6">
+        <View className="mb-3">
           <TouchableOpacity
             onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
             className="bg-white border-2 border-gray-200 rounded-xl px-5 py-4 flex-row items-center justify-between"
@@ -657,6 +664,8 @@ export default function MarketplaceScreen() {
             <Text className="text-primary font-bold text-base">Manage Listings</Text>
           </TouchableOpacity>
         </View>
+            </View>
+          )}
         </View>
 
         {/* Items Grid */}

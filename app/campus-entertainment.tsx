@@ -221,11 +221,12 @@ const RADIO_STATIONS: RadioStation[] = [
 export default function CampusEntertainmentScreen() {
   const colors = useColors();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabType>("campus-radio");
+  const [activeTab, setActiveTab] = useState<TabType>("podcasts");
   const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [playingStationId, setPlayingStationId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playingStationId, setPlayingStationId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showTabDropdown, setShowTabDropdown] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -561,81 +562,153 @@ export default function CampusEntertainmentScreen() {
           </View>
         </View>
 
-        {/* Tabs */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
-          <View className="flex-row gap-2">
-            <TouchableOpacity
-              onPress={() => setActiveTab("podcasts")}
-              className={`px-6 py-3 rounded-xl ${
-                activeTab === "podcasts" ? "bg-primary" : "bg-surface border border-border"
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  activeTab === "podcasts" ? "text-white" : "text-foreground"
+        {/* Category Dropdown */}
+        <View className="mb-6">
+          <TouchableOpacity
+            onPress={() => setShowTabDropdown(!showTabDropdown)}
+            className="bg-white border-2 border-gray-200 rounded-xl px-5 py-4 flex-row items-center justify-between"
+          >
+            <View className="flex-row items-center gap-3">
+              <IconSymbol
+                name={
+                  activeTab === "podcasts" ? "mic.fill" :
+                  activeTab === "campus-radio" ? "antenna.radiowaves.left.and.right" :
+                  activeTab === "radio-stations" ? "radio.fill" :
+                  activeTab === "music" ? "music.note" :
+                  "film.fill"
+                }
+                size={20}
+                color="#1f2937"
+              />
+              <Text className="text-base font-semibold text-gray-900">
+                {
+                  activeTab === "podcasts" ? "Podcasts" :
+                  activeTab === "campus-radio" ? "Campus Radio" :
+                  activeTab === "radio-stations" ? "Radio" :
+                  activeTab === "music" ? "Music" :
+                  "Movies"
+                }
+              </Text>
+            </View>
+            <IconSymbol name="chevron.down" size={20} color="#1f2937" />
+          </TouchableOpacity>
+
+          {/* Dropdown Menu */}
+          {showTabDropdown && (
+            <View className="bg-white border-2 border-gray-200 rounded-xl mt-2 overflow-hidden">
+              <TouchableOpacity
+                onPress={() => {
+                  setActiveTab("podcasts");
+                  setShowTabDropdown(false);
+                }}
+                className={`px-5 py-4 flex-row items-center gap-3 ${
+                  activeTab === "podcasts" ? "bg-primary/10" : ""
                 }`}
               >
-                Podcasts
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setActiveTab("campus-radio")}
-              className={`px-6 py-3 rounded-xl ${
-                activeTab === "campus-radio" ? "bg-primary" : "bg-surface border border-border"
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  activeTab === "campus-radio" ? "text-white" : "text-foreground"
+                <IconSymbol
+                  name="mic.fill"
+                  size={20}
+                  color={activeTab === "podcasts" ? colors.primary : "#1f2937"}
+                />
+                <Text
+                  className={`text-base font-semibold ${
+                    activeTab === "podcasts" ? "text-primary" : "text-gray-900"
+                  }`}
+                >
+                  Podcasts
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setActiveTab("campus-radio");
+                  setShowTabDropdown(false);
+                }}
+                className={`px-5 py-4 flex-row items-center gap-3 ${
+                  activeTab === "campus-radio" ? "bg-primary/10" : ""
                 }`}
               >
-                Campus Radio
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setActiveTab("radio-stations")}
-              className={`px-6 py-3 rounded-xl ${
-                activeTab === "radio-stations" ? "bg-primary" : "bg-surface border border-border"
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  activeTab === "radio-stations" ? "text-white" : "text-foreground"
+                <IconSymbol
+                  name="antenna.radiowaves.left.and.right"
+                  size={20}
+                  color={activeTab === "campus-radio" ? colors.primary : "#1f2937"}
+                />
+                <Text
+                  className={`text-base font-semibold ${
+                    activeTab === "campus-radio" ? "text-primary" : "text-gray-900"
+                  }`}
+                >
+                  Campus Radio
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setActiveTab("radio-stations");
+                  setShowTabDropdown(false);
+                }}
+                className={`px-5 py-4 flex-row items-center gap-3 ${
+                  activeTab === "radio-stations" ? "bg-primary/10" : ""
                 }`}
               >
-                Radio
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setActiveTab("music")}
-              className={`px-6 py-3 rounded-xl ${
-                activeTab === "music" ? "bg-primary" : "bg-surface border border-border"
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  activeTab === "music" ? "text-white" : "text-foreground"
+                <IconSymbol
+                  name="radio.fill"
+                  size={20}
+                  color={activeTab === "radio-stations" ? colors.primary : "#1f2937"}
+                />
+                <Text
+                  className={`text-base font-semibold ${
+                    activeTab === "radio-stations" ? "text-primary" : "text-gray-900"
+                  }`}
+                >
+                  Radio
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setActiveTab("music");
+                  setShowTabDropdown(false);
+                }}
+                className={`px-5 py-4 flex-row items-center gap-3 ${
+                  activeTab === "music" ? "bg-primary/10" : ""
                 }`}
               >
-                Music
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setActiveTab("movies")}
-              className={`px-6 py-3 rounded-xl ${
-                activeTab === "movies" ? "bg-primary" : "bg-surface border border-border"
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  activeTab === "movies" ? "text-white" : "text-foreground"
+                <IconSymbol
+                  name="music.note"
+                  size={20}
+                  color={activeTab === "music" ? colors.primary : "#1f2937"}
+                />
+                <Text
+                  className={`text-base font-semibold ${
+                    activeTab === "music" ? "text-primary" : "text-gray-900"
+                  }`}
+                >
+                  Music
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setActiveTab("movies");
+                  setShowTabDropdown(false);
+                }}
+                className={`px-5 py-4 flex-row items-center gap-3 ${
+                  activeTab === "movies" ? "bg-primary/10" : ""
                 }`}
               >
-                Movies
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+                <IconSymbol
+                  name="film.fill"
+                  size={20}
+                  color={activeTab === "movies" ? colors.primary : "#1f2937"}
+                />
+                <Text
+                  className={`text-base font-semibold ${
+                    activeTab === "movies" ? "text-primary" : "text-gray-900"
+                  }`}
+                >
+                  Movies
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
 
         {/* Content */}
         <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
