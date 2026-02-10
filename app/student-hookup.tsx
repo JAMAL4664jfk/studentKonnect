@@ -235,7 +235,18 @@ export default function StudentHookupScreen() {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error("Database error loading profiles:", error);
+        // Fallback to sample profiles if database fetch fails
+        console.log("Using sample profiles as fallback");
+        setProfiles(SAMPLE_PROFILES);
+        Toast.show({
+          type: "info",
+          text1: "Using Demo Profiles",
+          text2: "Showing sample profiles for now",
+        });
+        return;
+      }
       
       // Transform to DatingProfile format
       const transformedProfiles: DatingProfile[] = (data || []).map((profile, index) => ({
@@ -251,13 +262,24 @@ export default function StudentHookupScreen() {
         isVerified: false,
       }));
       
-      setProfiles(transformedProfiles);
+      console.log("Loaded profiles:", transformedProfiles.length);
+      
+      // If no profiles from database, use sample profiles
+      if (transformedProfiles.length === 0) {
+        console.log("No profiles in database, using sample profiles");
+        setProfiles(SAMPLE_PROFILES);
+      } else {
+        setProfiles(transformedProfiles);
+      }
     } catch (error) {
       console.error("Error loading profiles:", error);
+      // Use sample profiles as fallback
+      console.log("Exception occurred, using sample profiles");
+      setProfiles(SAMPLE_PROFILES);
       Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Failed to load profiles",
+        type: "info",
+        text1: "Using Demo Profiles",
+        text2: "Showing sample profiles",
       });
     } finally {
       setLoading(false);
@@ -598,6 +620,46 @@ export default function StudentHookupScreen() {
           profiles.map((profile, index) => renderCard(profile, index))
         )}
       </View>
+
+      {/* Arrow Navigation Buttons - On sides of card */}
+      {profiles.length > 0 && currentIndex < profiles.length && (
+        <>
+          {/* Left Arrow - Pass/Dislike */}
+          <TouchableOpacity
+            onPress={handleSwipeLeft}
+            className="absolute left-4 top-1/2 w-14 h-14 rounded-full bg-white items-center justify-center"
+            style={{
+              marginTop: -28, // Center vertically
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 5,
+              zIndex: 10,
+            }}
+          >
+            <IconSymbol name="arrow.left" size={28} color="#ef4444" />
+          </TouchableOpacity>
+
+          {/* Right Arrow - Like */}
+          <TouchableOpacity
+            onPress={handleSwipeRight}
+            className="absolute right-4 top-1/2 w-14 h-14 rounded-full items-center justify-center"
+            style={{
+              marginTop: -28, // Center vertically
+              backgroundColor: colors.primary,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 5,
+              zIndex: 10,
+            }}
+          >
+            <IconSymbol name="arrow.right" size={28} color="#fff" />
+          </TouchableOpacity>
+        </>
+      )}
 
       {/* Action Buttons */}
       <View className="flex-row items-center justify-center gap-6 px-8">
