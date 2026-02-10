@@ -1,8 +1,10 @@
 # Database Migrations - IMPORTANT
 
-## ⚠️ WHICH MIGRATION TO RUN?
+## ⚠️ WHICH MIGRATIONS TO RUN?
 
-**RUN THIS ONE**: `01_fixed_master_migration.sql` ✅
+**RUN THESE IN ORDER**:
+1. `02_convert_userId_to_uuid.sql` ✅ (FIRST - converts userId from integer to UUID)
+2. `01_fixed_master_migration.sql` ✅ (SECOND - adds other features)
 
 **DO NOT RUN**: `00_master_fix_all_issues.sql` ❌ (has wrong column names)
 
@@ -13,9 +15,9 @@
 ### Option 1: Supabase Dashboard (Recommended)
 1. Go to your Supabase Dashboard
 2. Navigate to **SQL Editor**
-3. Open file: `01_fixed_master_migration.sql`
-4. Copy and paste the entire SQL
-5. Click **Run**
+3. **FIRST**: Run `02_convert_userId_to_uuid.sql` (converts userId type)
+4. **THEN**: Run `01_fixed_master_migration.sql` (adds other features)
+5. Copy and paste each SQL file and click **Run**
 
 ### Option 2: Supabase CLI
 ```bash
@@ -65,12 +67,12 @@ supabase db push
 
 ## Migration Files Explained
 
-### ✅ Use These
+### ✅ Use These (IN ORDER)
 
-| File | Purpose |
-|------|---------|
-| `01_fixed_master_migration.sql` | **Main migration - RUN THIS!** |
-| `create_gazoo_conversations.sql` | Gazoo AI chat history (included in 01) |
+| Order | File | Purpose |
+|-------|------|---------|
+| 1 | `02_convert_userId_to_uuid.sql` | **RUN FIRST** - Converts userId from integer to UUID |
+| 2 | `01_fixed_master_migration.sql` | **RUN SECOND** - Adds POPIA, foreign keys, RLS policies, Gazoo conversations |
 
 ### ❌ Ignore These (Old/Deprecated)
 

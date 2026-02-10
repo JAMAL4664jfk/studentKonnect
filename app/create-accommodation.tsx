@@ -134,8 +134,17 @@ export default function CreateAccommodationScreen() {
     setUploadProgress(0);
     
     try {
-      // Get current user (for now using userId 1, you'll replace with actual auth)
-      const userId = 1;
+      // Get current authenticated user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        Toast.show({
+          type: 'error',
+          text1: 'Authentication Error',
+          text2: 'Please log in to create a listing',
+        });
+        return;
+      }
+      const userId = user.id;
 
       // Simulate upload progress
       setUploadProgress(30);
