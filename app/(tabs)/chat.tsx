@@ -84,7 +84,7 @@ interface User {
   full_name: string;
   email: string;
   avatar_url: string | null;
-  institution_name: string | null;
+  institution_name: string | { id: string; name: string; shortName: string; logo: string; type: string } | null;
   course_program: string | null;
 }
 
@@ -837,11 +837,16 @@ export default function ChatScreen() {
   });
 
   const filteredUsers = allUsers.filter(
-    (user) =>
-      user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.institution_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.course_program?.toLowerCase().includes(searchQuery.toLowerCase())
+    (user) => {
+      const institutionName = typeof user.institution_name === 'object' 
+        ? (user.institution_name?.name || user.institution_name?.shortName || '')
+        : (user.institution_name || '');
+      
+      return user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        institutionName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (user.course_program?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
+    }
   );
 
   const tabs: { key: TabType; label: string; icon: string }[] = [
