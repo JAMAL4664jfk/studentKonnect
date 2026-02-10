@@ -79,14 +79,13 @@ interface Status {
   user_photo: string | null;
 }
 
-interface User {
+type User = {
   id: string;
   full_name: string;
   email: string;
   avatar_url: string | null;
-  institution_name: string | null;
   course_program: string | null;
-}
+};
 
 type TabType = "chats" | "groups" | "calls" | "status" | "discover";
 
@@ -388,30 +387,13 @@ export default function ChatScreen() {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, email, avatar_url, institution_name, course_program")
+        .select("id, full_name, email, avatar_url, course_program")
         .neq("id", userId)
         .order("full_name");
 
       // If Supabase query succeeds and has data, use it
       if (!error && data && data.length > 0) {
-        console.log('🔍 RAW DATA FROM SUPABASE:', JSON.stringify(data[0], null, 2));
-        
-        // Normalize institution_name to always be a string
-        const normalizedData = data.map(user => {
-          const institutionValue = typeof user.institution_name === 'object' && user.institution_name !== null
-            ? (user.institution_name.name || user.institution_name.shortName || null)
-            : user.institution_name;
-          
-          console.log(`📝 User: ${user.full_name}, Institution (before): ${typeof user.institution_name}, (after): ${typeof institutionValue}`);
-          
-          return {
-            ...user,
-            institution_name: institutionValue
-          };
-        });
-        
-        console.log('✅ NORMALIZED DATA:', JSON.stringify(normalizedData[0], null, 2));
-        setAllUsers(normalizedData);
+        setAllUsers(data);
         return;
       }
 
@@ -848,7 +830,6 @@ export default function ChatScreen() {
     (user) =>
       user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      safeString(user.institution_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
       (user.course_program?.toLowerCase().includes(searchQuery.toLowerCase()) || false)
   );
 
