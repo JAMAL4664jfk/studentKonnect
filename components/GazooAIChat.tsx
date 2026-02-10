@@ -40,8 +40,8 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // API key should be set in environment variables
-  const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || 'your-api-key-here';
+  // Using mock responses for now - can be replaced with actual API later
+  const USE_MOCK_RESPONSES = true;
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -66,42 +66,70 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are Gazoo AI, an intelligent student companion. You help students with studying, budgeting, career advice, wellness tips, and academic support. Be friendly, encouraging, and provide practical advice. Keep responses concise and helpful.',
-            },
-            ...messages.map((msg) => ({
-              role: msg.role,
-              content: msg.content,
-            })),
-            {
-              role: 'user',
-              content: userMessage.content,
-            },
-          ],
-          temperature: 0.7,
-          max_tokens: 500,
-        }),
-      });
+      let assistantContent = '';
 
-      if (!response.ok) {
-        throw new Error('Failed to get response from Gazoo AI');
+      if (USE_MOCK_RESPONSES) {
+        // Mock intelligent responses based on keywords
+        const lowerContent = userMessage.content.toLowerCase();
+        
+        if (lowerContent.includes('study') || lowerContent.includes('exam') || lowerContent.includes('homework')) {
+          assistantContent = "I can help you with studying! Here are some tips:\n\n📚 Break your study sessions into 25-minute focused blocks (Pomodoro technique)\n✍️ Create summary notes and mind maps\n👥 Form study groups with classmates\n📝 Practice with past papers\n🎯 Focus on understanding concepts, not just memorizing\n\nWhat subject are you working on?";
+        } else if (lowerContent.includes('budget') || lowerContent.includes('money') || lowerContent.includes('finance')) {
+          assistantContent = "Let me help you with budgeting! 💰\n\n1. Track your expenses for a month\n2. Use the 50/30/20 rule: 50% needs, 30% wants, 20% savings\n3. Look for student discounts\n4. Cook meals instead of eating out\n5. Use the Student Konnect marketplace for affordable items\n\nWould you like help creating a budget plan?";
+        } else if (lowerContent.includes('career') || lowerContent.includes('job') || lowerContent.includes('internship')) {
+          assistantContent = "Great question about careers! 🚀\n\n✨ Update your LinkedIn profile\n📄 Tailor your CV for each application\n🤝 Network at campus events\n💼 Apply for internships early\n📚 Build relevant skills\n🎯 Use the Career Hub in Student Konnect\n\nWhat field are you interested in?";
+        } else if (lowerContent.includes('stress') || lowerContent.includes('anxiety') || lowerContent.includes('mental') || lowerContent.includes('wellness')) {
+          assistantContent = "I'm here to support you! 🌟\n\n🧘 Practice mindfulness and meditation\n💪 Exercise regularly\n😴 Get 7-8 hours of sleep\n🗣️ Talk to friends or counselors\n📱 Use the Wellness Hub in Student Konnect\n⏰ Take regular breaks\n\nRemember: It's okay to ask for help. Would you like me to share more wellness resources?";
+        } else if (lowerContent.includes('accommodation') || lowerContent.includes('housing') || lowerContent.includes('room')) {
+          assistantContent = "Looking for accommodation? 🏠\n\nCheck out the Accommodation section in Student Konnect!\n\n✅ Browse verified listings\n📍 Filter by location and price\n🔒 Safe and secure platform\n💬 Chat directly with landlords\n⭐ Read reviews from other students\n\nNeed help finding something specific?";
+        } else if (lowerContent.includes('hello') || lowerContent.includes('hi') || lowerContent.includes('hey')) {
+          assistantContent = "Hey! 👋 Great to chat with you!\n\nI'm Gazoo AI, your student companion. I can help with:\n\n📚 Studying & exam prep\n💰 Budgeting & finances\n🚀 Career advice\n🧘 Wellness & mental health\n🏠 Accommodation\n🎯 Campus life\n\nWhat would you like to know about?";
+        } else if (lowerContent.includes('thank')) {
+          assistantContent = "You're very welcome! 😊\n\nI'm always here to help. Feel free to ask me anything about student life, academics, or campus resources.\n\nHave a great day! ✨";
+        } else {
+          assistantContent = `I understand you're asking about: "${userMessage.content}"\n\nI'm Gazoo AI, and I'm here to help students with:\n\n📚 Study tips & exam strategies\n💰 Budget planning & money management\n🚀 Career guidance & job hunting\n🧘 Wellness & stress management\n🏠 Accommodation search\n🎯 Campus life advice\n\nCould you tell me more about what you need help with? I'll do my best to provide useful guidance!`;
+        }
+      } else {
+        // Actual API call (for future implementation)
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-4.1-mini',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are Gazoo AI, an intelligent student companion. You help students with studying, budgeting, career advice, wellness tips, and academic support. Be friendly, encouraging, and provide practical advice. Keep responses concise and helpful.',
+              },
+              ...messages.map((msg) => ({
+                role: msg.role,
+                content: msg.content,
+              })),
+              {
+                role: 'user',
+                content: userMessage.content,
+              },
+            ],
+            temperature: 0.7,
+            max_tokens: 500,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to get response from Gazoo AI');
+        }
+
+        const data = await response.json();
+        assistantContent = data.choices[0].message.content;
       }
 
-      const data = await response.json();
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.choices[0].message.content,
+        content: assistantContent,
         timestamp: new Date(),
       };
 

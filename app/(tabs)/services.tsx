@@ -105,12 +105,12 @@ const SERVICES: ServiceItem[] = [
   },
   {
     id: "nsfas",
-    name: "NSFAS",
-    icon: "doc.text.fill",
-    description: "Apply for student funding",
-    backgroundImage: require("@/assets/images/wallet-bg.jpg"),
-    badgeText: "Apply Now",
-    badgeColor: "#10b981",
+    name: "Gazoo AI",
+    icon: "sparkles",
+    description: "Your intelligent student companion",
+    backgroundImage: require("@/assets/images/gazoo-ai-bg.jpg"),
+    badgeText: "Chat Now",
+    badgeColor: "#7c3aed",
   },
   {
     id: "health-cover",
