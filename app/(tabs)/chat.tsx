@@ -1097,30 +1097,64 @@ export default function ChatScreen() {
                   </View>
 
 
+                  {/* People to Connect With */}
+                  <View className="mb-6">
+                    <Text className="text-lg font-bold text-foreground mb-4">People to Connect With</Text>
+                    {allUsers.slice(0, 5).map((user) => (
+                      <View
+                        key={user.id}
+                        className="bg-white rounded-xl p-4 mb-3 flex-row items-center"
+                        style={{
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.1,
+                          shadowRadius: 4,
+                          elevation: 2,
+                        }}
+                      >
+                        <View className="w-12 h-12 rounded-full bg-muted items-center justify-center mr-3 overflow-hidden">
+                          {user.avatar_url ? (
+                            <Image
+                              source={{ uri: user.avatar_url }}
+                              className="w-full h-full"
+                              style={{ resizeMode: 'cover' }}
+                            />
+                          ) : (
+                            <Text className="text-foreground font-bold text-lg">
+                              {user.full_name?.charAt(0).toUpperCase() || '?'}
+                            </Text>
+                          )}
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-base font-semibold text-foreground">
+                            {user.full_name}
+                          </Text>
+                          <Text className="text-sm text-muted" numberOfLines={1}>
+                            {user.course_program || 'Student'}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => handleStartChat(user.id)}
+                          className="px-4 py-2 rounded-xl"
+                          style={{ backgroundColor: colors.primary }}
+                        >
+                          <Text className="text-white font-semibold">Chat</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                    
+                    <TouchableOpacity
+                      onPress={() => setActiveTab("discover")}
+                      className="bg-primary/10 rounded-xl p-3 flex-row items-center justify-center mt-2"
+                    >
+                      <Text className="text-primary font-semibold mr-2">See All People</Text>
+                      <IconSymbol name="chevron.right" size={16} color={colors.primary} />
+                    </TouchableOpacity>
+                  </View>
+
                   {/* Quick Actions */}
                   <View className="mb-6">
                     <Text className="text-lg font-bold text-foreground mb-4">Quick Actions</Text>
-                    <TouchableOpacity
-                      onPress={() => setActiveTab("discover")}
-                      className="bg-white rounded-xl p-4 mb-3 flex-row items-center"
-                      style={{
-                        shadowColor: "#000",
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.1,
-                        shadowRadius: 4,
-                        elevation: 2,
-                      }}
-                    >
-                      <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
-                        <IconSymbol name="person.2.fill" size={24} color={colors.primary} />
-                      </View>
-                      <View className="flex-1">
-                        <Text className="text-base font-semibold text-foreground">Discover People</Text>
-                        <Text className="text-sm text-muted-foreground">Find students to connect with</Text>
-                      </View>
-                      <IconSymbol name="chevron.right" size={20} color={colors.mutedForeground} />
-                    </TouchableOpacity>
-
                     <TouchableOpacity
                       onPress={() => setActiveTab("groups")}
                       className="bg-white rounded-xl p-4 flex-row items-center"
