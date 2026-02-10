@@ -92,6 +92,7 @@ export default function PodcastsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All Episodes");
   const [activeView, setActiveView] = useState<"episodes" | "series" | "myseries">("episodes");
+  const [showViewDropdown, setShowViewDropdown] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -788,32 +789,37 @@ export default function PodcastsScreen() {
         activeOpacity={0.7}
       >
         <View className="flex-row">
-          <View className="relative">
-            {item.thumbnail_url ? (
-              <Image
-                source={{ uri: item.thumbnail_url }}
-                className="w-20 h-20 rounded-xl mr-4"
-                contentFit="cover"
-              />
-            ) : (
-              <View className="w-20 h-20 rounded-xl mr-4 bg-primary/20 items-center justify-center">
-                <IconSymbol 
-                  name={item.media_type === "video" ? "video.fill" : "mic.fill"} 
-                  size={32} 
-                  color={colors.primary} 
-                />
-              </View>
-            )}
-            {item.media_type === "video" && (
-              <View className="absolute top-1 right-5 bg-black/70 px-2 py-1 rounded-md">
-                <IconSymbol name="video.fill" size={12} color="white" />
-              </View>
-            )}
-          </View>
           <View className="flex-1">
-            <Text className="text-base font-semibold text-foreground mb-1" numberOfLines={2}>
+            {/* Title */}
+            <Text className="text-base font-semibold text-foreground mb-3" numberOfLines={2}>
               {item.title}
             </Text>
+            
+            {/* Thumbnail */}
+            <View className="relative mb-3">
+              {item.thumbnail_url ? (
+                <Image
+                  source={{ uri: item.thumbnail_url }}
+                  className="w-full h-48 rounded-xl"
+                  contentFit="cover"
+                />
+              ) : (
+                <View className="w-full h-48 rounded-xl bg-primary/20 items-center justify-center">
+                  <IconSymbol 
+                    name={item.media_type === "video" ? "video.fill" : "mic.fill"} 
+                    size={48} 
+                    color={colors.primary} 
+                  />
+                </View>
+              )}
+              {item.media_type === "video" && (
+                <View className="absolute top-2 right-2 bg-black/70 px-3 py-1.5 rounded-lg">
+                  <IconSymbol name="video.fill" size={14} color="white" />
+                </View>
+              )}
+            </View>
+            
+            {/* Host Name */}
             <Text className="text-sm text-muted mb-2">{item.host_name}</Text>
             <View className="flex-row items-center gap-3 mb-2">
               <View
@@ -954,32 +960,59 @@ export default function PodcastsScreen() {
           </View>
         </View>
 
-        {/* View Tabs */}
-        <View className="border-b border-border">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4">
-            {[
-              { key: "episodes" as const, label: "Episodes" },
-              { key: "series" as const, label: "Series" },
-              { key: "myseries" as const, label: "My Content" },
-            ].map((tab) => (
-              <TouchableOpacity
-                key={tab.key}
-                onPress={() => setActiveView(tab.key)}
-                className="mr-6 pb-3"
-                style={{
-                  borderBottomWidth: 2,
-                  borderBottomColor: activeView === tab.key ? colors.primary : "transparent",
-                }}
-              >
-                <Text
-                  className="font-semibold text-base"
-                  style={{ color: activeView === tab.key ? colors.primary : colors.muted }}
+        {/* View Dropdown */}
+        <View className="px-4 mb-3">
+          <TouchableOpacity
+            onPress={() => setShowViewDropdown(!showViewDropdown)}
+            className="bg-surface border border-border rounded-xl px-4 py-3 flex-row items-center justify-between"
+          >
+            <View className="flex-row items-center gap-2">
+              <IconSymbol
+                name={activeView === "episodes" ? "waveform" : activeView === "series" ? "square.stack.3d.up" : "person.fill"}
+                size={20}
+                color={colors.primary}
+              />
+              <Text className="text-base font-semibold text-foreground">
+                {activeView === "episodes" ? "Episodes" : activeView === "series" ? "Series" : "My Content"}
+              </Text>
+            </View>
+            <IconSymbol name="chevron.down" size={20} color={colors.muted} />
+          </TouchableOpacity>
+
+          {/* Dropdown Menu */}
+          {showViewDropdown && (
+            <View className="bg-surface border border-border rounded-xl mt-2 overflow-hidden">
+              {[
+                { key: "episodes" as const, label: "Episodes", icon: "waveform" },
+                { key: "series" as const, label: "Series", icon: "square.stack.3d.up" },
+                { key: "myseries" as const, label: "My Content", icon: "person.fill" },
+              ].map((option) => (
+                <TouchableOpacity
+                  key={option.key}
+                  onPress={() => {
+                    setActiveView(option.key);
+                    setShowViewDropdown(false);
+                  }}
+                  className={`px-4 py-3 flex-row items-center gap-3 ${
+                    activeView === option.key ? "bg-primary/10" : ""
+                  }`}
                 >
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                  <IconSymbol
+                    name={option.icon}
+                    size={20}
+                    color={activeView === option.key ? colors.primary : colors.muted}
+                  />
+                  <Text
+                    className={`text-base font-semibold ${
+                      activeView === option.key ? "text-primary" : "text-foreground"
+                    }`}
+                  >
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Categories */}

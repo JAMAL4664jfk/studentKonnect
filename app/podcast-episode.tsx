@@ -145,7 +145,7 @@ export default function PodcastEpisodeScreen() {
         .from("podcast_comments")
         .select(`
           *,
-          user:profiles(full_name, avatar_url)
+          user:profiles!podcast_comments_user_id_fkey(full_name, avatar_url)
         `)
         .eq("podcast_id", episodeId)
         .is("parent_id", null)
@@ -168,7 +168,7 @@ export default function PodcastEpisodeScreen() {
             .from("podcast_comments")
             .select(`
               *,
-              user:profiles(full_name, avatar_url)
+              user:profiles!podcast_comments_user_id_fkey(full_name, avatar_url)
             `)
             .eq("parent_id", comment.id)
             .order("created_at", { ascending: true });
