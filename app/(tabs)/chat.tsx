@@ -1057,7 +1057,7 @@ export default function ChatScreen() {
                       <Text className="text-xl font-bold text-foreground ml-3">Welcome to Chat! 👋</Text>
                     </View>
                     <Text className="text-muted-foreground text-base leading-6">
-                      Connect with students from {userInstitution || "your institution"}. Start conversations, share ideas, and build your network!
+                      Connect with students from {userInstitution?.name || "your institution"}. Start conversations, share ideas, and build your network!
                     </Text>
                   </View>
 
