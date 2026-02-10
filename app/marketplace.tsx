@@ -663,6 +663,7 @@ export default function MarketplaceScreen() {
             <Text className="text-primary font-bold text-base">Manage Listings</Text>
           </TouchableOpacity>
         </View>
+            </View>
           )}
         </View>
 
