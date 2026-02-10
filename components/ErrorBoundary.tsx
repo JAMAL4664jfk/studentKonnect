@@ -1,7 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import * as Updates from 'expo-updates';
 
 interface Props {
   children: ReactNode;
@@ -39,29 +38,13 @@ export class ErrorBoundary extends Component<Props, State> {
     });
   }
 
-  handleRefresh = async () => {
-    try {
-      // Try to reload the app
-      if (__DEV__) {
-        // In development, just reset the error state
-        this.setState({
-          hasError: false,
-          error: null,
-          errorInfo: null,
-        });
-      } else {
-        // In production, try to reload the app
-        await Updates.reloadAsync();
-      }
-    } catch (error) {
-      console.error('Error reloading app:', error);
-      // If reload fails, just reset the error state
-      this.setState({
-        hasError: false,
-        error: null,
-        errorInfo: null,
-      });
-    }
+  handleRefresh = () => {
+    // Reset the error state to allow the app to re-render
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null,
+    });
   };
 
   render() {
