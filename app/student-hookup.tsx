@@ -447,7 +447,6 @@ export default function StudentHookupScreen() {
             width: CARD_WIDTH,
             height: CARD_HEIGHT,
             transform: [{ scale: 0.95 }],
-            opacity: 0.5,
           }}
         >
           <ProfileCard profile={profile} />
@@ -787,25 +786,260 @@ export default function StudentHookupScreen() {
 
         {/* Content */}
         {activeTab === "dashboard" && renderDashboard()}
+        
+        {/* Profiles Tab - Show all available profiles */}
         {activeTab === "profiles" && (
-          <View className="flex-1 items-center justify-center">
-            <Text className="text-muted-foreground">Profiles view coming soon</Text>
-          </View>
+          <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+            <Text className="text-xl font-bold text-foreground mb-4">All Profiles ({profiles.length})</Text>
+            {profiles.map((profile) => (
+              <TouchableOpacity
+                key={profile.id}
+                onPress={() => {
+                  setCurrentIndex(profiles.findIndex(p => p.id === profile.id));
+                  setActiveTab("dashboard");
+                }}
+                className="bg-white rounded-2xl mb-4 overflow-hidden"
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                  elevation: 3,
+                }}
+              >
+                <View className="flex-row">
+                  <Image
+                    source={{ uri: JSON.parse(profile.images)[0] }}
+                    style={{ width: 100, height: 120 }}
+                    contentFit="cover"
+                  />
+                  <View className="flex-1 p-4">
+                    <View className="flex-row items-center gap-2 mb-1">
+                      <Text className="text-lg font-bold text-gray-900">{profile.name}, {profile.age}</Text>
+                      {profile.isVerified && (
+                        <IconSymbol name="checkmark.seal.fill" size={16} color={colors.primary} />
+                      )}
+                    </View>
+                    <Text className="text-sm text-gray-600 mb-1">{profile.institution}</Text>
+                    <Text className="text-sm text-gray-600 mb-2">{profile.course}</Text>
+                    <Text className="text-xs text-gray-500" numberOfLines={2}>{profile.bio}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         )}
+        
+        {/* Likes You Tab - People who liked you */}
         {activeTab === "likes" && (
-          <View className="flex-1 items-center justify-center">
-            <IconSymbol name="heart.fill" size={64} color={colors.primary} />
-            <Text className="text-xl font-bold text-foreground mt-4">{likes.length} people like you!</Text>
-            <Text className="text-muted-foreground mt-2">Upgrade to see who likes you</Text>
-          </View>
+          <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+            <Text className="text-xl font-bold text-foreground mb-4">Likes You ({likes.length})</Text>
+            {likes.length === 0 ? (
+              <View className="flex-1 items-center justify-center py-20">
+                <IconSymbol name="heart.fill" size={64} color={colors.mutedForeground} />
+                <Text className="text-lg font-semibold text-foreground mt-4">No likes yet</Text>
+                <Text className="text-muted-foreground mt-2 text-center px-8">Keep swiping! Someone will like you soon 💕</Text>
+              </View>
+            ) : (
+              likes.map((profile) => (
+                <TouchableOpacity
+                  key={profile.id}
+                  className="bg-white rounded-2xl mb-4 overflow-hidden"
+                  style={{
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                    elevation: 3,
+                  }}
+                >
+                  <View className="flex-row">
+                    <Image
+                      source={{ uri: JSON.parse(profile.images)[0] }}
+                      style={{ width: 100, height: 120 }}
+                      contentFit="cover"
+                    />
+                    <View className="flex-1 p-4">
+                      <View className="flex-row items-center gap-2 mb-1">
+                        <Text className="text-lg font-bold text-gray-900">{profile.name}, {profile.age}</Text>
+                        <IconSymbol name="heart.fill" size={16} color="#ef4444" />
+                      </View>
+                      <Text className="text-sm text-gray-600 mb-1">{profile.institution}</Text>
+                      <Text className="text-sm text-gray-600">{profile.course}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </ScrollView>
         )}
+        
+        {/* Liked Tab - People you liked */}
+        {activeTab === "liked" && (
+          <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+            <Text className="text-xl font-bold text-foreground mb-4">You Liked ({liked.length})</Text>
+            {liked.length === 0 ? (
+              <View className="flex-1 items-center justify-center py-20">
+                <IconSymbol name="heart" size={64} color={colors.mutedForeground} />
+                <Text className="text-lg font-semibold text-foreground mt-4">No likes yet</Text>
+                <Text className="text-muted-foreground mt-2 text-center px-8">Start swiping right on profiles you like!</Text>
+              </View>
+            ) : (
+              liked.map((profile) => (
+                <TouchableOpacity
+                  key={profile.id}
+                  className="bg-white rounded-2xl mb-4 overflow-hidden"
+                  style={{
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                    elevation: 3,
+                  }}
+                >
+                  <View className="flex-row">
+                    <Image
+                      source={{ uri: JSON.parse(profile.images)[0] }}
+                      style={{ width: 100, height: 120 }}
+                      contentFit="cover"
+                    />
+                    <View className="flex-1 p-4">
+                      <View className="flex-row items-center gap-2 mb-1">
+                        <Text className="text-lg font-bold text-gray-900">{profile.name}, {profile.age}</Text>
+                      </View>
+                      <Text className="text-sm text-gray-600 mb-1">{profile.institution}</Text>
+                      <Text className="text-sm text-gray-600">{profile.course}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </ScrollView>
+        )}
+        
+        {/* Passed Tab - People you passed on */}
+        {activeTab === "passed" && (
+          <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+            <Text className="text-xl font-bold text-foreground mb-4">Passed ({passed.length})</Text>
+            {passed.length === 0 ? (
+              <View className="flex-1 items-center justify-center py-20">
+                <IconSymbol name="xmark.circle" size={64} color={colors.mutedForeground} />
+                <Text className="text-lg font-semibold text-foreground mt-4">No passes yet</Text>
+                <Text className="text-muted-foreground mt-2 text-center px-8">Profiles you swipe left on will appear here</Text>
+              </View>
+            ) : (
+              passed.map((profile) => (
+                <TouchableOpacity
+                  key={profile.id}
+                  className="bg-white rounded-2xl mb-4 overflow-hidden"
+                  style={{
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                    elevation: 3,
+                  }}
+                >
+                  <View className="flex-row">
+                    <Image
+                      source={{ uri: JSON.parse(profile.images)[0] }}
+                      style={{ width: 100, height: 120 }}
+                      contentFit="cover"
+                    />
+                    <View className="flex-1 p-4">
+                      <View className="flex-row items-center gap-2 mb-1">
+                        <Text className="text-lg font-bold text-gray-900">{profile.name}, {profile.age}</Text>
+                      </View>
+                      <Text className="text-sm text-gray-600 mb-1">{profile.institution}</Text>
+                      <Text className="text-sm text-gray-600">{profile.course}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </ScrollView>
+        )}
+        
+        {/* Matches Tab - Mutual likes */}
+        {activeTab === "matches" && (
+          <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+            <Text className="text-xl font-bold text-foreground mb-4">Matches ({matches.length})</Text>
+            {matches.length === 0 ? (
+              <View className="flex-1 items-center justify-center py-20">
+                <IconSymbol name="sparkles" size={64} color={colors.mutedForeground} />
+                <Text className="text-lg font-semibold text-foreground mt-4">No matches yet</Text>
+                <Text className="text-muted-foreground mt-2 text-center px-8">When someone you like likes you back, you'll see them here! ✨</Text>
+              </View>
+            ) : (
+              matches.map((profile) => (
+                <TouchableOpacity
+                  key={profile.id}
+                  onPress={() => {
+                    Toast.show({
+                      type: "success",
+                      text1: "It's a Match! 🎉",
+                      text2: `Start chatting with ${profile.name}`,
+                    });
+                  }}
+                  className="bg-white rounded-2xl mb-4 overflow-hidden"
+                  style={{
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                    elevation: 3,
+                  }}
+                >
+                  <View className="flex-row">
+                    <Image
+                      source={{ uri: JSON.parse(profile.images)[0] }}
+                      style={{ width: 100, height: 120 }}
+                      contentFit="cover"
+                    />
+                    <View className="flex-1 p-4">
+                      <View className="flex-row items-center gap-2 mb-1">
+                        <Text className="text-lg font-bold text-gray-900">{profile.name}, {profile.age}</Text>
+                        <IconSymbol name="sparkles" size={16} color={colors.primary} />
+                      </View>
+                      <Text className="text-sm text-gray-600 mb-1">{profile.institution}</Text>
+                      <Text className="text-sm text-gray-600 mb-2">{profile.course}</Text>
+                      <View className="bg-primary/10 px-3 py-1 rounded-full self-start">
+                        <Text className="text-xs font-semibold text-primary">💬 Start Chat</Text>
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </ScrollView>
+        )}
+        
+        {/* Events Tab */}
         {activeTab === "events" && (
-          <View className="flex-1 items-center justify-center">
-            <IconSymbol name="calendar" size={64} color={colors.primary} />
-            <Text className="text-xl font-bold text-foreground mt-4">Campus Events</Text>
-            <Text className="text-muted-foreground mt-2">Meet people at events near you</Text>
-          </View>
+          <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+            <Text className="text-xl font-bold text-foreground mb-4">Campus Dating Events</Text>
+            <View className="bg-white rounded-2xl p-6 mb-4">
+              <IconSymbol name="calendar" size={48} color={colors.primary} />
+              <Text className="text-lg font-bold text-foreground mt-4">Speed Dating Night</Text>
+              <Text className="text-sm text-muted-foreground mt-2">Friday, 7:00 PM • Student Union</Text>
+              <Text className="text-sm text-foreground mt-3">Meet other students in a fun, fast-paced environment!</Text>
+              <TouchableOpacity className="bg-primary py-3 rounded-xl mt-4">
+                <Text className="text-white font-bold text-center">Register Now</Text>
+              </TouchableOpacity>
+            </View>
+            <View className="bg-white rounded-2xl p-6 mb-4">
+              <IconSymbol name="music.note" size={48} color={colors.primary} />
+              <Text className="text-lg font-bold text-foreground mt-4">Singles Mixer</Text>
+              <Text className="text-sm text-muted-foreground mt-2">Saturday, 8:00 PM • Campus Bar</Text>
+              <Text className="text-sm text-foreground mt-3">Drinks, music, and great vibes. Come meet new people!</Text>
+              <TouchableOpacity className="bg-primary py-3 rounded-xl mt-4">
+                <Text className="text-white font-bold text-center">Register Now</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         )}
+        
+        {/* Edit Profile Tab */}
         {activeTab === "edit" && (
           <View className="flex-1 items-center justify-center">
             <TouchableOpacity

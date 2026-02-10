@@ -1054,13 +1054,104 @@ export default function ChatScreen() {
                 </TouchableOpacity>
               )}
               ListEmptyComponent={
-                <View className="items-center justify-center py-12">
-                  <IconSymbol name="message" size={48} color={colors.muted} />
-                  <Text className="text-muted text-center mt-4">No conversations yet</Text>
-                  <Text className="text-muted text-center text-sm mt-1">
-                    Start chatting with people from Discover
-                  </Text>
-                </View>
+                <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+                  {/* Welcome Message */}
+                  <View className="bg-primary/10 rounded-2xl p-6 mb-6 mt-4">
+                    <View className="flex-row items-center mb-3">
+                      <IconSymbol name="message.fill" size={32} color={colors.primary} />
+                      <Text className="text-xl font-bold text-foreground ml-3">Welcome to Chat! 👋</Text>
+                    </View>
+                    <Text className="text-muted-foreground text-base leading-6">
+                      Connect with students from {userInstitution || "your institution"}. Start conversations, share ideas, and build your network!
+                    </Text>
+                  </View>
+
+                  {/* Suggested Users */}
+                  <View className="mb-6">
+                    <Text className="text-lg font-bold text-foreground mb-4">Suggested People</Text>
+                    {suggestedUsers.length === 0 ? (
+                      <View className="items-center py-8">
+                        <IconSymbol name="person.2" size={48} color={colors.mutedForeground} />
+                        <Text className="text-muted-foreground mt-2">Loading suggestions...</Text>
+                      </View>
+                    ) : (
+                      <View className="flex-row flex-wrap gap-4 justify-center">
+                        {suggestedUsers.slice(0, 6).map((user) => (
+                          <TouchableOpacity
+                            key={user.id}
+                            onPress={() => handleStartChat(user.id)}
+                            className="items-center"
+                            style={{ width: 100 }}
+                          >
+                            <View className="w-20 h-20 rounded-full bg-muted items-center justify-center mb-2 overflow-hidden">
+                              {user.avatar_url ? (
+                                <Image
+                                  source={{ uri: user.avatar_url }}
+                                  style={{ width: 80, height: 80 }}
+                                  resizeMode="cover"
+                                />
+                              ) : (
+                                <IconSymbol name="person.fill" size={32} color={colors.mutedForeground} />
+                              )}
+                            </View>
+                            <Text className="text-sm font-semibold text-foreground text-center" numberOfLines={2}>
+                              {user.full_name}
+                            </Text>
+                            <Text className="text-xs text-muted-foreground text-center" numberOfLines={1}>
+                              {user.course_program || "Student"}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Quick Actions */}
+                  <View className="mb-6">
+                    <Text className="text-lg font-bold text-foreground mb-4">Quick Actions</Text>
+                    <TouchableOpacity
+                      onPress={() => setActiveTab("discover")}
+                      className="bg-white rounded-xl p-4 mb-3 flex-row items-center"
+                      style={{
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 4,
+                        elevation: 2,
+                      }}
+                    >
+                      <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
+                        <IconSymbol name="person.2.fill" size={24} color={colors.primary} />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-base font-semibold text-foreground">Discover People</Text>
+                        <Text className="text-sm text-muted-foreground">Find students to connect with</Text>
+                      </View>
+                      <IconSymbol name="chevron.right" size={20} color={colors.mutedForeground} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => setActiveTab("groups")}
+                      className="bg-white rounded-xl p-4 flex-row items-center"
+                      style={{
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 4,
+                        elevation: 2,
+                      }}
+                    >
+                      <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
+                        <IconSymbol name="person.3.fill" size={24} color={colors.primary} />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-base font-semibold text-foreground">Join Groups</Text>
+                        <Text className="text-sm text-muted-foreground">Connect with communities</Text>
+                      </View>
+                      <IconSymbol name="chevron.right" size={20} color={colors.mutedForeground} />
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
               }
             />
             </ImageBackground>
