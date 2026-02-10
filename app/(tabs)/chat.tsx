@@ -1596,7 +1596,7 @@ export default function ChatScreen() {
                           </Text>
                           {item.institution_name && (
                             <Text className="text-sm text-muted" numberOfLines={1}>
-                              {item.institution_name}
+                              {typeof item.institution_name === 'object' ? item.institution_name.name || item.institution_name.shortName || 'Student' : item.institution_name}
                             </Text>
                           )}
                           {item.course_program && (
