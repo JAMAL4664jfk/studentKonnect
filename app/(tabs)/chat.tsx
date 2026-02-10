@@ -385,13 +385,23 @@ export default function ChatScreen() {
 
       // If Supabase query succeeds and has data, use it
       if (!error && data && data.length > 0) {
+        console.log('🔍 RAW DATA FROM SUPABASE:', JSON.stringify(data[0], null, 2));
+        
         // Normalize institution_name to always be a string
-        const normalizedData = data.map(user => ({
-          ...user,
-          institution_name: typeof user.institution_name === 'object' && user.institution_name !== null
+        const normalizedData = data.map(user => {
+          const institutionValue = typeof user.institution_name === 'object' && user.institution_name !== null
             ? (user.institution_name.name || user.institution_name.shortName || null)
-            : user.institution_name
-        }));
+            : user.institution_name;
+          
+          console.log(`📝 User: ${user.full_name}, Institution (before): ${typeof user.institution_name}, (after): ${typeof institutionValue}`);
+          
+          return {
+            ...user,
+            institution_name: institutionValue
+          };
+        });
+        
+        console.log('✅ NORMALIZED DATA:', JSON.stringify(normalizedData[0], null, 2));
         setAllUsers(normalizedData);
         return;
       }
@@ -582,13 +592,25 @@ export default function ChatScreen() {
         return;
       }
 
+      if (data && data.length > 0) {
+        console.log('🔍 SUGGESTED USERS RAW:', JSON.stringify(data[0], null, 2));
+      }
+
       // Normalize institution_name to always be a string
-      const normalizedData = (data || []).map(user => ({
-        ...user,
-        institution_name: typeof user.institution_name === 'object' && user.institution_name !== null
+      const normalizedData = (data || []).map(user => {
+        const institutionValue = typeof user.institution_name === 'object' && user.institution_name !== null
           ? (user.institution_name.name || user.institution_name.shortName || null)
-          : user.institution_name
-      }));
+          : user.institution_name;
+        
+        return {
+          ...user,
+          institution_name: institutionValue
+        };
+      });
+      
+      if (normalizedData.length > 0) {
+        console.log('✅ SUGGESTED USERS NORMALIZED:', JSON.stringify(normalizedData[0], null, 2));
+      }
       setSuggestedUsers(normalizedData);
     } catch (error) {
       console.error("Error loading suggested users:", error);
