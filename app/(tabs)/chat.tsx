@@ -110,7 +110,6 @@ export default function ChatScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("chats");
   const [showTabDropdown, setShowTabDropdown] = useState(false);
-  const [suggestedUsers, setSuggestedUsers] = useState<User[]>([]);
 
   // Format last message for display
   const formatLastMessage = (message: string | null): string => {
@@ -186,7 +185,6 @@ export default function ChatScreen() {
         loadStatuses(user.id);
         loadAllUsers(user.id);
         loadConnections(user.id);
-        loadSuggestedUsers(user.id);
       }
     };
 
@@ -589,44 +587,7 @@ export default function ChatScreen() {
     }
   };
 
-  const loadSuggestedUsers = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, full_name, email, avatar_url, institution_name, course_program")
-        .neq("id", userId)
-        .eq("institution_name", userInstitution || "")
-        .limit(10);
 
-      if (error) {
-        console.error("Error loading suggested users:", error);
-        return;
-      }
-
-      if (data && data.length > 0) {
-        console.log('🔍 SUGGESTED USERS RAW:', JSON.stringify(data[0], null, 2));
-      }
-
-      // Normalize institution_name to always be a string
-      const normalizedData = (data || []).map(user => {
-        const institutionValue = typeof user.institution_name === 'object' && user.institution_name !== null
-          ? (user.institution_name.name || user.institution_name.shortName || null)
-          : user.institution_name;
-        
-        return {
-          ...user,
-          institution_name: institutionValue
-        };
-      });
-      
-      if (normalizedData.length > 0) {
-        console.log('✅ SUGGESTED USERS NORMALIZED:', JSON.stringify(normalizedData[0], null, 2));
-      }
-      setSuggestedUsers(normalizedData);
-    } catch (error) {
-      console.error("Error loading suggested users:", error);
-    }
-  };
 
   const handleRefresh = async () => {
     if (!currentUserId) return;
@@ -1135,45 +1096,6 @@ export default function ChatScreen() {
                     </Text>
                   </View>
 
-                  {/* Suggested Users */}
-                  <View className="mb-6">
-                    <Text className="text-lg font-bold text-foreground mb-4">Suggested People</Text>
-                    {suggestedUsers.length === 0 ? (
-                      <View className="items-center py-8">
-                        <IconSymbol name="person.2" size={48} color={colors.mutedForeground} />
-                        <Text className="text-muted-foreground mt-2">Loading suggestions...</Text>
-                      </View>
-                    ) : (
-                      <View className="flex-row flex-wrap gap-4 justify-center">
-                        {suggestedUsers.slice(0, 6).map((user) => (
-                          <TouchableOpacity
-                            key={user.id}
-                            onPress={() => handleStartChat(user.id)}
-                            className="items-center"
-                            style={{ width: 100 }}
-                          >
-                            <View className="w-20 h-20 rounded-full bg-muted items-center justify-center mb-2 overflow-hidden">
-                              {user.avatar_url ? (
-                                <Image
-                                  source={{ uri: user.avatar_url }}
-                                  style={{ width: 80, height: 80 }}
-                                  resizeMode="cover"
-                                />
-                              ) : (
-                                <IconSymbol name="person.fill" size={32} color={colors.mutedForeground} />
-                              )}
-                            </View>
-                            <Text className="text-sm font-semibold text-foreground text-center" numberOfLines={2}>
-                              {user.full_name}
-                            </Text>
-                            <Text className="text-xs text-muted-foreground text-center" numberOfLines={1}>
-                              {user.course_program || "Student"}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    )}
-                  </View>
 
                   {/* Quick Actions */}
                   <View className="mb-6">
