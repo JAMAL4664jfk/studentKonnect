@@ -19,7 +19,17 @@ serve(async (req) => {
     // Get the OpenAI API key from environment variables (set in Supabase dashboard)
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openaiApiKey) {
-      throw new Error('OpenAI API key not configured in Edge Function')
+      console.error('OpenAI API key not configured')
+      return new Response(
+        JSON.stringify({ 
+          error: 'OpenAI API key not configured in Edge Function',
+          success: false 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
     }
 
     // Parse request body
@@ -27,13 +37,18 @@ serve(async (req) => {
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(
-        JSON.stringify({ error: 'Invalid request: messages array required' }),
+        JSON.stringify({ 
+          error: 'Invalid request: messages array required',
+          success: false 
+        }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       )
     }
+
+    console.log('Received request with', messages.length, 'messages')
 
     // Call OpenAI API
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -75,50 +90,77 @@ Tailor advice to South African university students.`
     if (!openaiResponse.ok) {
       const error = await openaiResponse.json()
       console.error('OpenAI API error:', error)
-      throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`)
+      return new Response(
+        JSON.stringify({ 
+          error: `OpenAI API error: ${error.error?.message || 'Unknown error'}`,
+          success: false 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
     }
 
     const data = await openaiResponse.json()
     const assistantMessage = data.choices[0]?.message?.content
 
     if (!assistantMessage) {
-      throw new Error('No response from OpenAI')
-    }
-
-    // Get user from authorization header
-    const authHeader = req.headers.get('Authorization')
-    if (authHeader) {
-      const supabaseClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-        {
-          global: {
-            headers: { Authorization: authHeader },
-          },
+      console.error('No response from OpenAI')
+      return new Response(
+        JSON.stringify({ 
+          error: 'No response from OpenAI',
+          success: false 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       )
+    }
 
-      // Get current user
-      const { data: { user } } = await supabaseClient.auth.getUser()
+    console.log('Successfully got response from OpenAI')
 
-      // Save conversation to database if conversationId provided
-      if (user && conversationId) {
-        // Update the conversation with new messages
-        const { error: updateError } = await supabaseClient
-          .from('gazoo_conversations')
-          .update({
-            messages: messages.concat([
-              { role: 'assistant', content: assistantMessage }
-            ]),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', conversationId)
-          .eq('user_id', user.id)
+    // Try to save conversation to database (optional, won't fail if auth is invalid)
+    try {
+      const authHeader = req.headers.get('Authorization')
+      if (authHeader) {
+        const supabaseClient = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+          {
+            global: {
+              headers: { Authorization: authHeader },
+            },
+          }
+        )
 
-        if (updateError) {
-          console.error('Error updating conversation:', updateError)
+        // Get current user (may fail if JWT is invalid, that's okay)
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+
+        if (!userError && user && conversationId) {
+          // Update the conversation with new messages
+          const { error: updateError } = await supabaseClient
+            .from('gazoo_conversations')
+            .update({
+              messages: messages.concat([
+                { role: 'assistant', content: assistantMessage }
+              ]),
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', conversationId)
+            .eq('user_id', user.id)
+
+          if (updateError) {
+            console.warn('Error updating conversation (non-fatal):', updateError)
+          } else {
+            console.log('Successfully saved conversation')
+          }
         }
       }
+    } catch (dbError) {
+      // Database save failed, but we still return the OpenAI response
+      console.warn('Database save failed (non-fatal):', dbError)
     }
 
     // Return the assistant's response
