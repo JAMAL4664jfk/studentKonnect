@@ -41,18 +41,7 @@ export default function WalletUploadSelfieScreen() {
     return true;
   };
 
-  const requestGalleryPermission = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Permission Required",
-        "Gallery permission is required to select a photo. Please enable it in your device settings.",
-        [{ text: "OK" }]
-      );
-      return false;
-    }
-    return true;
-  };
+  // No longer needed - Android Photo Picker doesn't require permissions on Android 13+
 
   const convertImageToBase64 = async (uri: string): Promise<string> => {
     try {
@@ -97,9 +86,6 @@ export default function WalletUploadSelfieScreen() {
   };
 
   const handleChooseFromGallery = async () => {
-    const hasPermission = await requestGalleryPermission();
-    if (!hasPermission) return;
-
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,

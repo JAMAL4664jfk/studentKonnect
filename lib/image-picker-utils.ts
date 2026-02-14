@@ -33,28 +33,6 @@ export const requestCameraPermission = async (): Promise<boolean> => {
 };
 
 /**
- * Request media library permissions
- */
-export const requestMediaLibraryPermission = async (): Promise<boolean> => {
-  if (Platform.OS === 'web') {
-    return true;
-  }
-
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  
-  if (status !== 'granted') {
-    Toast.show({
-      type: 'error',
-      text1: 'Permission Denied',
-      text2: 'Gallery permission is required to select photos',
-    });
-    return false;
-  }
-
-  return true;
-};
-
-/**
  * Launch camera to capture a photo
  */
 export const capturePhoto = async (): Promise<ImagePickerResult | null> => {
@@ -93,12 +71,24 @@ export const capturePhoto = async (): Promise<ImagePickerResult | null> => {
 };
 
 /**
- * Launch gallery to select a photo
+ * Launch gallery to select a photo using Android Photo Picker (no permissions required on Android 13+)
+ * For older Android versions, this will use the system picker which doesn't require READ_MEDIA permissions
  */
 export const selectPhoto = async (): Promise<ImagePickerResult | null> => {
-  const hasPermission = await requestMediaLibraryPermission();
-  if (!hasPermission) return null;
+  // On web, no permissions needed
+  if (Platform.OS === 'web') {
+    return await launchImageLibrary();
+  }
 
+  // On Android 13+ (API 33+), the photo picker doesn't require permissions
+  // On older versions, launchImageLibraryAsync uses the system picker without requiring permissions
+  return await launchImageLibrary();
+};
+
+/**
+ * Internal function to launch image library without requesting permissions
+ */
+const launchImageLibrary = async (): Promise<ImagePickerResult | null> => {
   try {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
