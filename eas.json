@@ -1,22 +1,17 @@
 {
   "build": {
     "preview": {
+      "credentialsSource": "local",
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     },
     "production": {
+      "credentialsSource": "local",
       "distribution": "store",
       "android": {
-        "buildType": "apk"
-      }
-    },
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     }
   }
