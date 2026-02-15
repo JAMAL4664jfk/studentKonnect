@@ -27,7 +27,6 @@ import { UserProfileModal } from "@/components/UserProfileModal";
 import { AttachmentPicker } from "@/components/AttachmentPicker";
 import { UploadProgress } from "@/components/UploadProgress";
 import * as FileSystem from 'expo-file-system/legacy';
-import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import * as Linking from 'expo-linking';
 
@@ -169,16 +168,7 @@ export default function ChatDetailScreen() {
   };
 
   const handleChooseMedia = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Toast.show({
-        type: "error",
-        text1: "Permission Denied",
-        text2: "Media library permission is required",
-      });
-      return;
-    }
-
+    // Using Android Photo Picker - no permissions required on Android 13+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: false,
@@ -655,34 +645,28 @@ export default function ChatDetailScreen() {
                         },
                       },
                       {
-                        text: 'Download',
+                        text: 'Share',
                         onPress: async () => {
                           try {
-                            const { status } = await MediaLibrary.requestPermissionsAsync();
-                            if (status !== 'granted') {
-                              Toast.show({
-                                type: 'error',
-                                text1: 'Permission denied',
-                                text2: 'Cannot save image without permission',
-                              });
-                              return;
-                            }
-
-                            const fileUri = FileSystem.documentDirectory + `image_${Date.now()}.jpg`;
+                            // Use sharing instead of saving to gallery (no permissions required)
+                            const fileUri = FileSystem.cacheDirectory + `image_${Date.now()}.jpg`;
                             const downloadResult = await FileSystem.downloadAsync(attachmentUrl, fileUri);
                             
-                            await MediaLibrary.createAssetAsync(downloadResult.uri);
-                            Toast.show({
-                              type: 'success',
-                              text1: 'Image saved',
-                              text2: 'Image saved to gallery',
-                            });
+                            if (await Sharing.isAvailableAsync()) {
+                              await Sharing.shareAsync(downloadResult.uri);
+                            } else {
+                              Toast.show({
+                                type: 'info',
+                                text1: 'Sharing not available',
+                                text2: 'Please use the Open option',
+                              });
+                            }
                           } catch (error) {
-                            console.error('Download error:', error);
+                            console.error('Share error:', error);
                             Toast.show({
                               type: 'error',
-                              text1: 'Download failed',
-                              text2: 'Could not save image',
+                              text1: 'Share failed',
+                              text2: 'Could not share image',
                             });
                           }
                         },

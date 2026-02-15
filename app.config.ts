@@ -51,7 +51,11 @@ const config: ExpoConfig = {
       }
   },
   android: {
+<<<<<<< HEAD
     versionCode: 6,
+=======
+    versionCode: 5,
+>>>>>>> 0f113b1e7623aa03510c36f7ded053483e45793b
     adaptiveIcon: {
       backgroundColor: "#1e293b",
       foregroundImage: "./assets/images/android-icon-foreground.png",
@@ -87,6 +91,13 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
+    [
+      "expo-image-picker",
+      {
+        photosPermission: false,
+        cameraPermission: "Allow $(PRODUCT_NAME) to access your camera.",
+      },
+    ],
     [
       "expo-audio",
       {

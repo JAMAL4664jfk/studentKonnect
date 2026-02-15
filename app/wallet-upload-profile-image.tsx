@@ -30,11 +30,7 @@ export default function WalletUploadProfileImageScreen() {
           quality: 0.8,
         });
       } else {
-        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (!permission.granted) {
-          Alert.alert('Permission Required', 'Gallery permission is required to choose photos.');
-          return;
-        }
+        // Using Android Photo Picker - no permissions required on Android 13+
         result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: true,
