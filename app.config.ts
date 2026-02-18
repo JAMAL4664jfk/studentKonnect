@@ -44,7 +44,7 @@ const config: ExpoConfig = {
     }
   },
   android: {
-    versionCode: 6,
+    versionCode: 7,
     adaptiveIcon: {
       backgroundColor: "#1e293b",
       foregroundImage: "./assets/images/android-icon-foreground.png",
@@ -58,6 +58,11 @@ const config: ExpoConfig = {
       "POST_NOTIFICATIONS",
       "INTERNET",
       "ACCESS_NETWORK_STATE"
+    ],
+    blockedPermissions: [
+      "android.permission.READ_MEDIA_IMAGES",
+      "android.permission.READ_MEDIA_VIDEO",
+      "android.permission.READ_EXTERNAL_STORAGE"
     ],
     intentFilters: [
       {
