@@ -57,12 +57,9 @@ const config: ExpoConfig = {
     permissions: [
       "POST_NOTIFICATIONS",
       "INTERNET",
-      "ACCESS_NETWORK_STATE"
-    ],
-    blockedPermissions: [
-      "android.permission.READ_MEDIA_IMAGES",
-      "android.permission.READ_MEDIA_VIDEO",
-      "android.permission.READ_EXTERNAL_STORAGE"
+      "ACCESS_NETWORK_STATE",
+      "CAMERA",
+      "RECORD_AUDIO"
     ],
     intentFilters: [
       {
