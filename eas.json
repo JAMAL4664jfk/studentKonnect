@@ -5,6 +5,9 @@
       "distribution": "internal",
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EAS_SKIP_AUTO_FINGERPRINT": "1"
       }
     },
     "production": {
@@ -14,7 +17,8 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "NODE_ENV": "production"
+        "NODE_ENV": "production",
+        "EAS_SKIP_AUTO_FINGERPRINT": "1"
       }
     }
   }
