@@ -293,7 +293,9 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         }
       };
 
-      setupRealtimeSubscription();
+      setupRealtimeSubscription().catch(() => {
+        // Silently ignore realtime subscription errors — not critical
+      });
 
       return () => {
         if (channel) {

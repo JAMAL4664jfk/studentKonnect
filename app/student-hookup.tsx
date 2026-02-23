@@ -126,7 +126,9 @@ export default function StudentHookupScreen() {
 
   useEffect(() => {
     // Check if user has previously verified age
-    checkAgeVerification();
+    checkAgeVerification().catch(() => {
+      // Silently ignore — age gate remains visible on error
+    });
     // Load sample profiles
     setTimeout(() => {
       setProfiles(SAMPLE_PROFILES);

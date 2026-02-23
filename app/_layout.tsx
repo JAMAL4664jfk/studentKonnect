@@ -1,6 +1,8 @@
 import "react-native-get-random-values";
 import { Buffer } from "buffer";
 global.Buffer = Buffer;
+// Suppress all console output in production builds (must be imported early)
+import "@/lib/suppress-logs";
 import "@/global.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
@@ -26,7 +28,7 @@ import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 import { trpc, createTRPCClient } from "@/lib/trpc";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-runtime";
 import { restoreSession } from "@/lib/wallet-session-client";
-import { useRouter } from "expo-router";
+
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -115,7 +117,7 @@ export default function RootLayout() {
   }, [initialInsets, initialFrame]);
 
   const content = (
-    <ErrorBoundary>
+    <ErrorBoundary name="RootLayout">
     <GestureHandlerRootView style={{ flex: 1 }}>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
