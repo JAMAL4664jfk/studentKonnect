@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, Animated, PanResponder, Dimensions, Modal, TextInput, ImageBackground, FlatList } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Animated, PanResponder, Dimensions, Modal, TextInput, ImageBackground, FlatList, Alert } from "react-native";
 import { Image } from "expo-image";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "expo-router";
@@ -119,13 +119,59 @@ export default function StudentHookupScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // Age verification gate (required by Google Play for dating/hookup content)
+  const [ageVerified, setAgeVerified] = useState(false);
+  const [showAgeGate, setShowAgeGate] = useState(true);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+
   useEffect(() => {
+    // Check if user has previously verified age
+    checkAgeVerification();
     // Load sample profiles
     setTimeout(() => {
       setProfiles(SAMPLE_PROFILES);
       setLoading(false);
     }, 1000);
   }, []);
+
+  const checkAgeVerification = async () => {
+    try {
+      const { data: { user } } = await safeGetUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('age_verified_for_dating')
+          .eq('id', user.id)
+          .single();
+        if (profile?.age_verified_for_dating) {
+          setAgeVerified(true);
+          setShowAgeGate(false);
+        }
+      }
+    } catch (error) {
+      // Continue showing age gate if check fails
+    }
+  };
+
+  const handleAgeConfirm = async () => {
+    if (!agreedToTerms) {
+      Alert.alert('Confirmation Required', 'You must confirm that you are 18 years or older to access this section.');
+      return;
+    }
+    try {
+      const { data: { user } } = await safeGetUser();
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ age_verified_for_dating: true })
+          .eq('id', user.id);
+      }
+    } catch (error) {
+      // Proceed even if DB update fails
+    }
+    setAgeVerified(true);
+    setShowAgeGate(false);
+  };
   const [showFilters, setShowFilters] = useState(false);
   const [showTabDropdown, setShowTabDropdown] = useState(false);
   const [filters, setFilters] = useState({
@@ -745,6 +791,60 @@ export default function StudentHookupScreen() {
 
   return (
     <ScreenContainer>
+      {/* Age Verification Gate — required by Google Play for dating/hookup content */}
+      <Modal
+        visible={showAgeGate && !ageVerified}
+        transparent
+        animationType="fade"
+        onRequestClose={() => router.back()}
+      >
+        <View className="flex-1 bg-black/80 items-center justify-center px-6">
+          <View className="bg-surface rounded-3xl p-6 w-full max-w-sm border border-border">
+            <View className="items-center mb-4">
+              <View className="w-16 h-16 rounded-full bg-pink-500/20 items-center justify-center mb-3">
+                <IconSymbol name="heart.fill" size={32} color="#ec4899" />
+              </View>
+              <Text className="text-2xl font-bold text-foreground text-center">Age Verification</Text>
+              <Text className="text-sm text-muted text-center mt-2">
+                This section contains social dating content intended for adults only.
+              </Text>
+            </View>
+            <View className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4 mb-4">
+              <Text className="text-sm text-foreground font-medium text-center">
+                You must be 18 years or older to access Student Hookup.
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => setAgreedToTerms(!agreedToTerms)}
+              className="flex-row items-center gap-3 mb-5"
+            >
+              <View
+                className="w-6 h-6 rounded border-2 items-center justify-center"
+                style={{ borderColor: agreedToTerms ? '#ec4899' : colors.muted, backgroundColor: agreedToTerms ? '#ec4899' : 'transparent' }}
+              >
+                {agreedToTerms && <IconSymbol name="checkmark" size={14} color="#fff" />}
+              </View>
+              <Text className="text-sm text-foreground flex-1">
+                I confirm that I am 18 years of age or older and agree to the Terms of Service.
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleAgeConfirm}
+              className="rounded-2xl py-4 items-center mb-3"
+              style={{ backgroundColor: agreedToTerms ? '#ec4899' : colors.muted }}
+            >
+              <Text className="text-white font-bold text-base">Enter Student Hookup</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="rounded-2xl py-3 items-center"
+            >
+              <Text className="text-muted text-sm">Go Back</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <View className="flex-1">
         {/* Header - Matching Screenshot Design */}
         <View className="-mx-4 -mt-4 mb-4">
@@ -1302,6 +1402,7 @@ export default function StudentHookupScreen() {
           </View>
         </View>
       </Modal>
+      </View>
     </ScreenContainer>
   );
 }
