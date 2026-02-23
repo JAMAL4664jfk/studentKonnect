@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  undici: ^6.21.0
+
 importers:
 
   .:
@@ -1768,10 +1771,6 @@ packages:
   '@expo/xcpretty@4.3.2':
     resolution: {integrity: sha512-ReZxZ8pdnoI3tP/dNnJdnmAk7uLT4FjsKDGW7YeDdvdOMz2XCQSmSCM9IWlrXuWtMF9zeSB6WJtEhCQ41gQOfw==}
     hasBin: true
-
-  '@fastify/busboy@2.1.1':
-    resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
-    engines: {node: '>=14'}
 
   '@hapi/hoek@9.3.0':
     resolution: {integrity: sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ==}
@@ -7694,10 +7693,6 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
-  undici@5.29.0:
-    resolution: {integrity: sha512-raqeBD6NQK4SkWhQzeYKd1KmIG6dllBOTt55Rmkt4HtI9mwdWtJljnrXjAFUBLTSN67HWrOIZ3EPF4kjUw80Bg==}
-    engines: {node: '>=14.0'}
-
   undici@6.22.0:
     resolution: {integrity: sha512-hU/10obOIu62MGYjdskASR3CUAiYaFTtC9Pa6vHyf//mAipSvSQg6od2CnJswq7fvzNS3zJhxoRkgNVaHurWKw==}
     engines: {node: '>=18.17'}
@@ -9717,8 +9712,6 @@ snapshots:
       find-up: 5.0.0
       js-yaml: 4.1.1
 
-  '@fastify/busboy@2.1.1': {}
-
   '@hapi/hoek@9.3.0': {}
 
   '@hapi/topo@5.1.0':
@@ -10066,7 +10059,7 @@ snapshots:
       picocolors: 1.1.1
       semver: 6.3.1
       table: 6.9.0
-      undici: 5.29.0
+      undici: 6.22.0
     transitivePeerDependencies:
       - supports-color
 
@@ -13804,7 +13797,7 @@ snapshots:
       stacktrace-parser: 0.1.11
       tinyglobby: 0.2.15
       tsort: 0.0.1
-      undici: 5.29.0
+      undici: 6.22.0
       uuid: 8.3.2
       ws: 7.5.10
     optionalDependencies:
@@ -16587,10 +16580,6 @@ snapshots:
   undici-types@6.19.8: {}
 
   undici-types@6.21.0: {}
-
-  undici@5.29.0:
-    dependencies:
-      '@fastify/busboy': 2.1.1
 
   undici@6.22.0: {}
 
