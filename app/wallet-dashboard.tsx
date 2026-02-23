@@ -388,7 +388,7 @@ export default function WalletDashboardScreen() {
                 </View>
               </View>
             </View>
-          )}}
+          )}
         </View>
       </ScrollView>
     </ScreenContainer>

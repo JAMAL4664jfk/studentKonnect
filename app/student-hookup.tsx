@@ -1402,7 +1402,6 @@ export default function StudentHookupScreen() {
           </View>
         </View>
       </Modal>
-      </View>
     </ScreenContainer>
   );
 }
