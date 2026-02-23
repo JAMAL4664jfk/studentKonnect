@@ -19,7 +19,7 @@ const env = {
 const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
-  version: "1.5",
+  version: "1.8",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: env.scheme,
@@ -44,7 +44,7 @@ const config: ExpoConfig = {
     }
   },
   android: {
-    versionCode: 7,
+    versionCode: 9,
     adaptiveIcon: {
       backgroundColor: "#1e293b",
       foregroundImage: "./assets/images/android-icon-foreground.png",
@@ -59,7 +59,20 @@ const config: ExpoConfig = {
       "INTERNET",
       "ACCESS_NETWORK_STATE",
       "CAMERA",
-      "RECORD_AUDIO"
+      "RECORD_AUDIO",
+      "USE_BIOMETRIC",
+      "VIBRATE",
+      "FOREGROUND_SERVICE",
+      "FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+      "MODIFY_AUDIO_SETTINGS",
+      "WAKE_LOCK",
+      "RECEIVE_BOOT_COMPLETED"
+    ],
+    blockedPermissions: [
+      "android.permission.SYSTEM_ALERT_WINDOW",
+      "android.permission.WRITE_EXTERNAL_STORAGE",
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "android.permission.USE_FINGERPRINT"
     ],
     intentFilters: [
       {
@@ -86,7 +99,7 @@ const config: ExpoConfig = {
       "expo-image-picker",
       {
         photosPermission: false,
-        cameraPermission: "Allow $(PRODUCT_NAME ) to access your camera.",
+        cameraPermission: "Allow $(PRODUCT_NAME) to access your camera.",
       },
     ],
     [
@@ -120,6 +133,7 @@ const config: ExpoConfig = {
         android: {
           buildArchs: ["armeabi-v7a", "arm64-v8a"],
           minSdkVersion: 24,
+          targetSdkVersion: 35,
         },
       },
     ],

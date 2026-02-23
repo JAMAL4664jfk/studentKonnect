@@ -1,20 +1,38 @@
 # Build Instructions for Google Play Resubmission
 
 ## Overview
-This document provides instructions for building a new APK/AAB after fixing the Google Play permission rejection issue.
+This document provides instructions for building a new AAB after fixing Google Play permission issues.
 
-## What Was Fixed
+## What Was Fixed (v1.8 — versionCode 9)
+
+### Permissions Blocked (via `blockedPermissions` in `app.config.ts`)
+- `android.permission.SYSTEM_ALERT_WINDOW` — Restricted permission injected by `expo-dev-client`; not required for production.
+- `android.permission.WRITE_EXTERNAL_STORAGE` — Deprecated on Android 10+; not needed.
+- `android.permission.READ_EXTERNAL_STORAGE` — Deprecated; app uses Android Photo Picker instead.
+- `android.permission.USE_FINGERPRINT` — Deprecated; replaced by `USE_BIOMETRIC`.
+
+### Dependency Change
+- Moved `expo-dev-client` from `dependencies` to `devDependencies` in `package.json`.
+  This prevents `expo-dev-client` from injecting `SYSTEM_ALERT_WINDOW` into production builds.
+
+### Version Bump
+- Version: `1.5` → `1.8`
+- versionCode: `7` → `9`
+
+### Previous Fixes (still in place)
 - Removed `READ_MEDIA_IMAGES` and `READ_MEDIA_VIDEO` permissions.
-- Removed `READ_EXTERNAL_STORAGE` permission.
-- Configured `expo-image-picker` to use Android Photo Picker (no permissions required).
-- Updated all image selection code to work without media library permissions.
-- **Latest Fix**: Removed `blockedPermissions` from `app.config.ts` which was causing manifest merger issues, and explicitly added `CAMERA` and `RECORD_AUDIO` to the permissions list to ensure they are correctly included.
-- Version bumped to 1.5 (versionCode 7).
+- Configured `expo-image-picker` with `photosPermission: false` (uses Android Photo Picker).
+- `targetSdkVersion` explicitly set to `35`.
+
+---
 
 ## Prerequisites
+
 1. EAS CLI installed: `npm install -g eas-cli`
 2. Logged into your Expo account: `eas login`
 3. Project configured with EAS Build
+
+---
 
 ## Build Commands
 
@@ -25,7 +43,7 @@ This document provides instructions for building a new APK/AAB after fixing the 
 eas build --platform android --profile production
 ```
 
-#### For Preview/Testing APK:
+#### For Preview/Testing AAB:
 ```bash
 eas build --platform android --profile preview
 ```
@@ -42,72 +60,95 @@ npx expo prebuild --platform android --clean
 cd android
 ./gradlew bundleRelease
 ```
+
 The AAB will be at: `android/app/build/outputs/bundle/release/app-release.aab`
+
+---
 
 ## Verify the Build
 
 ### 1. Check AndroidManifest.xml
-After building, verify that the `AndroidManifest.xml` does NOT contain:
+
+After `expo prebuild`, verify that `android/app/src/main/AndroidManifest.xml` does **NOT** contain:
+- `android.permission.SYSTEM_ALERT_WINDOW`
+- `android.permission.WRITE_EXTERNAL_STORAGE`
+- `android.permission.READ_EXTERNAL_STORAGE`
+- `android.permission.USE_FINGERPRINT`
 - `android.permission.READ_MEDIA_IMAGES`
 - `android.permission.READ_MEDIA_VIDEO`
-- `android.permission.READ_EXTERNAL_STORAGE`
 
-And DOES contain:
+And **DOES** contain:
 - `android.permission.CAMERA`
 - `android.permission.RECORD_AUDIO`
+- `android.permission.USE_BIOMETRIC`
+- `android.permission.POST_NOTIFICATIONS`
 
 ### 2. Test on Device
+
 1. Install the APK on a test device.
-2. Test image selection features:
-   - Profile image upload
-   - Chat image/video sending
-   - Wallet ID upload
-   - Wallet selfie upload
-3. Verify that:
-   - No permission dialogs appear for gallery access on Android 13+.
-   - Image selection works using the system photo picker.
-   - Camera still works (with permission prompt).
+2. Test image selection features (profile image, wallet ID upload, selfie upload).
+3. Test camera functionality.
+4. Test audio recording.
+5. Test biometric authentication (fingerprint/face).
+6. Verify no unexpected permission dialogs appear.
+
+---
 
 ## Upload to Google Play
 
-### Steps:
 1. Go to [Google Play Console](https://play.google.com/console).
 2. Select your app.
 3. Navigate to "Production" or "Testing" track.
 4. Click "Create new release".
-5. Upload the new AAB file (**version 1.5, versionCode 7**).
-6. Add release notes mentioning the permission fix:
+5. Upload the new AAB file (**version 1.8, versionCode 9**).
+6. Add release notes:
    ```
-   - Fixed Google Play policy compliance for photo/video permissions
-   - Now uses Android Photo Picker for one-time media access
-   - Improved privacy and security
-   - Fixed permission configuration for camera and audio
+   v1.8 - Permission compliance fixes:
+   - Removed SYSTEM_ALERT_WINDOW (development-only permission)
+   - Removed deprecated WRITE_EXTERNAL_STORAGE and READ_EXTERNAL_STORAGE
+   - Removed deprecated USE_FINGERPRINT (USE_BIOMETRIC is used instead)
+   - Improved Google Play policy compliance
    ```
-7. Review and roll out the release.
 
-## Important Notes
+---
 
-### Version Information:
-- **App Version**: 1.5
-- **Version Code**: 7
-- **Package Name**: com.scholarfinhub.official
+## Permissions Reference
 
-### Permissions Still Used:
-- `CAMERA` (for taking photos)
-- `RECORD_AUDIO` (for video recording/audio features)
-- `POST_NOTIFICATIONS` (for push notifications)
-- `INTERNET` (for network access)
-- `ACCESS_NETWORK_STATE` (for checking connectivity)
+| Permission | Status | Reason |
+|---|---|---|
+| INTERNET | Included | Required for all network calls |
+| ACCESS_NETWORK_STATE | Included | Required for connectivity checks |
+| CAMERA | Included | Profile photos, wallet KYC |
+| RECORD_AUDIO | Included | Voice calls, podcasts |
+| POST_NOTIFICATIONS | Included | Push notifications |
+| USE_BIOMETRIC | Included | Biometric login |
+| VIBRATE | Included | Haptic feedback |
+| FOREGROUND_SERVICE | Included | Audio/video playback |
+| FOREGROUND_SERVICE_MEDIA_PLAYBACK | Included | Background media |
+| MODIFY_AUDIO_SETTINGS | Included | Audio routing |
+| WAKE_LOCK | Included | Keep screen on during calls |
+| RECEIVE_BOOT_COMPLETED | Included | Scheduled notifications |
+| SYSTEM_ALERT_WINDOW | BLOCKED | Dev-only; not allowed in production |
+| WRITE_EXTERNAL_STORAGE | BLOCKED | Deprecated on Android 10+ |
+| READ_EXTERNAL_STORAGE | BLOCKED | Deprecated; use Photo Picker |
+| USE_FINGERPRINT | BLOCKED | Deprecated; USE_BIOMETRIC used instead |
+
+---
 
 ## Troubleshooting
 
-### If permissions still appear in manifest:
+### If blocked permissions still appear in manifest:
 1. Clean the build: `npx expo prebuild --clean`
-2. Remove `android/` and `ios/` folders.
+2. Remove `android/` folder completely.
 3. Run prebuild again: `npx expo prebuild --platform android`
 4. Rebuild the app.
 
 ### If EAS build fails:
 1. Check your `eas.json` configuration.
-2. Ensure all dependencies are properly installed.
+2. Ensure all dependencies are properly installed: `pnpm install`
 3. Run `eas build:configure` to reconfigure if needed.
+
+### Version Information:
+- **App Version**: 1.8
+- **Version Code**: 9
+- **Package Name**: com.scholarfinhub.official
