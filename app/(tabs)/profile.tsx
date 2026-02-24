@@ -175,6 +175,13 @@ export default function ProfileScreen() {
       action: () => router.push("/lifestyle-rewards"),
     },
     {
+      id: "referral",
+      title: "Refer a Friend",
+      icon: "gift.fill",
+      color: "#8b5cf6",
+      action: () => router.push("/referral"),
+    },
+    {
       id: "blocked",
       title: "Blocked Users",
       icon: "person.crop.circle.badge.xmark",

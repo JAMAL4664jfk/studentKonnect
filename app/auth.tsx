@@ -48,6 +48,7 @@ export default function AuthScreen() {
   const [courseProgram, setCourseProgram] = useState("");
   const [yearOfStudy, setYearOfStudy] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [referralCodeInput, setReferralCodeInput] = useState("");
 
   // Quick signup state
   const [quickLookupResults, setQuickLookupResults] = useState<any[]>([]);
@@ -217,6 +218,25 @@ export default function AuthScreen() {
         // Log error but don't fail signup
         if (profileError) {
           console.warn("Profile creation warning:", profileError.message);
+        }
+
+        // Track referral signup if a referral code was provided
+        if (referralCodeInput.trim()) {
+          try {
+            const { data: refCodeData } = await supabase
+              .from("referral_codes")
+              .select("id")
+              .eq("code", referralCodeInput.trim().toUpperCase())
+              .maybeSingle();
+            if (refCodeData) {
+              await supabase.from("referral_signups").insert({
+                referral_code_id: refCodeData.id,
+                referred_user_id: data.user.id,
+              });
+            }
+          } catch (refError) {
+            console.warn("Referral tracking warning:", refError);
+          }
         }
       }
 
@@ -869,6 +889,22 @@ export default function AuthScreen() {
                         </TouchableOpacity>
                       </View>
                       {errors.confirmPassword && <Text className="text-red-500 text-xs mt-1">{errors.confirmPassword}</Text>}
+                    </View>
+
+                    <View>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Referral Code (Optional)</Text>
+                      <View className="flex-row items-center bg-white rounded-xl px-4 py-3 border border-gray-200">
+                        <IconSymbol name="gift.fill" size={20} color="#8b5cf6" />
+                        <TextInput
+                          value={referralCodeInput}
+                          onChangeText={(text) => setReferralCodeInput(text.toUpperCase())}
+                          placeholder="Enter referral code e.g. SK-ABC123"
+                          placeholderTextColor="#9ca3af"
+                          autoCapitalize="characters"
+                          className="flex-1 ml-3 text-gray-900"
+                        />
+                      </View>
+                      <Text className="text-xs text-gray-500 mt-1">Have a friend's referral code? Enter it here!</Text>
                     </View>
 
                     <TouchableOpacity
