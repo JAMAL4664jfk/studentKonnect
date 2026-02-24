@@ -77,6 +77,15 @@ const SERVICES: ServiceItem[] = [
     badgeColor: "#ec4899",
   },
   {
+    id: "sports-hub",
+    name: "Sports Hub",
+    icon: "sportscourt.fill",
+    description: "Fixtures, leagues, fitness challenges & esports",
+    backgroundImage: require("@/assets/images/gamification-engine.jpg"),
+    badgeText: "Live Scores",
+    badgeColor: "#22c55e",
+  },
+  {
     id: "hookup",
     name: "Student Hook-Up",
     icon: "heart.circle.fill",
@@ -181,6 +190,7 @@ export default function ServicesScreen() {
       loans: "/student-loans",
       tutor: "/tutoring",
       wellness: "/wellness",
+      "sports-hub": "/sports-hub",
       hookup: "/student-hookup",
       career: "/career",
       "study-material": "/study-material",
