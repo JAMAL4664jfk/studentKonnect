@@ -587,7 +587,7 @@ export default function PodcastEpisodeScreen() {
 
         {/* Thumbnail */}
         <View className="px-4 mb-4">
-          {episode.thumbnail_url ? (
+          {episode.thumbnail_url && !episode.thumbnail_url.toLowerCase().endsWith('.mp4') && !episode.thumbnail_url.toLowerCase().endsWith('.mov') ? (
             <Image
               source={{ uri: episode.thumbnail_url }}
               className="w-full h-64 rounded-2xl"
