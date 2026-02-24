@@ -88,7 +88,7 @@ export default function ChatScreen() {
         .from("profiles")
         .select("id")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       setCurrentUser(profile);
     }
   };
@@ -99,7 +99,7 @@ export default function ChatScreen() {
         .from("profiles")
         .select("id, full_name, avatar_url")
         .eq("id", otherUserId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -108,7 +108,7 @@ export default function ChatScreen() {
         .from("user_online_status")
         .select("is_online")
         .eq("user_id", otherUserId)
-        .single();
+        .maybeSingle();
 
       setOtherUser({
         ...data,
@@ -169,7 +169,7 @@ export default function ChatScreen() {
           content: newMessage.trim(),
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

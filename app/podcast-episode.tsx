@@ -98,7 +98,7 @@ export default function PodcastEpisodeScreen() {
         .from("podcasts")
         .select("*")
         .eq("id", episodeId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setEpisode(data);

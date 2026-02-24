@@ -77,7 +77,7 @@ export default function ChatDetailScreen() {
           .from('profiles')
           .select('avatar_url')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
         
         if (profile) {
           setCurrentUserPhoto(profile.avatar_url);

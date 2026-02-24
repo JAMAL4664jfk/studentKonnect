@@ -283,7 +283,7 @@ export default function ChatScreen() {
               .select("role")
               .eq("group_id", group.id)
               .eq("user_id", userId)
-              .single();
+              .maybeSingle();
 
             return {
               ...group,
@@ -594,7 +594,7 @@ export default function ChatScreen() {
           is_public: isPublicGroup,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -731,7 +731,7 @@ export default function ChatScreen() {
         .or(
           `and(participant1_id.eq.${currentUserId},participant2_id.eq.${userId}),and(participant1_id.eq.${userId},participant2_id.eq.${currentUserId})`
         )
-        .single();
+        .maybeSingle();
 
       let conversationId = existing?.id;
 
@@ -743,7 +743,7 @@ export default function ChatScreen() {
             participant2_id: userId,
           })
           .select()
-          .single();
+          .maybeSingle();
 
         conversationId = newConv?.id;
       }

@@ -51,7 +51,7 @@ export default function DatingProfileEdit() {
         .from("dating_profiles")
         .select("*")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

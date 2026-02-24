@@ -138,7 +138,7 @@ export default function CreateMarketplaceScreen() {
           views: 0,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

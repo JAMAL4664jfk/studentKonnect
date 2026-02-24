@@ -144,7 +144,7 @@ export default function StudentHookupScreen() {
           .from('profiles')
           .select('age_verified_for_dating')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
         if (profile?.age_verified_for_dating) {
           setAgeVerified(true);
           setShowAgeGate(false);
@@ -451,7 +451,7 @@ export default function StudentHookupScreen() {
           .eq("user_id", currentProfile.userId)
           .eq("target_user_id", user.id)
           .eq("action", "like")
-          .single();
+          .maybeSingle();
         
         if (mutualLike) {
           // It's a match!

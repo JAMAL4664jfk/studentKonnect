@@ -72,7 +72,7 @@ export default function DatingSwipeScreen() {
         .from("dating_profiles")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (profile) {
         setUserProfile(profile);
@@ -83,7 +83,7 @@ export default function DatingSwipeScreen() {
           .from("profiles")
           .select("*")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
         if (userProfileData) {
           setFormData({
@@ -199,7 +199,7 @@ export default function DatingSwipeScreen() {
           looking_for: formData.looking_for,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -244,7 +244,7 @@ export default function DatingSwipeScreen() {
           .eq("swiper_id", swipedProfile.user_id)
           .eq("swiped_id", user.id)
           .eq("is_like", true)
-          .single();
+          .maybeSingle();
 
         if (reverseSwipe) {
           // It's a match!

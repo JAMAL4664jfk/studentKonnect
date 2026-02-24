@@ -63,7 +63,7 @@ export default function DatingMatchesScreen() {
               .from("dating_profiles")
               .select("*")
               .eq("user_id", partnerId)
-              .single();
+              .maybeSingle();
 
             return {
               ...match,

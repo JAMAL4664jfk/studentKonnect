@@ -88,7 +88,7 @@ export default function VoiceCallScreen() {
         .from("profiles")
         .select("id, full_name, avatar_url")
         .eq("id", otherUserId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setOtherUser(data);

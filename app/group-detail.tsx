@@ -53,7 +53,7 @@ export default function GroupDetailScreen() {
         .from('chat_groups')
         .select('*')
         .eq('id', groupId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setGroup(data);

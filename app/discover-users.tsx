@@ -53,7 +53,7 @@ export default function DiscoverUsersScreen() {
         .from("profiles")
         .select("id")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       setCurrentUser(profile);
     }
   };

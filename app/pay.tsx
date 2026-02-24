@@ -58,7 +58,7 @@ export default function PayScreen() {
         .from("wallets")
         .select("balance")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (data) {
         setBalance(data.balance);

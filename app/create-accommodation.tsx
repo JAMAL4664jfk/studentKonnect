@@ -171,7 +171,7 @@ export default function CreateAccommodationScreen() {
           isAvailable: true,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

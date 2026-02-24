@@ -23,27 +23,43 @@ console.log('Has Anon Key:', !!SUPABASE_PUBLISHABLE_KEY, '(length:', SUPABASE_PU
 console.log('Platform:', Platform.OS);
 
 /**
- * Custom storage adapter using expo-secure-store for secure session persistence
- * Falls back to memory storage on web platform
+ * Chunked SecureStore adapter.
+ * Expo SecureStore has a 2048-byte limit per key. Supabase session tokens
+ * often exceed this. We split large values into 1800-byte chunks and store
+ * them under keys like `key__chunk_0`, `key__chunk_1`, etc.
+ * A metadata key `key__chunks` records the total chunk count.
  */
+const CHUNK_SIZE = 1800;
+
 const ExpoSecureStoreAdapter = {
-  getItem: async (key: string) => {
+  getItem: async (key: string): Promise<string | null> => {
     try {
       if (Platform.OS === "web") {
-        // On web, use localStorage if available
         if (typeof window !== "undefined" && window.localStorage) {
           return window.localStorage.getItem(key);
         }
         return null;
       }
-      const result = await SecureStore.getItemAsync(key);
-      return result;
+      // Check if value was stored in chunks
+      const chunkCountStr = await SecureStore.getItemAsync(`${key}__chunks`);
+      if (chunkCountStr) {
+        const chunkCount = parseInt(chunkCountStr, 10);
+        const chunks: string[] = [];
+        for (let i = 0; i < chunkCount; i++) {
+          const chunk = await SecureStore.getItemAsync(`${key}__chunk_${i}`);
+          if (chunk === null) return null;
+          chunks.push(chunk);
+        }
+        return chunks.join("");
+      }
+      // Fallback: single key (legacy or small values)
+      return await SecureStore.getItemAsync(key);
     } catch (error) {
       console.error("SecureStore getItem error:", error);
       return null;
     }
   },
-  setItem: async (key: string, value: string) => {
+  setItem: async (key: string, value: string): Promise<void> => {
     try {
       if (Platform.OS === "web") {
         if (typeof window !== "undefined" && window.localStorage) {
@@ -51,13 +67,29 @@ const ExpoSecureStoreAdapter = {
         }
         return;
       }
-      await SecureStore.setItemAsync(key, value);
+      if (value.length > CHUNK_SIZE) {
+        // Split into chunks
+        const chunks: string[] = [];
+        for (let i = 0; i < value.length; i += CHUNK_SIZE) {
+          chunks.push(value.slice(i, i + CHUNK_SIZE));
+        }
+        for (let i = 0; i < chunks.length; i++) {
+          await SecureStore.setItemAsync(`${key}__chunk_${i}`, chunks[i]);
+        }
+        await SecureStore.setItemAsync(`${key}__chunks`, String(chunks.length));
+        // Remove any old single-key entry
+        await SecureStore.deleteItemAsync(key).catch(() => {});
+      } else {
+        await SecureStore.setItemAsync(key, value);
+        // Clean up any old chunks
+        await SecureStore.deleteItemAsync(`${key}__chunks`).catch(() => {});
+      }
     } catch (error) {
       console.error("SecureStore setItem error:", error);
-      throw error;
+      // Don't throw — a failed session write should not crash the app
     }
   },
-  removeItem: async (key: string) => {
+  removeItem: async (key: string): Promise<void> => {
     try {
       if (Platform.OS === "web") {
         if (typeof window !== "undefined" && window.localStorage) {
@@ -65,7 +97,16 @@ const ExpoSecureStoreAdapter = {
         }
         return;
       }
-      await SecureStore.deleteItemAsync(key);
+      // Remove chunks if they exist
+      const chunkCountStr = await SecureStore.getItemAsync(`${key}__chunks`);
+      if (chunkCountStr) {
+        const chunkCount = parseInt(chunkCountStr, 10);
+        for (let i = 0; i < chunkCount; i++) {
+          await SecureStore.deleteItemAsync(`${key}__chunk_${i}`).catch(() => {});
+        }
+        await SecureStore.deleteItemAsync(`${key}__chunks`).catch(() => {});
+      }
+      await SecureStore.deleteItemAsync(key).catch(() => {});
     } catch (error) {
       console.error("SecureStore removeItem error:", error);
     }

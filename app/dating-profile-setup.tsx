@@ -153,7 +153,7 @@ export default function DatingProfileSetup() {
           is_active: true,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (profileError) throw profileError;
 

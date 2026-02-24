@@ -30,7 +30,7 @@ export default function DatingScreen() {
           .from('profiles')
           .select('age_verified_for_dating')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
         
         if (profile?.age_verified_for_dating) {
           setAgeVerified(true);
@@ -41,7 +41,7 @@ export default function DatingScreen() {
           .from('dating_profiles')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
         setUserProfile(datingProfile);
       }
     } catch (error) {

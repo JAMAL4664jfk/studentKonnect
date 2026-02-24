@@ -42,7 +42,7 @@ export default function ProfileScreen() {
           .from('profiles')
           .select('full_name, avatar_url')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
         if (profile) {
           setUserName(profile.full_name || "Student Account");

@@ -44,10 +44,13 @@ export const InstitutionProvider: React.FC<{ children: ReactNode }> = ({ childre
         .from("profiles")
         .select("institution_id")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        console.error("Error fetching profile:", error);
+        // Only log non-"column not found" errors to avoid noise during migration
+        if (!error.message?.includes('institution_id') && !error.message?.includes('column')) {
+          console.error("Error fetching profile:", error);
+        }
         setUserInstitution(null);
         return;
       }
