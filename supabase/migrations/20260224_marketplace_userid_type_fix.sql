@@ -4,18 +4,30 @@
 -- Supabase auth.uid() returns UUID. This migration fixes it.
 -- ============================================================
 
--- Step 1: Drop all dependent constraints and indexes
+-- Step 1: Drop ALL policies on marketplaceItems dynamically (regardless of name)
+-- PostgreSQL cannot alter a column type if ANY policy references it
+DO $$
+DECLARE
+  pol RECORD;
+BEGIN
+  FOR pol IN
+    SELECT policyname
+    FROM pg_policies
+    WHERE tablename = 'marketplaceItems'
+      AND schemaname = 'public'
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON "marketplaceItems"', pol.policyname);
+  END LOOP;
+END $$;
+
+-- Step 2: Disable RLS temporarily
+ALTER TABLE "marketplaceItems" DISABLE ROW LEVEL SECURITY;
+
+-- Drop all dependent constraints and indexes
 ALTER TABLE "marketplaceItems" DROP CONSTRAINT IF EXISTS "marketplaceItems_userId_fkey";
 ALTER TABLE "marketplaceItems" DROP CONSTRAINT IF EXISTS "marketplaceItems_user_id_fkey";
 DROP INDEX IF EXISTS "idx_marketplaceItems_userId";
 DROP INDEX IF EXISTS "idx_marketplaceItems_user_id";
-
--- Step 2: Drop all RLS policies that reference the column
-ALTER TABLE "marketplaceItems" DISABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Users can view all marketplace items" ON "marketplaceItems";
-DROP POLICY IF EXISTS "Users can insert their own marketplace items" ON "marketplaceItems";
-DROP POLICY IF EXISTS "Users can update their own marketplace items" ON "marketplaceItems";
-DROP POLICY IF EXISTS "Users can delete their own marketplace items" ON "marketplaceItems";
 
 -- Step 3: Clear old integer data (if any) and change column type to UUID
 -- We truncate old test data since integer userIds are not valid UUIDs
@@ -35,18 +47,18 @@ CREATE INDEX "idx_marketplaceItems_userId" ON "marketplaceItems"("userId");
 -- Step 7: Re-enable RLS with correct policies
 ALTER TABLE "marketplaceItems" ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view all marketplace items"
+CREATE POLICY "marketplaceItems_select_policy"
 ON "marketplaceItems" FOR SELECT TO authenticated USING (true);
 
-CREATE POLICY "Users can insert their own marketplace items"
+CREATE POLICY "marketplaceItems_insert_policy"
 ON "marketplaceItems" FOR INSERT TO authenticated
 WITH CHECK (auth.uid() = "userId");
 
-CREATE POLICY "Users can update their own marketplace items"
+CREATE POLICY "marketplaceItems_update_policy"
 ON "marketplaceItems" FOR UPDATE TO authenticated
 USING (auth.uid() = "userId") WITH CHECK (auth.uid() = "userId");
 
-CREATE POLICY "Users can delete their own marketplace items"
+CREATE POLICY "marketplaceItems_delete_policy"
 ON "marketplaceItems" FOR DELETE TO authenticated
 USING (auth.uid() = "userId");
 
