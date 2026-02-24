@@ -699,7 +699,7 @@ export default function PodcastsScreen() {
         .select("rating")
         .eq("podcast_id", podcastId)
         .eq("user_id", currentUser.id)
-        .single();
+        .maybeSingle();
 
       setUserRating(data?.rating || 0);
     } catch (error) {

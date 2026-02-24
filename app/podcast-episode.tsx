@@ -110,7 +110,7 @@ export default function PodcastEpisodeScreen() {
           .select("id")
           .eq("podcast_id", episodeId)
           .eq("user_id", currentUser.id)
-          .single();
+          .maybeSingle();
         setIsLiked(!!likeData);
 
         const { data: favData } = await supabase
@@ -118,7 +118,7 @@ export default function PodcastEpisodeScreen() {
           .select("id")
           .eq("podcast_id", episodeId)
           .eq("user_id", currentUser.id)
-          .single();
+          .maybeSingle();
         setIsFavorited(!!favData);
       }
     } catch (error: any) {
@@ -136,44 +136,68 @@ export default function PodcastEpisodeScreen() {
 
   const fetchComments = async () => {
     try {
-      if (!episodeId) {
-        console.log("No episode ID provided");
-        return;
-      }
-      
-      const { data, error } = await supabase
+      if (!episodeId) return;
+
+      // Step 1: fetch top-level comments (no PostgREST join to avoid schema cache issues)
+      const { data: rawComments, error } = await supabase
         .from("podcast_comments")
-        .select(`
-          *,
-          user:profiles!podcast_comments_user_id_fkey(full_name, avatar_url)
-        `)
+        .select("id, podcast_id, user_id, content, parent_id, likes_count, created_at")
         .eq("podcast_id", episodeId)
         .is("parent_id", null)
         .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error fetching comments:", error);
-        Toast.show({
-          type: "error",
-          text1: "Error loading comments",
-          text2: error.message || "Please try again",
-        });
+        setComments([]);
         return;
       }
 
-      // Fetch replies for each comment
+      const topComments = rawComments || [];
+
+      // Step 2: batch-fetch profiles for all comment authors
+      const allUserIds = [...new Set(topComments.map((c: any) => c.user_id))];
+      let profileMap: Record<string, { full_name: string | null; avatar_url: string | null }> = {};
+      if (allUserIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url")
+          .in("id", allUserIds);
+        (profiles || []).forEach((p: any) => {
+          profileMap[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url };
+        });
+      }
+
+      // Step 3: fetch replies and liked status for each comment
       const commentsWithReplies = await Promise.all(
-        (data || []).map(async (comment) => {
-          const { data: replies } = await supabase
+        topComments.map(async (comment: any) => {
+          const { data: rawReplies } = await supabase
             .from("podcast_comments")
-            .select(`
-              *,
-              user:profiles!podcast_comments_user_id_fkey(full_name, avatar_url)
-            `)
+            .select("id, podcast_id, user_id, content, parent_id, likes_count, created_at")
             .eq("parent_id", comment.id)
             .order("created_at", { ascending: true });
 
-          // Check if user liked each comment
+          // Enrich replies with profiles
+          const replyUserIds = [...new Set((rawReplies || []).map((r: any) => r.user_id))];
+          let replyProfileMap = { ...profileMap };
+          const missingIds = replyUserIds.filter(id => !replyProfileMap[id]);
+          if (missingIds.length > 0) {
+            const { data: replyProfiles } = await supabase
+              .from("profiles")
+              .select("id, full_name, avatar_url")
+              .in("id", missingIds);
+            (replyProfiles || []).forEach((p: any) => {
+              replyProfileMap[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url };
+            });
+          }
+
+          const replies = (rawReplies || []).map((r: any) => ({
+            ...r,
+            user: replyProfileMap[r.user_id] || { full_name: "Student", avatar_url: null },
+            user_liked: false,
+            replies: [],
+          }));
+
+          // Check if current user liked this comment
           let userLiked = false;
           if (currentUser) {
             const { data: likeData } = await supabase
@@ -181,14 +205,15 @@ export default function PodcastEpisodeScreen() {
               .select("id")
               .eq("comment_id", comment.id)
               .eq("user_id", currentUser.id)
-              .single();
+              .maybeSingle();
             userLiked = !!likeData;
           }
 
           return {
             ...comment,
+            user: profileMap[comment.user_id] || { full_name: "Student", avatar_url: null },
             user_liked: userLiked,
-            replies: replies || [],
+            replies,
           };
         })
       );
@@ -196,11 +221,7 @@ export default function PodcastEpisodeScreen() {
       setComments(commentsWithReplies);
     } catch (error: any) {
       console.error("Error fetching comments:", error);
-      Toast.show({
-        type: "error",
-        text1: "Error loading comments",
-        text2: error.message || "Please try again",
-      });
+      setComments([]);
     }
   };
 
