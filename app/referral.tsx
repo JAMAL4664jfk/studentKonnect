@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   Share,
   Linking,
   ActivityIndicator,
-  Clipboard,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -19,131 +19,184 @@ import { LinearGradient } from "expo-linear-gradient";
 
 const APP_URL = "https://www.student-konnect.com";
 
+// Safe clipboard helper — uses the deprecated but still-functional RN Clipboard API
+// with a Share fallback for devices where it doesn't work
+async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    // Try the built-in RN Clipboard (works on Expo managed workflow)
+    const { Clipboard } = require("react-native");
+    if (Clipboard && typeof Clipboard.setString === "function") {
+      Clipboard.setString(text);
+      return true;
+    }
+  } catch (_) {}
+  // Fallback: open share sheet so user can copy from there
+  try {
+    await Share.share({ message: text });
+    return true;
+  } catch (_) {}
+  return false;
+}
+
 export default function ReferralScreen() {
   const router = useRouter();
   const colors = useColors();
 
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralCodeId, setReferralCodeId] = useState<string | null>(null);
   const [signupCount, setSignupCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
-  const [copied, setCopied] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    initReferral();
-  }, []);
-
-  const initReferral = async () => {
+  const initReferral = useCallback(async () => {
     try {
       setInitialLoading(true);
-      const { data: { user } } = await safeGetUser();
-      setUser(user);
+      setError(null);
 
-      if (user) {
-        // Fetch existing referral code
-        const { data } = await supabase
-          .from("referral_codes")
-          .select("id, code")
-          .eq("user_id", user.id)
-          .maybeSingle();
+      const { data: { user: authUser }, error: authError } = await safeGetUser();
+      if (authError || !authUser) {
+        setError("Please log in to access referrals.");
+        return;
+      }
+      setUser(authUser);
 
-        if (data) {
-          setReferralCode(data.code);
-          // Fetch signup count
-          const { count } = await supabase
-            .from("referral_signups")
-            .select("*", { count: "exact", head: true })
-            .eq("referral_code_id", data.id);
+      // Fetch existing referral code for this user
+      const { data: codeData, error: codeError } = await supabase
+        .from("referral_codes")
+        .select("id, code")
+        .eq("user_id", authUser.id)
+        .maybeSingle();
+
+      if (codeError) {
+        console.error("Error fetching referral code:", JSON.stringify(codeError));
+        // Table may not exist yet — show a friendly message
+        if (codeError.code === "42P01") {
+          setError("Referral system is being set up. Please run the database migration.");
+        } else {
+          setError(codeError.message);
+        }
+        return;
+      }
+
+      if (codeData) {
+        setReferralCode(codeData.code);
+        setReferralCodeId(codeData.id);
+
+        // Fetch signup count
+        const { count, error: countError } = await supabase
+          .from("referral_signups")
+          .select("*", { count: "exact", head: true })
+          .eq("referral_code_id", codeData.id);
+
+        if (!countError) {
           setSignupCount(count || 0);
         }
       }
-    } catch (error) {
-      console.error("Error loading referral data:", error);
+    } catch (err: any) {
+      console.error("initReferral error:", err);
+      setError(err.message || "Failed to load referral data");
     } finally {
       setInitialLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    initReferral();
+  }, [initReferral]);
 
   const generateCode = async () => {
     if (!user) {
-      Toast.show({
-        type: "error",
-        text1: "Please log in",
-        text2: "You need to be logged in to generate a referral code.",
-      });
+      Toast.show({ type: "error", text1: "Please log in first" });
       return;
     }
     setLoading(true);
     try {
-      const code =
-        "SK-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-      const { error } = await supabase.from("referral_codes").insert({
-        user_id: user.id,
-        code,
-      });
-      if (error) throw error;
-      setReferralCode(code);
-      Toast.show({
-        type: "success",
-        text1: "Referral Code Generated! 🎉",
-        text2: `Your code is ${code}. Share it with friends!`,
-      });
-    } catch (error: any) {
+      // Generate a unique code — retry up to 3 times on collision
+      let code = "";
+      let inserted = false;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        code = "SK-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+        const { data, error } = await supabase
+          .from("referral_codes")
+          .insert({ user_id: user.id, code })
+          .select("id, code")
+          .maybeSingle();
+
+        if (!error && data) {
+          setReferralCode(data.code);
+          setReferralCodeId(data.id);
+          setSignupCount(0);
+          inserted = true;
+          break;
+        }
+
+        // If it's a unique constraint violation, try again
+        if (error && error.code !== "23505") {
+          console.error("Code generation error:", JSON.stringify(error));
+          throw error;
+        }
+      }
+
+      if (inserted) {
+        Toast.show({
+          type: "success",
+          text1: "Referral Code Generated! 🎉",
+          text2: `Your code is ${code}`,
+        });
+      } else {
+        throw new Error("Could not generate a unique code. Please try again.");
+      }
+    } catch (err: any) {
+      console.error("generateCode error:", err);
       Toast.show({
         type: "error",
-        text1: "Error",
-        text2: error.message || "Failed to generate referral code",
+        text1: "Error generating code",
+        text2: err.message || "Please try again",
       });
     } finally {
       setLoading(false);
     }
   };
 
+  const signupLink = `${APP_URL}/auth?ref=${referralCode || ""}`;
+  const shareMessage = `Hey! Join me on Student Konnect — the all-in-one student ecosystem! 🎓\n\nUse my referral code *${referralCode}* to sign up:\n${signupLink}`;
+
   const copyCode = async () => {
-    if (referralCode) {
-      Clipboard.setString(referralCode);
-      setCopied(true);
-      Toast.show({
-        type: "success",
-        text1: "Copied!",
-        text2: "Referral code copied to clipboard",
-      });
-      setTimeout(() => setCopied(false), 2000);
+    if (!referralCode) return;
+    const ok = await copyToClipboard(referralCode);
+    if (ok) {
+      setCodeCopied(true);
+      Toast.show({ type: "success", text1: "Code copied!", text2: referralCode });
+      setTimeout(() => setCodeCopied(false), 2500);
     }
   };
 
   const copyLink = async () => {
-    const signupLink = `${APP_URL}/auth?ref=${referralCode || ""}`;
-    Clipboard.setString(signupLink);
-    Toast.show({
-      type: "success",
-      text1: "Link Copied!",
-      text2: "Sign-up link copied to clipboard",
-    });
+    const ok = await copyToClipboard(signupLink);
+    if (ok) {
+      setLinkCopied(true);
+      Toast.show({ type: "success", text1: "Link copied!", text2: "Share it with friends" });
+      setTimeout(() => setLinkCopied(false), 2500);
+    }
   };
-
-  const shareMessage = `Hey! Join me on Student Konnect — the all-in-one student ecosystem! Use my referral code ${referralCode} to sign up: ${APP_URL}/auth?ref=${referralCode}`;
 
   const shareGeneral = async () => {
     try {
-      await Share.share({
-        message: shareMessage,
-        title: "Join Student Konnect!",
-      });
-    } catch (error) {
-      console.error("Share error:", error);
+      await Share.share({ message: shareMessage, title: "Join Student Konnect!" });
+    } catch (err) {
+      console.error("Share error:", err);
     }
   };
 
   const shareWhatsApp = () => {
     const url = `whatsapp://send?text=${encodeURIComponent(shareMessage)}`;
     Linking.openURL(url).catch(() => {
-      // Fallback to web WhatsApp
-      Linking.openURL(
-        `https://wa.me/?text=${encodeURIComponent(shareMessage)}`
-      );
+      Linking.openURL(`https://wa.me/?text=${encodeURIComponent(shareMessage)}`);
     });
   };
 
@@ -154,42 +207,18 @@ export default function ReferralScreen() {
   };
 
   const steps = [
-    {
-      step: "1",
-      title: "Generate Your Code",
-      description: "Create your unique referral code with one tap",
-      icon: "sparkles",
-      color: "#6366f1",
-    },
-    {
-      step: "2",
-      title: "Share With Friends",
-      description: "Send your code via WhatsApp, email, or any platform",
-      icon: "square.and.arrow.up",
-      color: "#8b5cf6",
-    },
-    {
-      step: "3",
-      title: "Friends Sign Up",
-      description: "Your friends use your code when registering",
-      icon: "person.badge.plus",
-      color: "#a855f7",
-    },
-    {
-      step: "4",
-      title: "Grow the Community",
-      description: "Track how many students you've brought on board",
-      icon: "chart.line.uptrend.xyaxis",
-      color: "#ec4899",
-    },
+    { step: "1", title: "Generate Your Code", description: "Create your unique referral code with one tap", icon: "sparkles", color: "#6366f1" },
+    { step: "2", title: "Share With Friends", description: "Send your code via WhatsApp, email, or any platform", icon: "square.and.arrow.up", color: "#8b5cf6" },
+    { step: "3", title: "Friends Sign Up", description: "Your friends use your code when registering", icon: "person.badge.plus", color: "#a855f7" },
+    { step: "4", title: "Grow the Community", description: "Track how many students you've brought on board", icon: "chart.line.uptrend.xyaxis", color: "#ec4899" },
   ];
 
   if (initialLoading) {
     return (
       <ScreenContainer>
-        <View className="flex-1 items-center justify-center">
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text className="text-sm text-muted mt-4">Loading referral...</Text>
+          <Text style={{ color: colors.muted, marginTop: 12, fontSize: 14 }}>Loading referral...</Text>
         </View>
       </ScreenContainer>
     );
@@ -198,286 +227,185 @@ export default function ReferralScreen() {
   return (
     <ScreenContainer edges={["top", "left", "right"]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        {/* Header */}
+        {/* Header Gradient */}
         <LinearGradient
           colors={["#6366f1", "#8b5cf6", "#a855f7"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={{ paddingTop: 16, paddingBottom: 40, paddingHorizontal: 20 }}
+          style={{ paddingTop: 16, paddingBottom: 48, paddingHorizontal: 20 }}
         >
           <TouchableOpacity
             onPress={() => router.back()}
-            className="flex-row items-center gap-2 mb-6"
+            style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 24 }}
           >
             <IconSymbol name="chevron.left" size={20} color="white" />
-            <Text className="text-white text-base font-medium">Back</Text>
+            <Text style={{ color: "white", fontSize: 16, fontWeight: "500" }}>Back</Text>
           </TouchableOpacity>
 
-          <View className="items-center gap-4">
-            <View
-              className="w-20 h-20 rounded-full items-center justify-center"
-              style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
-            >
+          <View style={{ alignItems: "center", gap: 12 }}>
+            <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" }}>
               <IconSymbol name="gift.fill" size={40} color="white" />
             </View>
-            <Text className="text-3xl font-bold text-white text-center">
-              Refer & Grow
-            </Text>
-            <Text className="text-white/80 text-base text-center px-4">
-              Invite fellow students to join Student Konnect and grow our
-              community together
+            <Text style={{ fontSize: 28, fontWeight: "800", color: "white", textAlign: "center" }}>Refer & Grow</Text>
+            <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 15, textAlign: "center", paddingHorizontal: 16, lineHeight: 22 }}>
+              Invite fellow students to join Student Konnect and grow our community together
             </Text>
           </View>
         </LinearGradient>
 
-        <View className="px-4 -mt-6 gap-4">
+        <View style={{ paddingHorizontal: 16, marginTop: -24, gap: 16 }}>
+
+          {/* Error State */}
+          {error && (
+            <View style={{ backgroundColor: "#ef444420", borderRadius: 16, padding: 16, borderWidth: 1, borderColor: "#ef4444" }}>
+              <Text style={{ color: "#ef4444", fontSize: 14, fontWeight: "600", marginBottom: 4 }}>Setup Required</Text>
+              <Text style={{ color: "#ef4444", fontSize: 13 }}>{error}</Text>
+              <TouchableOpacity onPress={initReferral} style={{ marginTop: 12, backgroundColor: "#ef4444", borderRadius: 10, paddingVertical: 8, alignItems: "center" }}>
+                <Text style={{ color: "white", fontWeight: "700", fontSize: 14 }}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* Referral Code Card */}
-          <View
-            className="bg-surface rounded-3xl p-6 border border-border"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.15,
-              shadowRadius: 12,
-              elevation: 6,
-            }}
-          >
-            <Text className="text-lg font-bold text-foreground mb-1">
-              Your Referral Code
-            </Text>
-            <Text className="text-sm text-muted mb-4">
-              Share this code with friends to invite them
-            </Text>
+          {!error && (
+            <View style={{ backgroundColor: colors.surface, borderRadius: 24, padding: 24, borderWidth: 1, borderColor: colors.border, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12, elevation: 6 }}>
+              <Text style={{ fontSize: 18, fontWeight: "700", color: colors.foreground, marginBottom: 4 }}>Your Referral Code</Text>
+              <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 20 }}>Share this code with friends to invite them</Text>
 
-            {referralCode ? (
-              <>
-                {/* Code Display */}
-                <View className="bg-primary/10 rounded-2xl p-4 mb-4 items-center border border-primary/20">
-                  <Text
-                    className="text-3xl font-bold tracking-widest"
-                    style={{ color: colors.primary }}
-                  >
-                    {referralCode}
+              {referralCode ? (
+                <>
+                  {/* Code Display */}
+                  <View style={{ backgroundColor: colors.primary + "15", borderRadius: 16, padding: 20, marginBottom: 16, alignItems: "center", borderWidth: 1, borderColor: colors.primary + "30" }}>
+                    <Text style={{ fontSize: 32, fontWeight: "800", letterSpacing: 6, color: colors.primary }}>{referralCode}</Text>
+                  </View>
+
+                  {/* Copy + Share row */}
+                  <View style={{ flexDirection: "row", gap: 10, marginBottom: 16 }}>
+                    <TouchableOpacity
+                      onPress={copyCode}
+                      style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 14, paddingVertical: 12, borderWidth: 1, borderColor: codeCopied ? "#22c55e" : colors.border, backgroundColor: codeCopied ? "#22c55e15" : colors.surface }}
+                    >
+                      <IconSymbol name={codeCopied ? "checkmark.circle.fill" : "doc.on.doc.fill"} size={18} color={codeCopied ? "#22c55e" : colors.primary} />
+                      <Text style={{ fontWeight: "600", fontSize: 14, color: codeCopied ? "#22c55e" : colors.primary }}>{codeCopied ? "Copied!" : "Copy Code"}</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={shareGeneral}
+                      style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 14, paddingVertical: 12, backgroundColor: colors.primary }}
+                    >
+                      <IconSymbol name="square.and.arrow.up" size={18} color="white" />
+                      <Text style={{ fontWeight: "700", fontSize: 14, color: "white" }}>Share</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Share via label */}
+                  <Text style={{ fontSize: 11, fontWeight: "700", color: colors.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Share via</Text>
+
+                  {/* Share channels */}
+                  <View style={{ flexDirection: "row", gap: 10 }}>
+                    <TouchableOpacity
+                      onPress={shareWhatsApp}
+                      style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 14, paddingVertical: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}
+                    >
+                      <Text style={{ fontSize: 18 }}>💬</Text>
+                      <Text style={{ fontSize: 13, fontWeight: "500", color: colors.foreground }}>WhatsApp</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={shareGmail}
+                      style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 14, paddingVertical: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}
+                    >
+                      <Text style={{ fontSize: 18 }}>📧</Text>
+                      <Text style={{ fontSize: 13, fontWeight: "500", color: colors.foreground }}>Email</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={copyLink}
+                      style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 14, paddingVertical: 12, borderWidth: 1, borderColor: linkCopied ? "#22c55e" : colors.border, backgroundColor: linkCopied ? "#22c55e15" : colors.surface }}
+                    >
+                      <IconSymbol name="link" size={16} color={linkCopied ? "#22c55e" : colors.primary} />
+                      <Text style={{ fontSize: 13, fontWeight: "500", color: linkCopied ? "#22c55e" : colors.foreground }}>{linkCopied ? "Copied!" : "Link"}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              ) : (
+                /* Generate Code State */
+                <View style={{ alignItems: "center", gap: 16 }}>
+                  <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: colors.primary + "20", alignItems: "center", justifyContent: "center" }}>
+                    <IconSymbol name="qrcode" size={36} color={colors.primary} />
+                  </View>
+                  <Text style={{ fontSize: 14, color: colors.muted, textAlign: "center", lineHeight: 20 }}>
+                    Generate your unique referral code and start inviting friends to join Student Konnect!
                   </Text>
-                </View>
-
-                {/* Action Buttons */}
-                <View className="flex-row gap-3 mb-4">
                   <TouchableOpacity
-                    onPress={copyCode}
-                    className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl p-3 border border-border active:opacity-70"
-                    style={{ backgroundColor: copied ? "#22c55e20" : colors.surface }}
+                    onPress={generateCode}
+                    disabled={loading}
+                    style={{ width: "100%", borderRadius: 16, paddingVertical: 16, alignItems: "center", backgroundColor: loading ? colors.muted : colors.primary }}
                   >
-                    <IconSymbol
-                      name={copied ? "checkmark.circle.fill" : "doc.on.doc.fill"}
-                      size={18}
-                      color={copied ? "#22c55e" : colors.primary}
-                    />
-                    <Text
-                      className="font-semibold text-sm"
-                      style={{ color: copied ? "#22c55e" : colors.primary }}
-                    >
-                      {copied ? "Copied!" : "Copy Code"}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={shareGeneral}
-                    className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl p-3 active:opacity-70"
-                    style={{ backgroundColor: colors.primary }}
-                  >
-                    <IconSymbol
-                      name="square.and.arrow.up"
-                      size={18}
-                      color="white"
-                    />
-                    <Text className="text-white font-semibold text-sm">
-                      Share
-                    </Text>
+                    {loading ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text style={{ color: "white", fontWeight: "700", fontSize: 16 }}>Generate My Referral Code</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
+              )}
+            </View>
+          )}
 
-                {/* Share Channels */}
-                <Text className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
-                  Share via
-                </Text>
-                <View className="flex-row gap-3">
-                  <TouchableOpacity
-                    onPress={shareWhatsApp}
-                    className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl p-3 border border-border active:opacity-70"
-                  >
-                    <Text className="text-lg">💬</Text>
-                    <Text className="text-sm font-medium text-foreground">
-                      WhatsApp
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={shareGmail}
-                    className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl p-3 border border-border active:opacity-70"
-                  >
-                    <Text className="text-lg">📧</Text>
-                    <Text className="text-sm font-medium text-foreground">
-                      Email
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={copyLink}
-                    className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl p-3 border border-border active:opacity-70"
-                  >
-                    <IconSymbol
-                      name="link"
-                      size={16}
-                      color={colors.primary}
-                    />
-                    <Text className="text-sm font-medium text-foreground">
-                      Link
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            ) : (
-              <View className="items-center gap-4">
-                <View
-                  className="w-16 h-16 rounded-full items-center justify-center"
-                  style={{ backgroundColor: colors.primary + "20" }}
-                >
-                  <IconSymbol name="qrcode" size={32} color={colors.primary} />
-                </View>
-                <Text className="text-sm text-muted text-center">
-                  Generate your unique referral code and start inviting friends
-                  to join Student Konnect!
-                </Text>
-                <TouchableOpacity
-                  onPress={generateCode}
-                  disabled={loading}
-                  className="w-full rounded-2xl p-4 items-center active:opacity-70"
-                  style={{ backgroundColor: colors.primary }}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="white" />
-                  ) : (
-                    <Text className="text-white font-bold text-base">
-                      Generate My Referral Code
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-
-          {/* Stats Card */}
+          {/* Stats Card — only shown when code exists */}
           {referralCode && (
-            <View
-              className="rounded-3xl overflow-hidden border border-border"
-              style={{
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.1,
-                shadowRadius: 8,
-                elevation: 4,
-              }}
-            >
-              <LinearGradient
-                colors={["#6366f120", "#8b5cf620"]}
-                style={{ padding: 20 }}
-              >
-                <View className="flex-row items-center gap-4">
-                  <View
-                    className="w-14 h-14 rounded-2xl items-center justify-center"
-                    style={{ backgroundColor: colors.primary + "20" }}
-                  >
-                    <IconSymbol
-                      name="person.2.fill"
-                      size={28}
-                      color={colors.primary}
-                    />
+            <View style={{ borderRadius: 24, overflow: "hidden", borderWidth: 1, borderColor: colors.border }}>
+              <LinearGradient colors={["#6366f115", "#8b5cf615"]} style={{ padding: 20 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+                  <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: colors.primary + "20", alignItems: "center", justifyContent: "center" }}>
+                    <IconSymbol name="person.2.fill" size={28} color={colors.primary} />
                   </View>
-                  <View className="flex-1">
-                    <Text
-                      className="text-4xl font-bold"
-                      style={{ color: colors.primary }}
-                    >
-                      {signupCount}
-                    </Text>
-                    <Text className="text-sm text-muted">
-                      {signupCount === 1 ? "friend has" : "friends have"}{" "}
-                      signed up with your code
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 40, fontWeight: "800", color: colors.primary }}>{signupCount}</Text>
+                    <Text style={{ fontSize: 13, color: colors.muted }}>
+                      {signupCount === 1 ? "friend has" : "friends have"} signed up with your code
                     </Text>
                   </View>
-                  <View
-                    className="px-3 py-1 rounded-full"
-                    style={{ backgroundColor: "#22c55e20" }}
-                  >
-                    <Text
-                      className="text-xs font-bold"
-                      style={{ color: "#22c55e" }}
-                    >
-                      Active
-                    </Text>
+                  <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: "#22c55e20" }}>
+                    <Text style={{ fontSize: 12, fontWeight: "700", color: "#22c55e" }}>Active</Text>
                   </View>
+                </View>
+
+                {/* Signup link display */}
+                <View style={{ marginTop: 16, backgroundColor: colors.surface, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border }}>
+                  <Text style={{ fontSize: 11, color: colors.muted, marginBottom: 4 }}>Your signup link</Text>
+                  <Text style={{ fontSize: 12, color: colors.primary, fontWeight: "500" }} numberOfLines={1}>{signupLink}</Text>
                 </View>
               </LinearGradient>
             </View>
           )}
 
           {/* How It Works */}
-          <View
-            className="bg-surface rounded-3xl p-6 border border-border"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.08,
-              shadowRadius: 8,
-              elevation: 3,
-            }}
-          >
+          <View style={{ backgroundColor: colors.surface, borderRadius: 24, padding: 20, borderWidth: 1, borderColor: colors.border }}>
             <TouchableOpacity
               onPress={() => setShowHowItWorks(!showHowItWorks)}
-              className="flex-row items-center justify-between"
+              style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
             >
-              <Text className="text-lg font-bold text-foreground">
-                How It Works
-              </Text>
-              <IconSymbol
-                name={showHowItWorks ? "chevron.up" : "chevron.down"}
-                size={20}
-                color={colors.muted}
-              />
+              <Text style={{ fontSize: 17, fontWeight: "700", color: colors.foreground }}>How It Works</Text>
+              <IconSymbol name={showHowItWorks ? "chevron.up" : "chevron.down"} size={20} color={colors.muted} />
             </TouchableOpacity>
 
             {showHowItWorks && (
-              <View className="mt-4 gap-4">
+              <View style={{ marginTop: 16, gap: 16 }}>
                 {steps.map((item, index) => (
-                  <View key={index} className="flex-row gap-4 items-start">
-                    <View
-                      className="w-10 h-10 rounded-full items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: item.color + "20" }}
-                    >
-                      <IconSymbol
-                        name={item.icon as any}
-                        size={20}
-                        color={item.color}
-                      />
+                  <View key={index} style={{ flexDirection: "row", gap: 14, alignItems: "flex-start" }}>
+                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: item.color + "20", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <IconSymbol name={item.icon as any} size={20} color={item.color} />
                     </View>
-                    <View className="flex-1">
-                      <View className="flex-row items-center gap-2 mb-1">
-                        <View
-                          className="w-5 h-5 rounded-full items-center justify-center"
-                          style={{ backgroundColor: item.color }}
-                        >
-                          <Text className="text-white text-xs font-bold">
-                            {item.step}
-                          </Text>
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                        <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: item.color, alignItems: "center", justifyContent: "center" }}>
+                          <Text style={{ color: "white", fontSize: 11, fontWeight: "700" }}>{item.step}</Text>
                         </View>
-                        <Text className="text-sm font-bold text-foreground">
-                          {item.title}
-                        </Text>
+                        <Text style={{ fontSize: 14, fontWeight: "700", color: colors.foreground }}>{item.title}</Text>
                       </View>
-                      <Text className="text-xs text-muted leading-relaxed">
-                        {item.description}
-                      </Text>
+                      <Text style={{ fontSize: 13, color: colors.muted, lineHeight: 18 }}>{item.description}</Text>
                     </View>
                   </View>
                 ))}
@@ -492,24 +420,19 @@ export default function ReferralScreen() {
             end={{ x: 1, y: 0 }}
             style={{ borderRadius: 24, padding: 20 }}
           >
-            <View className="flex-row items-center gap-4">
-              <View
-                className="w-12 h-12 rounded-2xl items-center justify-center"
-                style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
-              >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+              <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" }}>
                 <IconSymbol name="heart.fill" size={24} color="white" />
               </View>
-              <View className="flex-1">
-                <Text className="text-white font-bold text-base">
-                  Grow the Community
-                </Text>
-                <Text className="text-white/80 text-xs mt-1 leading-relaxed">
-                  Every student you invite strengthens the Student Konnect
-                  ecosystem for everyone.
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: "white", fontWeight: "700", fontSize: 16, marginBottom: 4 }}>Grow the Community</Text>
+                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, lineHeight: 18 }}>
+                  Every student you invite strengthens the Student Konnect ecosystem for everyone.
                 </Text>
               </View>
             </View>
           </LinearGradient>
+
         </View>
       </ScrollView>
     </ScreenContainer>
