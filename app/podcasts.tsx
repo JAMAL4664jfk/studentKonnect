@@ -124,8 +124,8 @@ export default function PodcastsScreen() {
     seasonNumber: "",
   });
   const [mediaType, setMediaType] = useState<"audio" | "video">("audio");
-  const [audioFile, setAudioFile] = useState<{ uri: string; name: string } | null>(null);
-  const [videoFile, setVideoFile] = useState<{ uri: string; name: string } | null>(null);
+  const [audioFile, setAudioFile] = useState<{ uri: string; name: string; mimeType: string } | null>(null);
+  const [videoFile, setVideoFile] = useState<{ uri: string; name: string; mimeType: string } | null>(null);
   const [episodeThumbnail, setEpisodeThumbnail] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -268,9 +268,11 @@ export default function PodcastsScreen() {
       });
 
       if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
         setAudioFile({
-          uri: result.assets[0].uri,
-          name: result.assets[0].name,
+          uri: asset.uri,
+          name: asset.name,
+          mimeType: asset.mimeType || "audio/mpeg",
         });
       }
     } catch (error) {
@@ -290,9 +292,11 @@ export default function PodcastsScreen() {
       });
 
       if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
         setVideoFile({
-          uri: result.assets[0].uri,
-          name: result.assets[0].name,
+          uri: asset.uri,
+          name: asset.name,
+          mimeType: asset.mimeType || "video/mp4",
         });
       }
     } catch (error) {
@@ -352,20 +356,22 @@ export default function PodcastsScreen() {
     try {
       let thumbnailUrl = null;
 
-      // Upload thumbnail if provided
+      // Upload thumbnail if provided (using FormData for React Native compatibility)
       if (seriesThumbnail) {
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
-        const response = await fetch(seriesThumbnail);
-        const blob = await response.blob();
+        const fileName = `thumbnails/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+        const formData = new FormData();
+        formData.append('file', {
+          uri: seriesThumbnail,
+          type: 'image/jpeg',
+          name: fileName.split('/').pop(),
+        } as any);
 
         const { error: uploadError } = await supabase.storage
           .from("podcasts")
-          .upload(`thumbnails/${fileName}`, blob);
+          .upload(fileName, formData, { contentType: 'image/jpeg' });
 
         if (!uploadError) {
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("podcasts").getPublicUrl(`thumbnails/${fileName}`);
+          const { data: { publicUrl } } = supabase.storage.from("podcasts").getPublicUrl(fileName);
           thumbnailUrl = publicUrl;
         }
       }
@@ -449,45 +455,48 @@ export default function PodcastsScreen() {
       let audioUrl = null;
       let videoUrl = null;
 
-      // Upload media file based on type
+      // Upload media file using FormData (required for React Native / Hermes)
       if (mediaType === "audio" && audioFile) {
-        const audioFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.mp3`;
-        const audioResponse = await fetch(audioFile.uri);
-        const audioBlob = await audioResponse.blob();
+        const ext = audioFile.name.split('.').pop() || 'mp3';
+        const audioFileName = `audio/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+        const formData = new FormData();
+        formData.append('file', {
+          uri: audioFile.uri,
+          type: audioFile.mimeType,
+          name: audioFile.name,
+        } as any);
 
         const { error: audioUploadError } = await supabase.storage
           .from("podcasts")
-          .upload(`audio/${audioFileName}`, audioBlob);
+          .upload(audioFileName, formData, { contentType: audioFile.mimeType });
 
         if (audioUploadError) throw audioUploadError;
 
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("podcasts").getPublicUrl(`audio/${audioFileName}`);
+        const { data: { publicUrl } } = supabase.storage.from("podcasts").getPublicUrl(audioFileName);
         audioUrl = publicUrl;
+        console.log('Audio uploaded successfully:', audioUrl);
       } else if (mediaType === "video" && videoFile) {
-        console.log('Uploading video:', videoFile.name);
-        const videoFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.mp4`;
-        
-        console.log('Fetching video file from URI:', videoFile.uri);
-        const videoResponse = await fetch(videoFile.uri);
-        const videoBlob = await videoResponse.blob();
-        console.log('Video blob size:', videoBlob.size, 'bytes');
+        const ext = videoFile.name.split('.').pop() || 'mp4';
+        const videoFileName = `videos/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+        console.log('Uploading video via FormData:', videoFile.name);
 
-        console.log('Uploading to Supabase storage...');
+        const formData = new FormData();
+        formData.append('file', {
+          uri: videoFile.uri,
+          type: videoFile.mimeType,
+          name: videoFile.name,
+        } as any);
+
         const { error: videoUploadError } = await supabase.storage
           .from("podcasts")
-          .upload(`videos/${videoFileName}`, videoBlob);
+          .upload(videoFileName, formData, { contentType: videoFile.mimeType });
 
         if (videoUploadError) {
           console.error('Video upload error:', videoUploadError);
           throw videoUploadError;
         }
 
-        console.log('Getting public URL...');
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("podcasts").getPublicUrl(`videos/${videoFileName}`);
+        const { data: { publicUrl } } = supabase.storage.from("podcasts").getPublicUrl(videoFileName);
         videoUrl = publicUrl;
         console.log('Video uploaded successfully:', videoUrl);
       }
@@ -597,45 +606,88 @@ export default function PodcastsScreen() {
 
   const fetchEpisodeRatings = async (podcastId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data: rawRatings, error } = await supabase
         .from("podcast_ratings")
-        .select("*, user:profiles(full_name)")
+        .select("id, podcast_id, user_id, rating, created_at")
         .eq("podcast_id", podcastId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setEpisodeRatings(data || []);
+
+      const ratings = rawRatings || [];
+      const ratingUserIds = [...new Set(ratings.map((r: any) => r.user_id))];
+      let ratingProfileMap: Record<string, { full_name: string | null }> = {};
+      if (ratingUserIds.length > 0) {
+        const { data: ratingProfiles } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", ratingUserIds);
+        (ratingProfiles || []).forEach((p: any) => { ratingProfileMap[p.id] = { full_name: p.full_name }; });
+      }
+
+      setEpisodeRatings(ratings.map((r: any) => ({
+        ...r,
+        user: ratingProfileMap[r.user_id] || { full_name: "Student" },
+      })));
     } catch (error) {
       console.error("Error fetching ratings:", error);
+      setEpisodeRatings([]);
     }
   };
 
   const fetchEpisodeComments = async (podcastId: string) => {
     try {
-      const { data, error } = await supabase
+      // Step 1: fetch comments (no join to avoid PostgREST relationship issues)
+      const { data: rawComments, error } = await supabase
         .from("podcast_comments")
-        .select("*, user:profiles(full_name, avatar_url)")
+        .select("id, podcast_id, user_id, content, created_at, likes_count, parent_id")
         .eq("podcast_id", podcastId)
         .is("parent_id", null)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      // Fetch replies for each comment
+      const comments = rawComments || [];
+
+      // Step 2: enrich with profile data
+      const userIds = [...new Set(comments.map((c: any) => c.user_id))];
+      let profileMap: Record<string, { full_name: string | null; avatar_url: string | null }> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url")
+          .in("id", userIds);
+        (profiles || []).forEach((p: any) => { profileMap[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url }; });
+      }
+
+      // Step 3: fetch replies for each top-level comment
       const commentsWithReplies = await Promise.all(
-        (data || []).map(async (comment) => {
-          const { data: replies } = await supabase
+        comments.map(async (comment: any) => {
+          const { data: rawReplies } = await supabase
             .from("podcast_comments")
-            .select("*, user:profiles(full_name, avatar_url)")
+            .select("id, podcast_id, user_id, content, created_at, likes_count, parent_id")
             .eq("parent_id", comment.id)
             .order("created_at", { ascending: true });
-          return { ...comment, replies: replies || [] };
+
+          const replies = (rawReplies || []).map((r: any) => ({
+            ...r,
+            user: profileMap[r.user_id] || { full_name: "Student", avatar_url: null },
+            replies: [],
+          }));
+
+          return {
+            ...comment,
+            user: profileMap[comment.user_id] || { full_name: "Student", avatar_url: null },
+            replies,
+          };
         })
       );
 
       setEpisodeComments(commentsWithReplies);
     } catch (error) {
       console.error("Error fetching comments:", error);
+      // Don't show error toast — silently fail so episode detail still opens
+      setEpisodeComments([]);
     }
   };
 
