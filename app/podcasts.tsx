@@ -580,8 +580,7 @@ export default function PodcastsScreen() {
       setVideoFile(null);
       setEpisodeThumbnail(null);
       setShowUploadEpisode(false);
-      await fetchPodcasts(); setShowUploadEpisode(false);
-      await fetchPodcasts(false);
+      await fetchPodcasts();
     } catch (error: any) {
       console.error('Upload episode error:', error);
       Toast.show({
