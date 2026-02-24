@@ -501,9 +501,13 @@ export default function PodcastsScreen() {
         console.log('Video uploaded successfully:', videoUrl);
       }
 
-      // Upload thumbnail if provided
+      // Set thumbnail URL
       let thumbnailUrl = null;
-      if (episodeThumbnail) {
+      if (mediaType === "video" && videoUrl) {
+        // For videos, use the video URL as the thumbnail source
+        thumbnailUrl = videoUrl;
+      } else if (mediaType === "audio" && episodeThumbnail) {
+        // For audio, upload the manually selected thumbnail
         const fileName = `thumbnails/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
         const formData = new FormData();
         formData.append('file', {
@@ -519,15 +523,11 @@ export default function PodcastsScreen() {
         if (!thumbUploadError) {
           const { data: { publicUrl } } = supabase.storage.from("podcasts").getPublicUrl(fileName);
           thumbnailUrl = publicUrl;
-          console.log('Thumbnail uploaded successfully:', thumbnailUrl);
+          console.log('Audio thumbnail uploaded successfully:', thumbnailUrl);
         } else {
-          console.error('Thumbnail upload error:', thumbUploadError);
+          console.error('Audio thumbnail upload error:', thumbUploadError);
         }
       }
-
-      // If no thumbnail provided for video, we still shouldn't use video URL as thumbnail
-      // because expo-image cannot render video files.
-      // In a real app, we might generate a thumbnail here, but for now we'll just use the uploaded one.
 
       // Create podcast episode
       console.log('Creating podcast episode in database...');
@@ -889,15 +889,15 @@ export default function PodcastsScreen() {
               {item.title}
             </Text>
             
-	            {/* Thumbnail */}
-	            <View className="relative mb-3">
-	              {item.thumbnail_url && !item.thumbnail_url.toLowerCase().endsWith('.mp4') && !item.thumbnail_url.toLowerCase().endsWith('.mov') ? (
-	                <Image
-	                  source={{ uri: item.thumbnail_url }}
-	                  className="w-full h-48 rounded-xl"
-	                  contentFit="cover"
-	                />
-	              ) : (
+		            {/* Thumbnail */}
+		            <View className="relative mb-3">
+		              {item.thumbnail_url ? (
+		                <Image
+		                  source={{ uri: item.thumbnail_url }}
+		                  className="w-full h-48 rounded-xl"
+		                  contentFit="cover"
+		                />
+		              ) : (
                 <View className="w-full h-48 rounded-xl bg-primary/20 items-center justify-center">
                   <IconSymbol 
                     name={item.media_type === "video" ? "video.fill" : "mic.fill"} 
@@ -1615,39 +1615,48 @@ export default function PodcastsScreen() {
                   </TouchableOpacity>
                 </View>
 
-                {/* Thumbnail Picker */}
-                <View>
-                  <Text className="text-sm font-medium text-foreground mb-2">
-                    Thumbnail (Optional)
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => pickThumbnail("episode")}
-                    className="bg-surface border border-border rounded-xl p-4 items-center justify-center"
-                    style={{ minHeight: 120 }}
-                  >
-                    {episodeThumbnail ? (
-                      <Image
-                        source={{ uri: episodeThumbnail }}
-                        className="w-full h-24 rounded-lg"
-                        contentFit="cover"
-                      />
-                    ) : (
-                      <>
-                        <IconSymbol name="photo" size={32} color={colors.primary} />
-                        <Text className="text-sm text-primary mt-2">Tap to select thumbnail</Text>
-                        <Text className="text-xs text-muted mt-1">Recommended for better visibility</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-                  {episodeThumbnail && (
-                    <TouchableOpacity 
-                      onPress={() => setEpisodeThumbnail(null)}
-                      className="mt-2"
+                {/* Thumbnail Picker (Only for Audio) */}
+                {mediaType === "audio" && (
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Thumbnail (Optional)
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => pickThumbnail("episode")}
+                      className="bg-surface border border-border rounded-xl p-4 items-center justify-center"
+                      style={{ minHeight: 120 }}
                     >
-                      <Text className="text-xs text-red-500 text-center">Remove thumbnail</Text>
+                      {episodeThumbnail ? (
+                        <Image
+                          source={{ uri: episodeThumbnail }}
+                          className="w-full h-24 rounded-lg"
+                          contentFit="cover"
+                        />
+                      ) : (
+                        <>
+                          <IconSymbol name="photo" size={32} color={colors.primary} />
+                          <Text className="text-sm text-primary mt-2">Tap to select thumbnail</Text>
+                          <Text className="text-xs text-muted mt-1">Recommended for better visibility</Text>
+                        </>
+                      )}
                     </TouchableOpacity>
-                  )}
-                </View>
+                    {episodeThumbnail && (
+                      <TouchableOpacity 
+                        onPress={() => setEpisodeThumbnail(null)}
+                        className="mt-2"
+                      >
+                        <Text className="text-xs text-red-500 text-center">Remove thumbnail</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+                {mediaType === "video" && (
+                  <View className="bg-primary/10 p-4 rounded-xl border border-primary/20">
+                    <Text className="text-sm text-primary font-medium text-center">
+                      Video thumbnail will be generated automatically from the first frame.
+                    </Text>
+                  </View>
+                )}
               </View>
             </ScrollView>
 
@@ -1761,7 +1770,7 @@ export default function PodcastsScreen() {
               <ScrollView className="flex-1">
 	                {/* Episode Header */}
 	                <View className="p-4 border-b border-border">
-	                  {selectedEpisode.thumbnail_url && !selectedEpisode.thumbnail_url.toLowerCase().endsWith('.mp4') && !selectedEpisode.thumbnail_url.toLowerCase().endsWith('.mov') ? (
+	                  {selectedEpisode.thumbnail_url ? (
 	                    <Image
 	                      source={{ uri: selectedEpisode.thumbnail_url }}
 	                      className="w-full h-48 rounded-2xl mb-4"
