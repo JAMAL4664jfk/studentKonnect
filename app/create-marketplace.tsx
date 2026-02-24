@@ -5,13 +5,15 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { Picker } from "@react-native-picker/picker";
-import { supabase } from "@/lib/supabase";
+import { supabase, safeGetUser } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
 import * as ImagePicker from "expo-image-picker";
 import { UploadProgress } from "@/components/UploadProgress";
@@ -33,7 +35,7 @@ export default function CreateMarketplaceScreen() {
   const [condition, setCondition] = useState<Condition>("good");
   const [price, setPrice] = useState("");
   const [location, setLocation] = useState("");
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [localImages, setLocalImages] = useState<{ uri: string; type: string; name: string }[]>([]);
 
   const categories = [
     { label: "Textbooks", value: "books" },
@@ -72,13 +74,17 @@ export default function CreateMarketplaceScreen() {
     });
 
     if (!result.canceled && result.assets) {
-      const urls = result.assets.map((asset) => asset.uri);
-      setImageUrls([...imageUrls, ...urls]);
+      const newImages = result.assets.map((asset) => ({
+        uri: asset.uri,
+        type: asset.mimeType || "image/jpeg",
+        name: asset.fileName || `image_${Date.now()}.jpg`,
+      }));
+      setLocalImages((prev) => [...prev, ...newImages]);
     }
   };
 
   const removeImage = (index: number) => {
-    setImageUrls(imageUrls.filter((_, i) => i !== index));
+    setLocalImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const validateForm = () => {
@@ -97,41 +103,94 @@ export default function CreateMarketplaceScreen() {
     return true;
   };
 
+  /**
+   * Upload a single image to Supabase storage using FormData (React Native safe).
+   * Returns the public URL or null on failure.
+   */
+  const uploadImage = async (
+    image: { uri: string; type: string; name: string },
+    userId: string,
+    index: number
+  ): Promise<string | null> => {
+    try {
+      const ext = image.name.split(".").pop() || "jpg";
+      const fileName = `marketplace/${userId}/${Date.now()}_${index}.${ext}`;
+
+      const formData = new FormData();
+      formData.append("file", {
+        uri: image.uri,
+        type: image.type,
+        name: image.name,
+      } as any);
+
+      const { data, error } = await supabase.storage
+        .from("marketplace-images")
+        .upload(fileName, formData, {
+          contentType: image.type,
+          upsert: false,
+        });
+
+      if (error) {
+        console.error("Image upload error:", error.message);
+        return null;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("marketplace-images")
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (e: any) {
+      console.error("Image upload exception:", e.message);
+      return null;
+    }
+  };
+
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
     setLoading(true);
     setShowUploadProgress(true);
-    setUploadProgress(0);
+    setUploadProgress(5);
+
     try {
-      // Get current authenticated user
-      const { data: { user } } = await supabase.auth.getUser();
+      // 1. Get authenticated user
+      const { data: { user } } = await safeGetUser();
       if (!user) {
         Toast.show({
-          type: 'error',
-          text1: 'Authentication Error',
-          text2: 'Please log in to create a listing',
+          type: "error",
+          text1: "Authentication Error",
+          text2: "Please log in to create a listing",
         });
         return;
       }
-      const userId = user.id;
 
-      // Simulate upload progress
-      setUploadProgress(30);
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      setUploadProgress(60);
+      // 2. Upload images to Supabase storage
+      const uploadedUrls: string[] = [];
+      if (localImages.length > 0) {
+        const progressPerImage = 60 / localImages.length;
+        for (let i = 0; i < localImages.length; i++) {
+          const url = await uploadImage(localImages[i], user.id, i);
+          if (url) uploadedUrls.push(url);
+          setUploadProgress(5 + progressPerImage * (i + 1));
+        }
+      } else {
+        setUploadProgress(65);
+      }
+
+      // 3. Insert listing — use "userId" (camelCase) to match the live table schema
+      setUploadProgress(70);
       const { data, error } = await supabase
         .from("marketplaceItems")
         .insert({
-          userId,
+          userId: user.id,           // camelCase — matches the live DB column
           title: title.trim(),
           description: description.trim(),
           category,
           condition,
           price: parseFloat(price),
           currency: "ZAR",
-          images: JSON.stringify(imageUrls),
+          images: JSON.stringify(uploadedUrls),
           location: location.trim() || null,
           isAvailable: true,
           isFeatured: false,
@@ -140,15 +199,18 @@ export default function CreateMarketplaceScreen() {
         .select()
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Marketplace insert error:", JSON.stringify(error));
+        throw error;
+      }
 
       setUploadProgress(100);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 400));
 
       Toast.show({
         type: "success",
-        text1: "Success!",
-        text2: "Your item has been listed",
+        text1: "Listed!",
+        text2: "Your item has been posted to the marketplace",
       });
 
       router.back();
@@ -156,8 +218,8 @@ export default function CreateMarketplaceScreen() {
       console.error("Error creating listing:", error);
       Toast.show({
         type: "error",
-        text1: "Error",
-        text2: error.message || "Failed to create listing",
+        text1: "Failed to post listing",
+        text2: error.message || "Please try again",
       });
     } finally {
       setLoading(false);
@@ -198,8 +260,17 @@ export default function CreateMarketplaceScreen() {
               value={title}
               onChangeText={setTitle}
               placeholder="e.g., MacBook Air M1 - Like New"
-              placeholderTextColor={colors.mutedForeground}
-              className="bg-surface rounded-xl px-4 py-3 text-foreground"
+              placeholderTextColor={colors.muted}
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                color: colors.foreground,
+                fontSize: 15,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
             />
           </View>
 
@@ -211,12 +282,22 @@ export default function CreateMarketplaceScreen() {
             <TextInput
               value={description}
               onChangeText={setDescription}
-              placeholder="Describe your item..."
-              placeholderTextColor={colors.mutedForeground}
-              className="bg-surface rounded-xl px-4 py-3 text-foreground"
+              placeholder="Describe your item in detail..."
+              placeholderTextColor={colors.muted}
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                color: colors.foreground,
+                fontSize: 15,
+                borderWidth: 1,
+                borderColor: colors.border,
+                minHeight: 100,
+                textAlignVertical: "top",
+              }}
               multiline
               numberOfLines={4}
-              textAlignVertical="top"
             />
           </View>
 
@@ -225,7 +306,15 @@ export default function CreateMarketplaceScreen() {
             <Text className="text-sm font-semibold text-foreground mb-2">
               Category *
             </Text>
-            <View className="bg-surface rounded-xl overflow-hidden">
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: 12,
+                overflow: "hidden",
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
               <Picker
                 selectedValue={category}
                 onValueChange={(value) => setCategory(value as Category)}
@@ -243,7 +332,15 @@ export default function CreateMarketplaceScreen() {
             <Text className="text-sm font-semibold text-foreground mb-2">
               Condition *
             </Text>
-            <View className="bg-surface rounded-xl overflow-hidden">
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: 12,
+                overflow: "hidden",
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
               <Picker
                 selectedValue={condition}
                 onValueChange={(value) => setCondition(value as Condition)}
@@ -265,8 +362,17 @@ export default function CreateMarketplaceScreen() {
               value={price}
               onChangeText={setPrice}
               placeholder="e.g., 8500"
-              placeholderTextColor={colors.mutedForeground}
-              className="bg-surface rounded-xl px-4 py-3 text-foreground"
+              placeholderTextColor={colors.muted}
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                color: colors.foreground,
+                fontSize: 15,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
               keyboardType="numeric"
             />
           </View>
@@ -276,7 +382,15 @@ export default function CreateMarketplaceScreen() {
             <Text className="text-sm font-semibold text-foreground mb-2">
               Location (Optional)
             </Text>
-            <View className="bg-surface rounded-xl overflow-hidden">
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: 12,
+                overflow: "hidden",
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
               <Picker
                 selectedValue={location}
                 onValueChange={setLocation}
@@ -293,25 +407,51 @@ export default function CreateMarketplaceScreen() {
           {/* Images */}
           <View>
             <Text className="text-sm font-semibold text-foreground mb-2">
-              Photos *
+              Photos (Optional)
             </Text>
             <TouchableOpacity
               onPress={pickImage}
-              className="bg-surface rounded-xl p-6 items-center border-2 border-dashed border-border"
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: 12,
+                padding: 24,
+                alignItems: "center",
+                borderWidth: 2,
+                borderStyle: "dashed",
+                borderColor: colors.border,
+              }}
             >
-              <IconSymbol name="photo" size={32} color={colors.primary} />
-              <Text className="text-sm text-muted-foreground mt-2">
+              <IconSymbol name="photo.badge.plus" size={32} color={colors.primary} />
+              <Text style={{ fontSize: 14, color: colors.muted, marginTop: 8 }}>
                 Tap to add photos
               </Text>
+              <Text style={{ fontSize: 12, color: colors.muted, marginTop: 2 }}>
+                {localImages.length > 0 ? `${localImages.length} photo(s) selected` : "Up to 5 photos"}
+              </Text>
             </TouchableOpacity>
-            {imageUrls.length > 0 && (
-              <View className="flex-row flex-wrap gap-2 mt-3">
-                {imageUrls.map((url, index) => (
-                  <View key={index} className="relative">
-                    <View className="w-20 h-20 bg-muted rounded-lg" />
+
+            {localImages.length > 0 && (
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+                {localImages.map((img, index) => (
+                  <View key={index} style={{ position: "relative" }}>
+                    <Image
+                      source={{ uri: img.uri }}
+                      style={{ width: 80, height: 80, borderRadius: 10 }}
+                      contentFit="cover"
+                    />
                     <TouchableOpacity
                       onPress={() => removeImage(index)}
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive items-center justify-center"
+                      style={{
+                        position: "absolute",
+                        top: -6,
+                        right: -6,
+                        width: 22,
+                        height: 22,
+                        borderRadius: 11,
+                        backgroundColor: "#ef4444",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
                     >
                       <IconSymbol name="xmark" size={12} color="#fff" />
                     </TouchableOpacity>
@@ -325,23 +465,27 @@ export default function CreateMarketplaceScreen() {
           <TouchableOpacity
             onPress={handleSubmit}
             disabled={loading}
-            className={`bg-primary py-4 rounded-xl items-center mt-4 ${
-              loading ? "opacity-50" : ""
-            }`}
+            style={{
+              backgroundColor: loading ? colors.muted : colors.primary,
+              paddingVertical: 16,
+              borderRadius: 12,
+              alignItems: "center",
+              marginTop: 8,
+            }}
           >
-            <Text className="text-primary-foreground font-bold text-lg">
-              {loading ? "Listing..." : "List Item"}
+            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>
+              {loading ? "Posting..." : "Post Listing"}
             </Text>
           </TouchableOpacity>
         </View>
 
-        <View className="h-8" />
+        <View style={{ height: 32 }} />
       </ScrollView>
-      
+
       <UploadProgress
         visible={showUploadProgress}
         progress={uploadProgress}
-        fileName={title || "Marketplace item"}
+        fileName={title || "Marketplace listing"}
         uploadType="image"
       />
     </ScreenContainer>
