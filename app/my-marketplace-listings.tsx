@@ -13,7 +13,7 @@ import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { supabase } from "@/lib/supabase";
+import { supabase, safeGetUser } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
 
 const { width } = Dimensions.get("window");
@@ -84,16 +84,33 @@ export default function MyMarketplaceListingsScreen() {
 
   const fetchMyListings = async () => {
     try {
-      // For now using userId 1, replace with actual auth
-      const userId = 1;
+      const { data: { user } } = await safeGetUser();
+      if (!user) {
+        Toast.show({ type: "info", text1: "Sign in to view your listings" });
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
 
+      // Select only non-UUID columns to avoid type mismatch on userId
       const { data, error } = await supabase
         .from("marketplaceItems")
-        .select("*")
-        .eq("userId", userId)
+        .select("id, title, category, price, currency, condition, images, isAvailable, views, createdAt")
+        .eq("userId", user.id)
         .order("createdAt", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // If userId type mismatch, show a helpful message
+        console.error("fetchMyListings error:", JSON.stringify(error));
+        Toast.show({
+          type: "error",
+          text1: "Error loading listings",
+          text2: error.message,
+        });
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
 
       setListings(data || []);
       

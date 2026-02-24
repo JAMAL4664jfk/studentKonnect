@@ -113,67 +113,30 @@ export default function MarketplaceScreen() {
 
   const fetchItems = async () => {
     try {
-      console.log("[MARKETPLACE] Starting fetch...");
-      
-      // Test connection first
-      const { data: testData, error: testError } = await supabase
-        .from("marketplaceItems")
-        .select("count")
-        .limit(1);
-      
-      if (testError) {
-        console.error("[MARKETPLACE] Connection test failed:", testError);
-        Toast.show({
-          type: "error",
-          text1: "Connection Error",
-          text2: `Database connection failed: ${testError.message}`,
-        });
-        setLoading(false);
-        setRefreshing(false);
-        return;
-      }
-      
-      console.log("[MARKETPLACE] Connection test passed");
-
+      // Fetch all available listings — no user filter needed here
       const { data, error } = await supabase
         .from("marketplaceItems")
-        .select("*")
+        .select("id, title, description, category, condition, price, currency, images, location, isAvailable, isFeatured, views, createdAt, updatedAt")
         .eq("isAvailable", true)
         .order("createdAt", { ascending: false });
 
       if (error) {
-        console.error("[MARKETPLACE] Supabase error:", JSON.stringify(error));
+        console.error("[MARKETPLACE] Fetch error:", JSON.stringify(error));
         Toast.show({
           type: "error",
-          text1: "Database Error",
-          text2: error.message || "Failed to fetch data",
+          text1: "Error fetching listings",
+          text2: error.message || "Please try again",
         });
-        throw error;
+        return;
       }
 
-      console.log("[MARKETPLACE] Fetched:", data?.length, "items");
-      
-      if (!data || data.length === 0) {
-        Toast.show({
-          type: "info",
-          text1: "No Items",
-          text2: "No marketplace items available",
-        });
-      } else {
-        Toast.show({
-          type: "success",
-          text1: "Loaded",
-          text2: `Found ${data.length} items`,
-        });
-      }
-      
       setItems(data || []);
     } catch (error: any) {
-      console.error("[MARKETPLACE] Fetch error:", error);
+      console.error("[MARKETPLACE] Exception:", error);
       Toast.show({
         type: "error",
-        text1: "Error Loading Data",
-        text2: error.message || "Please check your internet connection",
+        text1: "Error fetching listings",
+        text2: error.message || "Please check your connection",
       });
     } finally {
       setLoading(false);
