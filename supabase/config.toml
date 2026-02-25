@@ -41,8 +41,20 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
 
-[edge_functions]
-enabled = true
+[functions.gazoo-chat]
+verify_jwt = false
 
-[edge_functions.gazoo-chat]
+[functions.ai-counsellor]
+verify_jwt = false
+
+[functions.create-wallet]
+verify_jwt = false
+
+[functions.get-tokens]
+verify_jwt = false
+
+[functions.send-token]
+verify_jwt = false
+
+[functions.swap-token]
 verify_jwt = false
