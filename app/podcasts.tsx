@@ -501,7 +501,7 @@ export default function PodcastsScreen() {
         console.log('Video uploaded successfully:', videoUrl);
       }
 
-      // Upload episode thumbnail if user picked one
+       // Upload thumbnail if user picked one (works for both audio and video)
       let thumbnailUrl = null;
       if (episodeThumbnail) {
         try {
@@ -564,7 +564,7 @@ export default function PodcastsScreen() {
         text2: "Episode uploaded successfully",
       });
 
-      // Reset form
+          // Reset form
       setNewEpisode({
         title: "",
         description: "",
@@ -574,12 +574,11 @@ export default function PodcastsScreen() {
         episodeNumber: "",
         seasonNumber: "",
       });
-      setMediaType("audio");
       setAudioFile(null);
       setVideoFile(null);
       setEpisodeThumbnail(null);
       setShowUploadEpisode(false);
-      await fetchPodcasts(false);
+      await fetchPodcasts();
     } catch (error: any) {
       console.error('Upload episode error:', error);
       Toast.show({
@@ -887,15 +886,15 @@ export default function PodcastsScreen() {
               {item.title}
             </Text>
             
-            {/* Thumbnail */}
-            <View className="relative mb-3">
-              {item.thumbnail_url ? (
-                <Image
-                  source={{ uri: item.thumbnail_url }}
-                  className="w-full h-48 rounded-xl"
-                  contentFit="cover"
-                />
-              ) : (
+		            {/* Thumbnail */}
+		            <View className="relative mb-3">
+		              {item.thumbnail_url ? (
+		                <Image
+		                  source={{ uri: item.thumbnail_url }}
+		                  className="w-full h-48 rounded-xl"
+		                  contentFit="cover"
+		                />
+		              ) : (
                 <View className="w-full h-48 rounded-xl bg-primary/20 items-center justify-center">
                   <IconSymbol 
                     name={item.media_type === "video" ? "video.fill" : "mic.fill"} 
@@ -1613,37 +1612,48 @@ export default function PodcastsScreen() {
                   </TouchableOpacity>
                 </View>
 
-                {/* Episode Thumbnail Picker */}
-                <View>
-                  <Text className="text-sm font-medium text-foreground mb-2">Cover Image (optional)</Text>
-                  <TouchableOpacity
-                    onPress={() => pickThumbnail("episode")}
-                    className="bg-surface border border-border rounded-xl p-4 items-center justify-center"
-                    style={{ minHeight: 100 }}
-                  >
-                    {episodeThumbnail ? (
-                      <Image
-                        source={{ uri: episodeThumbnail }}
-                        className="w-full h-32 rounded-xl"
-                        contentFit="cover"
-                      />
-                    ) : (
-                      <>
-                        <IconSymbol name="photo.fill" size={32} color={colors.primary} />
-                        <Text className="text-sm text-primary mt-2">Tap to add a cover image</Text>
-                        <Text className="text-xs text-muted mt-1">Recommended: square image (1:1)</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-                  {episodeThumbnail && (
+                {/* Thumbnail Picker (Only for Audio) */}
+                {mediaType === "audio" && (
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Thumbnail (Optional)
+                    </Text>
                     <TouchableOpacity
-                      onPress={() => setEpisodeThumbnail(null)}
-                      className="mt-2 items-center"
+                      onPress={() => pickThumbnail("episode")}
+                      className="bg-surface border border-border rounded-xl p-4 items-center justify-center"
+                      style={{ minHeight: 120 }}
                     >
-                      <Text style={{ color: '#ef4444', fontSize: 12 }}>Remove thumbnail</Text>
+                      {episodeThumbnail ? (
+                        <Image
+                          source={{ uri: episodeThumbnail }}
+                          className="w-full h-24 rounded-lg"
+                          contentFit="cover"
+                        />
+                      ) : (
+                        <>
+                          <IconSymbol name="photo" size={32} color={colors.primary} />
+                          <Text className="text-sm text-primary mt-2">Tap to select thumbnail</Text>
+                          <Text className="text-xs text-muted mt-1">Recommended for better visibility</Text>
+                        </>
+                      )}
                     </TouchableOpacity>
-                  )}
-                </View>
+                    {episodeThumbnail && (
+                      <TouchableOpacity 
+                        onPress={() => setEpisodeThumbnail(null)}
+                        className="mt-2"
+                      >
+                        <Text className="text-xs text-red-500 text-center">Remove thumbnail</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+                {mediaType === "video" && (
+                  <View className="bg-primary/10 p-4 rounded-xl border border-primary/20">
+                    <Text className="text-sm text-primary font-medium text-center">
+                      Video thumbnail will be generated automatically from the first frame.
+                    </Text>
+                  </View>
+                )}
               </View>
             </ScrollView>
 
@@ -1755,22 +1765,22 @@ export default function PodcastsScreen() {
               </View>
 
               <ScrollView className="flex-1">
-                {/* Episode Header */}
-                <View className="p-4 border-b border-border">
-                  {selectedEpisode.thumbnail_url ? (
-                    <Image
-                      source={{ uri: selectedEpisode.thumbnail_url }}
-                      className="w-full h-48 rounded-2xl mb-4"
-                      contentFit="cover"
-                    />
-                  ) : (
+	                {/* Episode Header */}
+	                <View className="p-4 border-b border-border">
+	                  {selectedEpisode.thumbnail_url ? (
+	                    <Image
+	                      source={{ uri: selectedEpisode.thumbnail_url }}
+	                      className="w-full h-48 rounded-2xl mb-4"
+	                      contentFit="cover"
+	                    />
+	                  ) : (
                     <View className="w-full h-48 rounded-2xl mb-4 bg-primary/20 items-center justify-center">
                       <IconSymbol
                         name={selectedEpisode.media_type === "video" ? "video.fill" : "mic.fill"}
                         size={64}
                         color={colors.primary}
                       />
-                      <Text className="text-xs text-muted mt-2">
+                      <Text style={{ color: colors.muted, fontSize: 12, marginTop: 6 }}>
                         {selectedEpisode.media_type === "video" ? "Video Episode" : "Audio Episode"}
                       </Text>
                     </View>
