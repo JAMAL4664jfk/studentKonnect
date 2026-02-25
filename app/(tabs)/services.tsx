@@ -172,7 +172,7 @@ export default function ServicesScreen() {
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .neq('sender_id', user.id)
-        .is('read_at', null);
+        .eq('is_read', false);
 
       setUnreadCount(count || 0);
     } catch (error) {

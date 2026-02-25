@@ -8,7 +8,9 @@ interface Message {
   conversation_id: string;
   sender_id: string;
   content: string;
-  read_at: string | null;
+  is_read: boolean;
+  message_type?: string;
+  media_url?: string | null;
   created_at: string;
 }
 
@@ -99,7 +101,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             .select('*', { count: 'exact', head: true })
             .eq('conversation_id', conv.id)
             .neq('sender_id', userId)
-            .is('read_at', null);
+            .eq('is_read', false);
 
           return {
             id: conv.id,
@@ -186,10 +188,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         [conversationId]: [...(prev[conversationId] || []), messageData],
       }));
 
-      Toast.show({
-        type: 'success',
-        text1: 'Message sent',
-      });
     } catch (error) {
       console.error('Error in sendMessage:', error);
       Toast.show({
@@ -204,10 +202,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     try {
       await supabase
         .from('messages')
-        .update({ read_at: new Date().toISOString() })
+        .update({ is_read: true })
         .eq('conversation_id', conversationId)
         .neq('sender_id', userId)
-        .is('read_at', null);
+        .eq('is_read', false);
     } catch (error) {
       console.error('Error marking messages as read:', error);
     }
@@ -228,12 +226,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         return existingConv.id;
       }
 
-      // Create new conversation
+      // Create new conversation - sort IDs to satisfy CHECK (participant1_id < participant2_id)
+      const [p1, p2] = [participant1Id, participant2Id].sort();
       const { data: newConv, error } = await supabase
         .from('conversations')
         .insert({
-          participant1_id: participant1Id,
-          participant2_id: participant2Id,
+          participant1_id: p1,
+          participant2_id: p2,
         })
         .select()
         .single();

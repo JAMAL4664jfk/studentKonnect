@@ -735,16 +735,17 @@ export default function ChatScreen() {
 
       let conversationId = existing?.id;
 
-      if (!conversationId) {
+       if (!conversationId) {
+        // Sort IDs to satisfy CHECK (participant1_id < participant2_id) constraint
+        const [p1, p2] = [currentUserId, userId].sort();
         const { data: newConv } = await supabase
           .from("conversations")
           .insert({
-            participant1_id: currentUserId,
-            participant2_id: userId,
+            participant1_id: p1,
+            participant2_id: p2,
           })
           .select()
           .maybeSingle();
-
         conversationId = newConv?.id;
       }
 
