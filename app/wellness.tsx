@@ -11,6 +11,14 @@ import { LinearGradient } from "expo-linear-gradient";
 
 type TabType = "wellness" | "sports" | "fitness" | "events" | "ai-counsellor";
 
+const TABS: { key: TabType; label: string; icon: string }[] = [
+  { key: "sports",        label: "Sports Events",   icon: "sportscourt.fill" },
+  { key: "events",        label: "Sports Clubs",    icon: "person.3.fill" },
+  { key: "fitness",       label: "Fitness Classes", icon: "figure.run" },
+  { key: "wellness",      label: "Matches",         icon: "trophy.fill" },
+  { key: "ai-counsellor", label: "AI Counsellor",   icon: "brain.head.profile" },
+];
+
 type SportsEvent = {
   id: string;
   title: string;
@@ -248,6 +256,7 @@ export default function WellnessScreen() {
   const colors = useColors();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("sports");
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const handleRegisterEvent = (eventTitle: string) => {
     Toast.show({
@@ -495,81 +504,60 @@ export default function WellnessScreen() {
           </View>
         </View>
 
-        {/* Tabs */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
-          <View className="flex-row gap-2">
-            <TouchableOpacity
-              onPress={() => setActiveTab("sports")}
-              className={`px-6 py-3 rounded-xl ${
-                activeTab === "sports" ? "bg-primary" : "bg-surface border border-border"
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  activeTab === "sports" ? "text-white" : "text-foreground"
-                }`}
-              >
-                Sports Events
+        {/* Tab Dropdown */}
+        <View className="mb-6">
+          <TouchableOpacity
+            onPress={() => setShowDropdown(!showDropdown)}
+            className="bg-surface border border-border rounded-xl px-5 py-4 flex-row items-center justify-between"
+          >
+            <View className="flex-row items-center gap-3">
+              <IconSymbol
+                name={TABS.find(t => t.key === activeTab)?.icon as any || "sportscourt.fill"}
+                size={20}
+                color={colors.primary}
+              />
+              <Text className="text-base font-semibold text-foreground">
+                {TABS.find(t => t.key === activeTab)?.label || "Sports Events"}
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setActiveTab("events")}
-              className={`px-6 py-3 rounded-xl ${
-                activeTab === "events" ? "bg-primary" : "bg-surface border border-border"
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  activeTab === "events" ? "text-white" : "text-foreground"
-                }`}
-              >
-                Sports Clubs
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setActiveTab("fitness")}
-              className={`px-6 py-3 rounded-xl ${
-                activeTab === "fitness" ? "bg-primary" : "bg-surface border border-border"
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  activeTab === "fitness" ? "text-white" : "text-foreground"
-                }`}
-              >
-                Fitness Classes
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setActiveTab("wellness")}
-              className={`px-6 py-3 rounded-xl ${
-                activeTab === "wellness" ? "bg-primary" : "bg-surface border border-border"
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  activeTab === "wellness" ? "text-white" : "text-foreground"
-                }`}
-              >
-                Matches
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setActiveTab("ai-counsellor")}
-              className={`px-6 py-3 rounded-xl ${
-                activeTab === "ai-counsellor" ? "bg-primary" : "bg-surface border border-border"
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  activeTab === "ai-counsellor" ? "text-white" : "text-foreground"
-                }`}
-              >
-                🤖 AI Counsellor
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+            </View>
+            <IconSymbol
+              name={showDropdown ? "chevron.up" : "chevron.down"}
+              size={20}
+              color={colors.foreground}
+            />
+          </TouchableOpacity>
+          {showDropdown && (
+            <View className="bg-surface border border-border rounded-xl mt-2 overflow-hidden">
+              {TABS.map((tab) => (
+                <TouchableOpacity
+                  key={tab.key}
+                  onPress={() => { setActiveTab(tab.key); setShowDropdown(false); }}
+                  className={`px-5 py-4 flex-row items-center gap-3 ${
+                    activeTab === tab.key ? "bg-primary/10" : ""
+                  }`}
+                >
+                  <IconSymbol
+                    name={tab.icon as any}
+                    size={20}
+                    color={activeTab === tab.key ? colors.primary : colors.foreground}
+                  />
+                  <Text
+                    className={`text-base font-semibold ${
+                      activeTab === tab.key ? "text-primary" : "text-foreground"
+                    }`}
+                  >
+                    {tab.label}
+                  </Text>
+                  {activeTab === tab.key && (
+                    <View style={{ marginLeft: "auto" as any }}>
+                      <IconSymbol name="checkmark" size={16} color={colors.primary} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
 
         {/* Content */}
         <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
