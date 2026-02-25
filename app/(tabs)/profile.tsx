@@ -168,20 +168,6 @@ export default function ProfileScreen() {
       action: () => router.push("/edit-profile"),
     },
     {
-      id: "analytics",
-      title: "Financial Analytics",
-      icon: "chart.bar.fill",
-      color: colors.primary,
-      action: () => router.push("/financial-analytics"),
-    },
-    {
-      id: "rewards",
-      title: "Lifestyle Rewards",
-      icon: "heart.fill",
-      color: "#FF6B9D",
-      action: () => router.push("/lifestyle-rewards"),
-    },
-    {
       id: "referral",
       title: "Refer a Friend",
       icon: "gift.fill",

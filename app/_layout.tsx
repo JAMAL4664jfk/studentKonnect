@@ -16,6 +16,7 @@ import { ThemeProvider } from "@/lib/theme-provider";
 import { WalletProvider } from "@/contexts/WalletContext";
 import { InstitutionProvider } from "@/contexts/InstitutionContext";
 import { ChatProvider } from "@/contexts/ChatContext";
+import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import Toast from "react-native-toast-message";
 import {
   SafeAreaFrameContext,
@@ -124,6 +125,7 @@ export default function RootLayout() {
           <InstitutionProvider>
             <WalletProvider>
               <ChatProvider>
+              <NotificationsProvider>
               {/* Default to hiding native headers so raw route segments don't appear (e.g. "(tabs)", "products/[id]"). */}
               {/* If a screen needs the native header, explicitly enable it and set a human title via Stack.Screen options. */}
               {/* in order for ios apps tab switching to work properly, use presentation: "fullScreenModal" for login page, whenever you decide to use presentation: "modal*/}
@@ -134,6 +136,7 @@ export default function RootLayout() {
           </Stack>
               <StatusBar style="auto" />
               <Toast />
+              </NotificationsProvider>
               </ChatProvider>
             </WalletProvider>
           </InstitutionProvider>
