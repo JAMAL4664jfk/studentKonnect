@@ -294,7 +294,7 @@ export default function ChatScreen() {
   };
 
   const NEWS_CATEGORIES = ["all", "Academic", "Sports", "Arts", "Technology", "Social", "Wellness"];
-  const EVENT_CATEGORIES = ["all", "Career", "Sports", "Technology", "Cultural", "Academic", "Community"];
+  const EVENT_CATEGORIES = ["all", "Career and Innovation", "Sports", "Technology", "Cultural", "Academic", "Community"];
 
   const filteredCampusNews = campusNews.filter(n => {
     const matchSearch = n.title.toLowerCase().includes(newsSearch.toLowerCase()) || n.summary.toLowerCase().includes(newsSearch.toLowerCase());

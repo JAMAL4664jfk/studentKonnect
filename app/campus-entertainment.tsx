@@ -422,7 +422,7 @@ export default function CampusEntertainmentScreen() {
   };
 
   const NEWS_CATEGORIES = ["all", "Academic", "Sports", "Arts", "Technology", "Social", "Wellness"];
-  const EVENT_CATEGORIES = ["all", "Career", "Sports", "Technology", "Cultural", "Academic", "Community"];
+  const EVENT_CATEGORIES = ["all", "Career and Innovation", "Sports", "Technology", "Cultural", "Academic", "Community"];
   const LECTURE_SUBJECTS = ["all", "Business", "Mathematics", "Computer Science", "Economics", "Chemistry", "Law"];
 
   const filteredNews = campusNews.filter(n => {

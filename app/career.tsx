@@ -564,7 +564,7 @@ export default function CareerScreen() {
                   <IconSymbol name="chevron.left" size={24} color="#fff" />
                 </TouchableOpacity>
                 <View className="ml-4">
-                  <Text className="text-2xl font-bold" style={{ color: '#fff' }}>Career</Text>
+                  <Text className="text-2xl font-bold" style={{ color: '#fff' }}>Career and Innovation</Text>
                   <Text className="text-sm" style={{ color: 'rgba(255,255,255,0.75)' }}>Build your future, one step at a time</Text>
                 </View>
               </View>
@@ -724,7 +724,7 @@ export default function CareerScreen() {
                   className="flex-row items-center"
                 >
                   <IconSymbol name="chevron.left" size={20} color={colors.primary} />
-                  <Text className="text-primary font-semibold ml-1">Back to Career</Text>
+                  <Text className="text-primary font-semibold ml-1">Back to Career and Innovation</Text>
                 </TouchableOpacity>
               </View>
 

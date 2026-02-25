@@ -87,9 +87,9 @@ const SERVICES: ServiceItem[] = [
   },
   {
     id: "career",
-    name: "Career",
+    name: "Career and Innovation",
     icon: "briefcase.fill",
-    description: "Career development tools",
+    description: "Career development & innovation tools",
     backgroundImage: require("@/assets/images/career-innovation-hero.jpg"),
     badgeText: "Opportunities",
     badgeColor: "#6366f1",
