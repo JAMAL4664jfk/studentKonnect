@@ -15,7 +15,7 @@ import { Image } from "expo-image";
 import { Audio } from "expo-av";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import * as VideoThumbnails from "expo-video-thumbnails";
+// expo-video-thumbnails loaded dynamically to avoid bundling errors if not installed
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
@@ -301,16 +301,17 @@ export default function PodcastsScreen() {
         });
 
         // Auto-extract thumbnail from video at 1 second mark
-        // Only set if user hasn't already manually picked a thumbnail
         try {
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const VideoThumbnails = require('expo-video-thumbnails');
           const { uri: thumbUri } = await VideoThumbnails.getThumbnailAsync(
             asset.uri,
-            { time: 1000 } // 1 second into the video
+            { time: 1000 }
           );
           setEpisodeThumbnail(thumbUri);
           console.log('Auto-extracted video thumbnail:', thumbUri);
         } catch (thumbError) {
-          // Thumbnail extraction failed — not critical, user can pick one manually
+          // Package not installed or extraction failed — not critical, user can pick manually
           console.warn('Could not auto-extract video thumbnail:', thumbError);
         }
       }
