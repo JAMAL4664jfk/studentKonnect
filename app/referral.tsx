@@ -7,6 +7,7 @@ import {
   Share,
   Linking,
   ActivityIndicator,
+  ImageBackground,
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -227,31 +228,37 @@ export default function ReferralScreen() {
   return (
     <ScreenContainer edges={["top", "left", "right"]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        {/* Header Gradient */}
-        <LinearGradient
-          colors={["#6366f1", "#8b5cf6", "#a855f7"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ paddingTop: 16, paddingBottom: 48, paddingHorizontal: 20 }}
+        {/* Header with Background Image */}
+        <ImageBackground
+          source={require("@/assets/images/hero-multiracial-students.jpg")}
+          style={{ paddingTop: 16, paddingBottom: 48 }}
+          resizeMode="cover"
         >
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 24 }}
+          <LinearGradient
+            colors={["rgba(0,0,0,0.45)", "rgba(99,102,241,0.75)", "rgba(139,92,246,0.90)"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={{ paddingTop: 16, paddingBottom: 0, paddingHorizontal: 20 }}
           >
-            <IconSymbol name="chevron.left" size={20} color="white" />
-            <Text style={{ color: "white", fontSize: 16, fontWeight: "500" }}>Back</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 24 }}
+            >
+              <IconSymbol name="chevron.left" size={20} color="white" />
+              <Text style={{ color: "white", fontSize: 16, fontWeight: "500" }}>Back</Text>
+            </TouchableOpacity>
 
-          <View style={{ alignItems: "center", gap: 12 }}>
-            <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" }}>
-              <IconSymbol name="gift.fill" size={40} color="white" />
+            <View style={{ alignItems: "center", gap: 12, paddingBottom: 48 }}>
+              <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "rgba(255,255,255,0.25)", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(255,255,255,0.4)" }}>
+                <IconSymbol name="gift.fill" size={40} color="white" />
+              </View>
+              <Text style={{ fontSize: 28, fontWeight: "800", color: "white", textAlign: "center", textShadowColor: "rgba(0,0,0,0.4)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 }}>Refer & Grow</Text>
+              <Text style={{ color: "rgba(255,255,255,0.92)", fontSize: 15, textAlign: "center", paddingHorizontal: 16, lineHeight: 22 }}>
+                Invite fellow students to join Student Konnect and grow our community together
+              </Text>
             </View>
-            <Text style={{ fontSize: 28, fontWeight: "800", color: "white", textAlign: "center" }}>Refer & Grow</Text>
-            <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 15, textAlign: "center", paddingHorizontal: 16, lineHeight: 22 }}>
-              Invite fellow students to join Student Konnect and grow our community together
-            </Text>
-          </View>
-        </LinearGradient>
+          </LinearGradient>
+        </ImageBackground>
 
         <View style={{ paddingHorizontal: 16, marginTop: -24, gap: 16 }}>
 
@@ -413,25 +420,33 @@ export default function ReferralScreen() {
             )}
           </View>
 
-          {/* Community Banner */}
-          <LinearGradient
-            colors={["#6366f1", "#8b5cf6"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{ borderRadius: 24, padding: 20 }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-              <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" }}>
-                <IconSymbol name="heart.fill" size={24} color="white" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: "white", fontWeight: "700", fontSize: 16, marginBottom: 4 }}>Grow the Community</Text>
-                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, lineHeight: 18 }}>
-                  Every student you invite strengthens the Student Konnect ecosystem for everyone.
-                </Text>
-              </View>
-            </View>
-          </LinearGradient>
+          {/* Community Banner with Background Image */}
+          <View style={{ borderRadius: 24, overflow: "hidden" }}>
+            <ImageBackground
+              source={require("@/assets/images/lifestyle-rewards-banner.jpg")}
+              style={{ padding: 20 }}
+              resizeMode="cover"
+            >
+              <LinearGradient
+                colors={["rgba(99,102,241,0.82)", "rgba(139,92,246,0.88)"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{ borderRadius: 16, padding: 20 }}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+                  <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.25)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.35)" }}>
+                    <IconSymbol name="heart.fill" size={24} color="white" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: "white", fontWeight: "700", fontSize: 16, marginBottom: 4 }}>Grow the Community</Text>
+                    <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 13, lineHeight: 18 }}>
+                      Every student you invite strengthens the Student Konnect ecosystem for everyone.
+                    </Text>
+                  </View>
+                </View>
+              </LinearGradient>
+            </ImageBackground>
+          </View>
 
         </View>
       </ScrollView>
