@@ -12,6 +12,8 @@ import {
   Pressable,
   ImageBackground,
   Alert,
+  ActivityIndicator,
+  Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -87,7 +89,34 @@ type User = {
   course_program: string | null;
 };
 
-type TabType = "chats" | "groups" | "calls" | "status" | "discover";
+type TabType = "chats" | "campus" | "groups" | "calls" | "status" | "discover";
+
+type CampusNews = {
+  id: string;
+  title: string;
+  summary: string;
+  content: string;
+  image_url: string | null;
+  category: string;
+  author: string;
+  published_at: string;
+};
+
+type CampusEvent = {
+  id: string;
+  title: string;
+  description: string;
+  full_description: string;
+  image_url: string | null;
+  event_date: string;
+  end_date: string | null;
+  location: string;
+  category: string;
+  organizer: string;
+  capacity: number | null;
+  registration_url: string | null;
+  featured: boolean;
+};
 
 // Safety function to ensure we always render strings, never objects
 const safeString = (value: any): string => {
@@ -109,6 +138,21 @@ export default function ChatScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("chats");
   const [showTabDropdown, setShowTabDropdown] = useState(false);
+
+  // Campus Feed state
+  const [campusNews, setCampusNews] = useState<CampusNews[]>([]);
+  const [campusEvents, setCampusEvents] = useState<CampusEvent[]>([]);
+  const [campusLoading, setCampusLoading] = useState(false);
+  const [campusRefreshing, setCampusRefreshing] = useState(false);
+  const [campusFeedTab, setCampusFeedTab] = useState<"news" | "events">("news");
+  const [newsSearch, setNewsSearch] = useState("");
+  const [eventsSearch, setEventsSearch] = useState("");
+  const [selectedNewsCategory, setSelectedNewsCategory] = useState("all");
+  const [selectedEventsCategory, setSelectedEventsCategory] = useState("all");
+  const [selectedNews, setSelectedNews] = useState<CampusNews | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CampusEvent | null>(null);
+  const [likedNews, setLikedNews] = useState<Set<string>>(new Set());
+  const [likedEvents, setLikedEvents] = useState<Set<string>>(new Set());
 
   // Format last message for display
   const formatLastMessage = (message: string | null): string => {
@@ -188,7 +232,81 @@ export default function ChatScreen() {
     };
 
     getCurrentUser();
+    fetchCampusData();
   }, []);
+
+  const fetchCampusData = async (isRefresh = false) => {
+    if (isRefresh) setCampusRefreshing(true);
+    else setCampusLoading(true);
+    try {
+      const [newsRes, eventsRes] = await Promise.all([
+        supabase.from("campus_news").select("*").order("published_at", { ascending: false }),
+        supabase.from("campus_events").select("*").order("event_date", { ascending: true }),
+      ]);
+      if (newsRes.data) setCampusNews(newsRes.data);
+      if (eventsRes.data) setCampusEvents(eventsRes.data);
+    } catch (err) {
+      Toast.show({ type: "error", text1: "Error", text2: "Failed to load campus content" });
+    } finally {
+      setCampusLoading(false);
+      setCampusRefreshing(false);
+    }
+  };
+
+  const toggleCampusLike = async (contentType: "news" | "event", contentId: string) => {
+    if (!currentUserId) {
+      Toast.show({ type: "info", text1: "Sign in required", text2: "Please sign in to like content" });
+      return;
+    }
+    const likedSet = contentType === "news" ? likedNews : likedEvents;
+    const setLiked = contentType === "news" ? setLikedNews : setLikedEvents;
+    const isLiked = likedSet.has(contentId);
+    try {
+      if (isLiked) {
+        await supabase.from("content_likes").delete().eq("user_id", currentUserId).eq("content_type", contentType).eq("content_id", contentId);
+        setLiked(prev => { const n = new Set(prev); n.delete(contentId); return n; });
+      } else {
+        await supabase.from("content_likes").insert({ user_id: currentUserId, content_type: contentType, content_id: contentId });
+        setLiked(prev => new Set([...prev, contentId]));
+      }
+    } catch (e) {}
+  };
+
+  const campusTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString("en", { month: "short", day: "numeric" });
+  };
+
+  const campusFormatEventDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("en", { weekday: "short", month: "short", day: "numeric" });
+  };
+
+  const campusFormatEventTime = (dateStr: string) => {
+    return new Date(dateStr).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const NEWS_CATEGORIES = ["all", "Academic", "Sports", "Arts", "Technology", "Social", "Wellness"];
+  const EVENT_CATEGORIES = ["all", "Career and Innovation", "Sports", "Technology", "Cultural", "Academic", "Community"];
+
+  const filteredCampusNews = campusNews.filter(n => {
+    const matchSearch = n.title.toLowerCase().includes(newsSearch.toLowerCase()) || n.summary.toLowerCase().includes(newsSearch.toLowerCase());
+    const matchCat = selectedNewsCategory === "all" || n.category === selectedNewsCategory;
+    return matchSearch && matchCat;
+  });
+
+  const filteredCampusEvents = campusEvents.filter(e => {
+    const matchSearch = e.title.toLowerCase().includes(eventsSearch.toLowerCase()) || e.description.toLowerCase().includes(eventsSearch.toLowerCase());
+    const matchCat = selectedEventsCategory === "all" || e.category === selectedEventsCategory;
+    return matchSearch && matchCat;
+  });
 
   // Real-time subscriptions
   useEffect(() => {
@@ -820,6 +938,7 @@ export default function ChatScreen() {
 
   const tabs: { key: TabType; label: string; icon: string }[] = [
     { key: "chats", label: "Chats", icon: "message.fill" },
+    { key: "campus", label: "Campus Feed", icon: "newspaper.fill" },
     { key: "groups", label: "Groups", icon: "person.3.fill" },
     { key: "calls", label: "Calls", icon: "phone.fill" },
     { key: "status", label: "Status", icon: "circle.fill" },
@@ -833,7 +952,7 @@ export default function ChatScreen() {
         <View className="px-4 py-3 border-b border-border">
           <View className="flex-row items-center justify-between">
             <Text className="text-2xl font-bold text-foreground">
-              {userInstitution ? `${userInstitution.shortName} Konnect` : "Student Konnect"}
+              Peer to Peer
             </Text>
             <View className="flex-row gap-3">
               <TouchableOpacity onPress={() => router.push("/connection-requests" as any)}>
@@ -1148,6 +1267,308 @@ export default function ChatScreen() {
               }
             />
             </ImageBackground>
+          )}
+
+          {activeTab === "campus" && (
+            <View style={{ flex: 1 }}>
+              {/* Campus Feed Sub-tabs */}
+              <View className="flex-row border-b border-border">
+                <TouchableOpacity
+                  onPress={() => setCampusFeedTab("news")}
+                  className="flex-1 py-3 items-center"
+                  style={{ borderBottomWidth: campusFeedTab === "news" ? 2 : 0, borderBottomColor: colors.primary }}
+                >
+                  <Text className="text-sm font-semibold" style={{ color: campusFeedTab === "news" ? colors.primary : colors.muted }}>News</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setCampusFeedTab("events")}
+                  className="flex-1 py-3 items-center"
+                  style={{ borderBottomWidth: campusFeedTab === "events" ? 2 : 0, borderBottomColor: colors.primary }}
+                >
+                  <Text className="text-sm font-semibold" style={{ color: campusFeedTab === "events" ? colors.primary : colors.muted }}>Events</Text>
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView
+                className="flex-1"
+                contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={campusRefreshing}
+                    onRefresh={() => fetchCampusData(true)}
+                    tintColor={colors.primary}
+                  />
+                }
+              >
+                {campusFeedTab === "news" && (
+                  <View style={{ gap: 16 }}>
+                    {/* Search */}
+                    <View className="flex-row items-center bg-surface border border-border rounded-2xl px-4 py-3" style={{ gap: 12 }}>
+                      <IconSymbol name="magnifyingglass" size={18} color={colors.muted} />
+                      <TextInput
+                        value={newsSearch}
+                        onChangeText={setNewsSearch}
+                        placeholder="Search campus news..."
+                        placeholderTextColor={colors.muted}
+                        className="flex-1 text-foreground text-sm"
+                      />
+                    </View>
+                    {/* Category Filter */}
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <View className="flex-row" style={{ gap: 8 }}>
+                        {NEWS_CATEGORIES.map(cat => (
+                          <TouchableOpacity
+                            key={cat}
+                            onPress={() => setSelectedNewsCategory(cat)}
+                            className="px-4 py-2 rounded-full border"
+                            style={{
+                              borderColor: selectedNewsCategory === cat ? colors.primary : colors.border,
+                              backgroundColor: selectedNewsCategory === cat ? colors.primary : colors.surface,
+                            }}
+                          >
+                            <Text className="text-xs font-semibold capitalize" style={{ color: selectedNewsCategory === cat ? "#fff" : colors.muted }}>{cat}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </ScrollView>
+                    {/* News List */}
+                    {campusLoading ? (
+                      <View className="items-center py-12">
+                        <ActivityIndicator size="large" color={colors.primary} />
+                        <Text className="text-muted text-sm mt-3">Loading campus news...</Text>
+                      </View>
+                    ) : filteredCampusNews.length === 0 ? (
+                      <View className="items-center py-12">
+                        <IconSymbol name="newspaper" size={48} color={colors.muted} />
+                        <Text className="text-muted text-base mt-3">No news found</Text>
+                      </View>
+                    ) : (
+                      filteredCampusNews.map(item => (
+                        <TouchableOpacity
+                          key={item.id}
+                          onPress={() => setSelectedNews(item)}
+                          className="bg-surface rounded-3xl overflow-hidden border border-border"
+                          style={{ shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 }}
+                        >
+                          {item.image_url && (
+                            <Image source={{ uri: item.image_url }} style={{ width: "100%", height: 180, resizeMode: "cover" }} />
+                          )}
+                          <View className="p-4" style={{ gap: 8 }}>
+                            <View className="flex-row items-center" style={{ gap: 8 }}>
+                              <View className="px-3 py-1 rounded-full" style={{ backgroundColor: colors.primary + "20" }}>
+                                <Text className="text-xs font-bold" style={{ color: colors.primary }}>{item.category}</Text>
+                              </View>
+                              <Text className="text-xs text-muted">{campusTimeAgo(item.published_at)}</Text>
+                            </View>
+                            <Text className="text-base font-bold text-foreground leading-snug">{item.title}</Text>
+                            <Text className="text-sm text-muted leading-relaxed" numberOfLines={2}>{item.summary}</Text>
+                            <View className="flex-row items-center justify-between mt-1">
+                              <Text className="text-xs text-muted">By {item.author}</Text>
+                              <TouchableOpacity onPress={() => toggleCampusLike("news", item.id)} className="flex-row items-center" style={{ gap: 4 }}>
+                                <IconSymbol name={likedNews.has(item.id) ? "heart.fill" : "heart"} size={16} color={likedNews.has(item.id) ? "#ef4444" : colors.muted} />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      ))
+                    )}
+                  </View>
+                )}
+
+                {campusFeedTab === "events" && (
+                  <View style={{ gap: 16 }}>
+                    {/* Search */}
+                    <View className="flex-row items-center bg-surface border border-border rounded-2xl px-4 py-3" style={{ gap: 12 }}>
+                      <IconSymbol name="magnifyingglass" size={18} color={colors.muted} />
+                      <TextInput
+                        value={eventsSearch}
+                        onChangeText={setEventsSearch}
+                        placeholder="Search events..."
+                        placeholderTextColor={colors.muted}
+                        className="flex-1 text-foreground text-sm"
+                      />
+                    </View>
+                    {/* Category Filter */}
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <View className="flex-row" style={{ gap: 8 }}>
+                        {EVENT_CATEGORIES.map(cat => (
+                          <TouchableOpacity
+                            key={cat}
+                            onPress={() => setSelectedEventsCategory(cat)}
+                            className="px-4 py-2 rounded-full border"
+                            style={{
+                              borderColor: selectedEventsCategory === cat ? colors.primary : colors.border,
+                              backgroundColor: selectedEventsCategory === cat ? colors.primary : colors.surface,
+                            }}
+                          >
+                            <Text className="text-xs font-semibold capitalize" style={{ color: selectedEventsCategory === cat ? "#fff" : colors.muted }}>{cat}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </ScrollView>
+                    {/* Events List */}
+                    {campusLoading ? (
+                      <View className="items-center py-12">
+                        <ActivityIndicator size="large" color={colors.primary} />
+                        <Text className="text-muted text-sm mt-3">Loading events...</Text>
+                      </View>
+                    ) : filteredCampusEvents.length === 0 ? (
+                      <View className="items-center py-12">
+                        <IconSymbol name="calendar" size={48} color={colors.muted} />
+                        <Text className="text-muted text-base mt-3">No events found</Text>
+                      </View>
+                    ) : (
+                      filteredCampusEvents.map(item => (
+                        <TouchableOpacity
+                          key={item.id}
+                          onPress={() => setSelectedEvent(item)}
+                          className="bg-surface rounded-3xl overflow-hidden border border-border"
+                          style={{ shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 }}
+                        >
+                          {item.image_url && (
+                            <Image source={{ uri: item.image_url }} style={{ width: "100%", height: 180, resizeMode: "cover" }} />
+                          )}
+                          <View className="p-4" style={{ gap: 8 }}>
+                            <View className="flex-row items-center" style={{ gap: 8 }}>
+                              <View className="px-3 py-1 rounded-full" style={{ backgroundColor: "#f59e0b20" }}>
+                                <Text className="text-xs font-bold" style={{ color: "#f59e0b" }}>{item.category}</Text>
+                              </View>
+                              {item.featured && (
+                                <View className="px-3 py-1 rounded-full" style={{ backgroundColor: colors.primary + "20" }}>
+                                  <Text className="text-xs font-bold" style={{ color: colors.primary }}>Featured</Text>
+                                </View>
+                              )}
+                            </View>
+                            <Text className="text-base font-bold text-foreground leading-snug">{item.title}</Text>
+                            <Text className="text-sm text-muted" numberOfLines={2}>{item.description}</Text>
+                            <View className="flex-row items-center" style={{ gap: 16, marginTop: 4 }}>
+                              <View className="flex-row items-center" style={{ gap: 4 }}>
+                                <IconSymbol name="calendar" size={14} color={colors.muted} />
+                                <Text className="text-xs text-muted">{campusFormatEventDate(item.event_date)}</Text>
+                              </View>
+                              <View className="flex-row items-center" style={{ gap: 4 }}>
+                                <IconSymbol name="clock" size={14} color={colors.muted} />
+                                <Text className="text-xs text-muted">{campusFormatEventTime(item.event_date)}</Text>
+                              </View>
+                            </View>
+                            <View className="flex-row items-center" style={{ gap: 4 }}>
+                              <IconSymbol name="mappin" size={14} color={colors.muted} />
+                              <Text className="text-xs text-muted">{item.location}</Text>
+                            </View>
+                            <View className="flex-row items-center justify-between mt-1">
+                              <Text className="text-xs text-muted">By {item.organizer}</Text>
+                              <TouchableOpacity onPress={() => toggleCampusLike("event", item.id)} className="flex-row items-center" style={{ gap: 4 }}>
+                                <IconSymbol name={likedEvents.has(item.id) ? "heart.fill" : "heart"} size={16} color={likedEvents.has(item.id) ? "#ef4444" : colors.muted} />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      ))
+                    )}
+                  </View>
+                )}
+              </ScrollView>
+
+              {/* News Detail Modal */}
+              <Modal visible={!!selectedNews} animationType="slide" onRequestClose={() => setSelectedNews(null)}>
+                <ScreenContainer edges={["top", "left", "right"]}>
+                  <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+                    <TouchableOpacity onPress={() => setSelectedNews(null)} className="flex-row items-center px-4 py-3" style={{ gap: 8 }}>
+                      <IconSymbol name="chevron.left" size={20} color={colors.primary} />
+                      <Text className="text-primary font-semibold">Back</Text>
+                    </TouchableOpacity>
+                    {selectedNews?.image_url && (
+                      <Image source={{ uri: selectedNews.image_url }} style={{ width: "100%", height: 220, resizeMode: "cover" }} />
+                    )}
+                    <View className="px-4 pt-4" style={{ gap: 12 }}>
+                      <View className="flex-row items-center" style={{ gap: 8 }}>
+                        <View className="px-3 py-1 rounded-full" style={{ backgroundColor: colors.primary + "20" }}>
+                          <Text className="text-xs font-bold" style={{ color: colors.primary }}>{selectedNews?.category}</Text>
+                        </View>
+                        <Text className="text-xs text-muted">{selectedNews ? campusTimeAgo(selectedNews.published_at) : ""}</Text>
+                      </View>
+                      <Text className="text-2xl font-bold text-foreground leading-tight">{selectedNews?.title}</Text>
+                      <Text className="text-sm text-muted font-semibold">{selectedNews?.summary}</Text>
+                      <View className="border-t border-border pt-3">
+                        <Text className="text-base text-foreground leading-relaxed">{selectedNews?.content}</Text>
+                      </View>
+                      <Text className="text-xs text-muted pt-2">By {selectedNews?.author}</Text>
+                    </View>
+                  </ScrollView>
+                </ScreenContainer>
+              </Modal>
+
+              {/* Event Detail Modal */}
+              <Modal visible={!!selectedEvent} animationType="slide" onRequestClose={() => setSelectedEvent(null)}>
+                <ScreenContainer edges={["top", "left", "right"]}>
+                  <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+                    <TouchableOpacity onPress={() => setSelectedEvent(null)} className="flex-row items-center px-4 py-3" style={{ gap: 8 }}>
+                      <IconSymbol name="chevron.left" size={20} color={colors.primary} />
+                      <Text className="text-primary font-semibold">Back</Text>
+                    </TouchableOpacity>
+                    {selectedEvent?.image_url && (
+                      <Image source={{ uri: selectedEvent.image_url }} style={{ width: "100%", height: 220, resizeMode: "cover" }} />
+                    )}
+                    <View className="px-4 pt-4" style={{ gap: 16 }}>
+                      <View className="flex-row items-center flex-wrap" style={{ gap: 8 }}>
+                        <View className="px-3 py-1 rounded-full" style={{ backgroundColor: "#f59e0b20" }}>
+                          <Text className="text-xs font-bold" style={{ color: "#f59e0b" }}>{selectedEvent?.category}</Text>
+                        </View>
+                        {selectedEvent?.featured && (
+                          <View className="px-3 py-1 rounded-full" style={{ backgroundColor: colors.primary + "20" }}>
+                            <Text className="text-xs font-bold" style={{ color: colors.primary }}>Featured</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text className="text-2xl font-bold text-foreground leading-tight">{selectedEvent?.title}</Text>
+                      <Text className="text-base text-muted">{selectedEvent?.description}</Text>
+                      <View className="bg-surface rounded-2xl p-4 border border-border" style={{ gap: 12 }}>
+                        <View className="flex-row items-start" style={{ gap: 12 }}>
+                          <IconSymbol name="calendar" size={18} color={colors.primary} />
+                          <View>
+                            <Text className="text-xs font-bold text-foreground">Date &amp; Time</Text>
+                            <Text className="text-sm text-muted">{selectedEvent ? campusFormatEventDate(selectedEvent.event_date) : ""} at {selectedEvent ? campusFormatEventTime(selectedEvent.event_date) : ""}</Text>
+                          </View>
+                        </View>
+                        <View className="flex-row items-start" style={{ gap: 12 }}>
+                          <IconSymbol name="mappin" size={18} color={colors.primary} />
+                          <View>
+                            <Text className="text-xs font-bold text-foreground">Location</Text>
+                            <Text className="text-sm text-muted">{selectedEvent?.location}</Text>
+                          </View>
+                        </View>
+                        {selectedEvent?.capacity && (
+                          <View className="flex-row items-start" style={{ gap: 12 }}>
+                            <IconSymbol name="person.2.fill" size={18} color={colors.primary} />
+                            <View>
+                              <Text className="text-xs font-bold text-foreground">Capacity</Text>
+                              <Text className="text-sm text-muted">{selectedEvent.capacity} people</Text>
+                            </View>
+                          </View>
+                        )}
+                        <View className="flex-row items-start" style={{ gap: 12 }}>
+                          <IconSymbol name="person.fill" size={18} color={colors.primary} />
+                          <View>
+                            <Text className="text-xs font-bold text-foreground">Organizer</Text>
+                            <Text className="text-sm text-muted">{selectedEvent?.organizer}</Text>
+                          </View>
+                        </View>
+                      </View>
+                      <Text className="text-base text-foreground leading-relaxed">{selectedEvent?.full_description}</Text>
+                      {selectedEvent?.registration_url && (
+                        <TouchableOpacity
+                          onPress={() => selectedEvent.registration_url && Linking.openURL(selectedEvent.registration_url)}
+                          className="rounded-2xl py-4 items-center"
+                          style={{ backgroundColor: colors.primary }}
+                        >
+                          <Text className="text-white font-bold text-base">Register Now</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </ScrollView>
+                </ScreenContainer>
+              </Modal>
+            </View>
           )}
 
           {activeTab === "groups" && (

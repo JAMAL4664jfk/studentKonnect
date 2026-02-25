@@ -194,24 +194,40 @@ export default function MarketplaceScreen() {
       Toast.show({ type: "info", text1: "Sign in to chat with sellers" });
       return;
     }
-    if (item.userId === currentUserId) {
+
+    // Resolve seller ID — re-fetch if missing (can be null if RLS blocked it)
+    let sellerId: string | null = item.userId || null;
+    if (!sellerId) {
+      const { data: freshItem } = await supabase
+        .from("marketplaceItems")
+        .select('"userId"')
+        .eq("id", item.id)
+        .maybeSingle();
+      sellerId = (freshItem as any)?.userId || null;
+    }
+    if (!sellerId) {
+      Toast.show({ type: "error", text1: "Cannot identify seller", text2: "Please try again" });
+      return;
+    }
+    if (sellerId === currentUserId) {
       Toast.show({ type: "info", text1: "This is your own listing" });
       return;
     }
+
     setChatLoading(true);
     try {
       // Find or create conversation
       const { data: existing } = await supabase
         .from("conversations")
         .select("*")
-        .or(`and(participant1_id.eq.${currentUserId},participant2_id.eq.${item.userId}),and(participant1_id.eq.${item.userId},participant2_id.eq.${currentUserId})`)
+        .or(`and(participant1_id.eq.${currentUserId},participant2_id.eq.${sellerId}),and(participant1_id.eq.${sellerId},participant2_id.eq.${currentUserId})`)
         .maybeSingle();
 
       let conversationId = existing?.id;
 
       if (!conversationId) {
         // Sort IDs to satisfy CHECK (participant1_id < participant2_id) constraint
-        const [p1, p2] = [currentUserId, item.userId].sort();
+        const [p1, p2] = [currentUserId, sellerId].sort();
         const { data: newConv, error: convError } = await supabase
           .from("conversations")
           .insert({ participant1_id: p1, participant2_id: p2 })
@@ -240,7 +256,7 @@ export default function MarketplaceScreen() {
             conversationId,
             otherUserName: item.seller?.full_name || "Seller",
             otherUserPhoto: item.seller?.avatar_url || "",
-            otherUserId: item.userId,
+            otherUserId: sellerId,
           },
         });
       }

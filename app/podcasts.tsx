@@ -8,6 +8,7 @@ import {
   Modal,
   Pressable,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
@@ -15,7 +16,7 @@ import { Image } from "expo-image";
 import { Audio } from "expo-av";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import * as VideoThumbnails from "expo-video-thumbnails";
+import * as VideoThumbnails from 'expo-video-thumbnails';
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
@@ -81,7 +82,7 @@ type Comment = {
   replies?: Comment[];
 };
 
-const CATEGORIES = ["All Episodes", "Education", "Career", "Mental Health", "Technology", "Campus Life"];
+const CATEGORIES = ["All Episodes", "Education", "Career and Innovation", "Mental Health", "Technology", "Campus Life"];
 
 export default function PodcastsScreen() {
   const colors = useColors();
@@ -129,6 +130,9 @@ export default function PodcastsScreen() {
   const [videoFile, setVideoFile] = useState<{ uri: string; name: string; mimeType: string } | null>(null);
   const [episodeThumbnail, setEpisodeThumbnail] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+
+  // Cache for dynamically generated video thumbnails (keyed by episode id)
+  const [videoThumbnailCache, setVideoThumbnailCache] = useState<Record<string, string>>({});
 
   // Series Detail Modal
   const [selectedSeries, setSelectedSeries] = useState<Series | null>(null);
@@ -301,16 +305,15 @@ export default function PodcastsScreen() {
         });
 
         // Auto-extract thumbnail from video at 1 second mark
-        // Only set if user hasn't already manually picked a thumbnail
         try {
           const { uri: thumbUri } = await VideoThumbnails.getThumbnailAsync(
             asset.uri,
-            { time: 1000 } // 1 second into the video
+            { time: 1000, quality: 0.8 }
           );
           setEpisodeThumbnail(thumbUri);
           console.log('Auto-extracted video thumbnail:', thumbUri);
         } catch (thumbError) {
-          // Thumbnail extraction failed — not critical, user can pick one manually
+          // Extraction failed — not critical, user can pick manually
           console.warn('Could not auto-extract video thumbnail:', thumbError);
         }
       }
@@ -371,23 +374,21 @@ export default function PodcastsScreen() {
     try {
       let thumbnailUrl = null;
 
-      // Upload thumbnail if provided (using FormData for React Native compatibility)
+      // Upload thumbnail using fetch+blob (reliable for local file:// URIs)
       if (seriesThumbnail) {
-        const fileName = `thumbnails/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
-        const formData = new FormData();
-        formData.append('file', {
-          uri: seriesThumbnail,
-          type: 'image/jpeg',
-          name: fileName.split('/').pop(),
-        } as any);
-
-        const { error: uploadError } = await supabase.storage
-          .from("podcasts")
-          .upload(fileName, formData, { contentType: 'image/jpeg' });
-
-        if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage.from("podcasts").getPublicUrl(fileName);
-          thumbnailUrl = publicUrl;
+        try {
+          const fileName = `thumbnails/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+          const thumbResponse = await fetch(seriesThumbnail);
+          const thumbBlob = await thumbResponse.blob();
+          const { error: uploadError } = await supabase.storage
+            .from("podcasts")
+            .upload(fileName, thumbBlob, { contentType: 'image/jpeg' });
+          if (!uploadError) {
+            const { data: { publicUrl } } = supabase.storage.from("podcasts").getPublicUrl(fileName);
+            thumbnailUrl = publicUrl;
+          }
+        } catch (thumbErr) {
+          console.warn('Series thumbnail upload error (non-blocking):', thumbErr);
         }
       }
 
@@ -516,20 +517,16 @@ export default function PodcastsScreen() {
         console.log('Video uploaded successfully:', videoUrl);
       }
 
-       // Upload thumbnail if user picked one (works for both audio and video)
+      // Upload thumbnail using fetch+blob (reliable for local file:// URIs from expo-video-thumbnails)
       let thumbnailUrl = null;
       if (episodeThumbnail) {
         try {
           const thumbFileName = `thumbnails/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
-          const thumbFormData = new FormData();
-          thumbFormData.append('file', {
-            uri: episodeThumbnail,
-            type: 'image/jpeg',
-            name: thumbFileName.split('/').pop(),
-          } as any);
+          const thumbResponse = await fetch(episodeThumbnail);
+          const thumbBlob = await thumbResponse.blob();
           const { error: thumbUploadError } = await supabase.storage
             .from('podcasts')
-            .upload(thumbFileName, thumbFormData, { contentType: 'image/jpeg' });
+            .upload(thumbFileName, thumbBlob, { contentType: 'image/jpeg' });
           if (!thumbUploadError) {
             const { data: { publicUrl } } = supabase.storage.from('podcasts').getPublicUrl(thumbFileName);
             thumbnailUrl = publicUrl;
@@ -885,8 +882,38 @@ export default function PodcastsScreen() {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  const generateVideoThumbnail = async (episodeId: string, videoUrl: string) => {
+    // Skip if already cached or already being generated
+    if (videoThumbnailCache[episodeId] || videoThumbnailCache[episodeId] === 'loading') return;
+    // Mark as loading to prevent duplicate calls
+    setVideoThumbnailCache(prev => ({ ...prev, [episodeId]: 'loading' }));
+    try {
+      const { uri } = await VideoThumbnails.getThumbnailAsync(videoUrl, { time: 2000, quality: 0.7 });
+      setVideoThumbnailCache(prev => ({ ...prev, [episodeId]: uri }));
+    } catch (e) {
+      // Remove loading marker on failure so it won't retry endlessly
+      setVideoThumbnailCache(prev => {
+        const next = { ...prev };
+        delete next[episodeId];
+        return next;
+      });
+    }
+  };
+
   const renderPodcast = ({ item }: { item: Podcast }) => {
     const isCurrentlyPlaying = playingId === item.id && isPlaying;
+    // Determine the best thumbnail to show:
+    // 1. Stored thumbnail_url from DB (uploaded at creation time)
+    // 2. Dynamically generated from video_url (for video episodes with no stored thumbnail)
+    const displayThumbnail = item.thumbnail_url ||
+      (item.media_type === 'video' && item.video_url && videoThumbnailCache[item.id] !== 'loading'
+        ? videoThumbnailCache[item.id] || null
+        : null);
+
+    // Trigger on-the-fly thumbnail generation for video episodes without a stored thumbnail
+    if (!item.thumbnail_url && item.media_type === 'video' && item.video_url && !videoThumbnailCache[item.id]) {
+      generateVideoThumbnail(item.id, item.video_url);
+    }
 
     return (
       <TouchableOpacity
@@ -901,20 +928,25 @@ export default function PodcastsScreen() {
               {item.title}
             </Text>
             
-		            {/* Thumbnail */}
-		            <View className="relative mb-3">
-		              {item.thumbnail_url ? (
-		                <Image
-		                  source={{ uri: item.thumbnail_url }}
-		                  className="w-full h-48 rounded-xl"
-		                  contentFit="cover"
-		                />
-		              ) : (
+            {/* Thumbnail */}
+            <View className="relative mb-3">
+              {displayThumbnail ? (
+                <Image
+                  source={{ uri: displayThumbnail }}
+                  className="w-full h-48 rounded-xl"
+                  contentFit="cover"
+                />
+              ) : videoThumbnailCache[item.id] === 'loading' ? (
+                <View className="w-full h-48 rounded-xl bg-primary/10 items-center justify-center">
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text className="text-xs text-muted mt-2">Loading thumbnail...</Text>
+                </View>
+              ) : (
                 <View className="w-full h-48 rounded-xl bg-primary/20 items-center justify-center">
-                  <IconSymbol 
-                    name={item.media_type === "video" ? "video.fill" : "mic.fill"} 
-                    size={48} 
-                    color={colors.primary} 
+                  <IconSymbol
+                    name={item.media_type === "video" ? "video.fill" : "mic.fill"}
+                    size={48}
+                    color={colors.primary}
                   />
                 </View>
               )}

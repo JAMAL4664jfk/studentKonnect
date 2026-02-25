@@ -97,6 +97,14 @@ const config: ExpoConfig = {
   plugins: [
     "expo-router",
     [
+      "expo-notifications",
+      {
+        icon: "./assets/images/icon.png",
+        color: "#6366f1",
+        sounds: [],
+      },
+    ],
+    [
       "expo-image-picker",
       {
         photosPermission: false,
