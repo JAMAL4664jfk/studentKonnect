@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   Dimensions,
   ActivityIndicator,
   Share,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
 } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -100,6 +102,7 @@ export default function MarketplaceScreen() {
   const [headerExpanded, setHeaderExpanded] = useState(true);
   const [chatLoading, setChatLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
     fetchItems();
@@ -370,132 +373,269 @@ export default function MarketplaceScreen() {
   // ─── Detail Modal ────────────────────────────────────────────────────────────
   const renderDetailModal = () => {
     if (!selectedItem) return null;
-    const imagesArray = parseJSON(selectedItem.images);
+    const imagesArray = parseJSON(selectedItem.images).filter((img: string) => img && !img.startsWith("/assets"));
     const conditionColors = getConditionColor(selectedItem.condition);
     const isFavorite = favorites.has(selectedItem.id);
     const sellerName = selectedItem.seller?.full_name || "Student Seller";
     const sellerAvatar = selectedItem.seller?.avatar_url;
     const sellerInitial = sellerName.charAt(0).toUpperCase();
     const isOwnListing = selectedItem.userId === currentUserId;
+    const postedDate = new Date(selectedItem.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
 
     return (
-      <Modal visible={showDetailModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowDetailModal(false)}>
+      <Modal
+        visible={showDetailModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => { setShowDetailModal(false); setActiveImageIndex(0); }}
+      >
         <ScreenContainer>
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-            {/* Header */}
-            <View className="flex-row items-center justify-between mb-4 pt-2">
-              <TouchableOpacity onPress={() => setShowDetailModal(false)} className="w-10 h-10 rounded-full bg-surface items-center justify-center">
-                <IconSymbol name="chevron.left" size={20} color={colors.foreground} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => toggleFavorite(selectedItem.id)} className="w-10 h-10 rounded-full bg-surface items-center justify-center">
-                <IconSymbol name={isFavorite ? "heart.fill" : "heart"} size={22} color={isFavorite ? "#ef4444" : colors.foreground} />
-              </TouchableOpacity>
-            </View>
 
-            {/* Images Carousel */}
-            {imagesArray.length > 0 && !imagesArray[0].startsWith("/assets") && (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
-                {imagesArray.map((img: string, index: number) => (
-                  <Image key={index} source={{ uri: img }} className="w-80 h-64 rounded-2xl mr-3" contentFit="cover" />
-                ))}
-              </ScrollView>
-            )}
+            {/* ── Full-width Image Gallery ── */}
+            {imagesArray.length > 0 ? (
+              <View className="mb-0" style={{ position: "relative" }}>
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+                    const idx = Math.round(e.nativeEvent.contentOffset.x / width);
+                    setActiveImageIndex(idx);
+                  }}
+                  scrollEventThrottle={16}
+                >
+                  {imagesArray.map((img: string, index: number) => (
+                    <Image
+                      key={index}
+                      source={{ uri: img }}
+                      style={{ width, height: 320 }}
+                      contentFit="cover"
+                      cachePolicy="memory-disk"
+                    />
+                  ))}
+                </ScrollView>
 
-            <Text className="text-3xl font-bold text-foreground mb-3">{selectedItem.title}</Text>
-
-            {/* Badges */}
-            <View className="flex-row items-center gap-2 mb-4">
-              <View className="px-3 py-1.5 rounded-lg" style={{ backgroundColor: conditionColors.bg }}>
-                <Text className="text-sm font-bold capitalize" style={{ color: conditionColors.text }}>{selectedItem.condition.replace("-", " ")}</Text>
-              </View>
-              <View className="px-3 py-1.5 bg-primary/20 rounded-lg">
-                <Text className="text-sm font-bold text-primary capitalize">{selectedItem.category}</Text>
-              </View>
-              {selectedItem.isFeatured && (
-                <View className="px-3 py-1.5 bg-yellow-500/20 rounded-lg flex-row items-center gap-1">
-                  <IconSymbol name="star.fill" size={14} color="#eab308" />
-                  <Text className="text-sm font-bold" style={{ color: "#eab308" }}>Featured</Text>
+                {/* Overlay top bar */}
+                <View
+                  className="absolute top-0 left-0 right-0 flex-row items-center justify-between px-4 pt-4"
+                  style={{ backgroundColor: "rgba(0,0,0,0.25)" }}
+                >
+                  <TouchableOpacity
+                    onPress={() => { setShowDetailModal(false); setActiveImageIndex(0); }}
+                    className="w-10 h-10 rounded-full items-center justify-center"
+                    style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+                  >
+                    <IconSymbol name="chevron.left" size={20} color="#fff" />
+                  </TouchableOpacity>
+                  <View className="flex-row items-center gap-2">
+                    <TouchableOpacity
+                      onPress={() => toggleFavorite(selectedItem.id)}
+                      className="w-10 h-10 rounded-full items-center justify-center"
+                      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+                    >
+                      <IconSymbol name={isFavorite ? "heart.fill" : "heart"} size={20} color={isFavorite ? "#ef4444" : "#fff"} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={async () => {
+                        try { await Share.share({ message: `Check out "${selectedItem.title}" for R${parseFloat(selectedItem.price).toLocaleString()} on StudentKonnect!` }); } catch {}
+                      }}
+                      className="w-10 h-10 rounded-full items-center justify-center"
+                      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+                    >
+                      <IconSymbol name="square.and.arrow.up" size={18} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              )}
-            </View>
 
-            {/* Price Card */}
-            <View className="bg-primary/10 rounded-2xl p-5 mb-6">
-              <Text className="text-4xl font-bold text-primary mb-2">R{parseFloat(selectedItem.price).toLocaleString()}</Text>
-              <View className="flex-row items-center gap-4 mt-2">
-                <View className="flex-row items-center gap-1">
-                  <IconSymbol name="eye" size={16} color={colors.muted} />
-                  <Text className="text-sm text-muted">{selectedItem.views} views</Text>
-                </View>
-                {selectedItem.location && (
-                  <>
-                    <Text className="text-muted">•</Text>
-                    <View className="flex-row items-center gap-1">
-                      <IconSymbol name="mappin.circle" size={16} color={colors.muted} />
-                      <Text className="text-sm text-muted">{selectedItem.location}</Text>
-                    </View>
-                  </>
-                )}
-              </View>
-            </View>
-
-            {/* Description */}
-            <View className="mb-6">
-              <Text className="text-xl font-bold text-foreground mb-3">Description</Text>
-              <Text className="text-base text-muted leading-7">{selectedItem.description}</Text>
-            </View>
-
-            {/* Seller Info */}
-            <View className="bg-surface rounded-2xl p-5 mb-6">
-              <Text className="text-lg font-bold text-foreground mb-4">Seller Information</Text>
-              <View className="flex-row items-center gap-3">
-                {sellerAvatar ? (
-                  <Image source={{ uri: sellerAvatar }} className="w-14 h-14 rounded-full" contentFit="cover" />
-                ) : (
-                  <View className="w-14 h-14 rounded-full bg-primary items-center justify-center">
-                    <Text className="text-2xl font-bold text-white">{sellerInitial}</Text>
+                {/* Dot indicators */}
+                {imagesArray.length > 1 && (
+                  <View className="absolute bottom-3 left-0 right-0 flex-row justify-center gap-1.5">
+                    {imagesArray.map((_: string, i: number) => (
+                      <View
+                        key={i}
+                        style={{
+                          width: i === activeImageIndex ? 20 : 6,
+                          height: 6,
+                          borderRadius: 3,
+                          backgroundColor: i === activeImageIndex ? "#fff" : "rgba(255,255,255,0.5)",
+                        }}
+                      />
+                    ))}
                   </View>
                 )}
-                <View className="flex-1">
-                  <Text className="text-base font-bold text-foreground">{sellerName}</Text>
-                  <Text className="text-sm text-muted">Verified Student</Text>
-                </View>
-              </View>
-            </View>
 
-            {/* Action Buttons */}
-            {!isOwnListing ? (
-              <TouchableOpacity
-                className="bg-primary py-4 rounded-2xl items-center active:opacity-80 mb-3 flex-row justify-center gap-2"
-                onPress={() => handleChatWithSeller(selectedItem)}
-                disabled={chatLoading}
-              >
-                {chatLoading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <IconSymbol name="message.fill" size={20} color="#fff" />
-                    <Text className="text-white font-bold text-lg">Chat with Seller</Text>
-                  </>
+                {/* Image count badge */}
+                {imagesArray.length > 1 && (
+                  <View
+                    className="absolute bottom-3 right-4 px-2.5 py-1 rounded-full"
+                    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+                  >
+                    <Text className="text-white text-xs font-semibold">{activeImageIndex + 1}/{imagesArray.length}</Text>
+                  </View>
                 )}
-              </TouchableOpacity>
+              </View>
             ) : (
-              <View className="bg-muted/20 py-4 rounded-2xl items-center mb-3 border border-border">
-                <Text className="text-muted font-semibold text-base">This is your listing</Text>
+              <View style={{ height: 260, backgroundColor: "#e5e7eb" }} className="items-center justify-center mb-0">
+                <IconSymbol name="photo" size={64} color={colors.muted} />
+                <Text className="text-muted text-sm mt-2">No images</Text>
+                {/* Back button for no-image state */}
+                <TouchableOpacity
+                  onPress={() => setShowDetailModal(false)}
+                  className="absolute top-4 left-4 w-10 h-10 rounded-full bg-surface items-center justify-center"
+                >
+                  <IconSymbol name="chevron.left" size={20} color={colors.foreground} />
+                </TouchableOpacity>
               </View>
             )}
 
-            <TouchableOpacity
-              className="bg-surface py-4 rounded-2xl items-center active:opacity-80 mb-8 flex-row justify-center gap-2 border border-border"
-              onPress={async () => {
-                try {
-                  await Share.share({ message: `Check out this item on StudentKonnect: "${selectedItem.title}" for R${parseFloat(selectedItem.price).toLocaleString()}` });
-                } catch {}
-              }}
-            >
-              <IconSymbol name="square.and.arrow.up" size={20} color={colors.foreground} />
-              <Text className="text-foreground font-bold text-lg">Share Item</Text>
-            </TouchableOpacity>
+            {/* ── Content Body ── */}
+            <View className="px-5 pt-5">
+
+              {/* Title + Badges */}
+              <Text className="text-2xl font-bold text-foreground mb-3" style={{ lineHeight: 32 }}>
+                {selectedItem.title}
+              </Text>
+
+              <View className="flex-row flex-wrap items-center gap-2 mb-4">
+                <View className="px-3 py-1.5 rounded-full" style={{ backgroundColor: conditionColors.bg }}>
+                  <Text className="text-xs font-bold capitalize" style={{ color: conditionColors.text }}>
+                    {selectedItem.condition.replace("-", " ")}
+                  </Text>
+                </View>
+                <View className="px-3 py-1.5 bg-primary/15 rounded-full">
+                  <Text className="text-xs font-bold text-primary capitalize">{selectedItem.category}</Text>
+                </View>
+                {selectedItem.isFeatured && (
+                  <View className="px-3 py-1.5 rounded-full flex-row items-center gap-1" style={{ backgroundColor: "#fef08a40" }}>
+                    <IconSymbol name="star.fill" size={11} color="#ca8a04" />
+                    <Text className="text-xs font-bold" style={{ color: "#ca8a04" }}>Featured</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Price Card */}
+              <View
+                className="rounded-2xl p-5 mb-5"
+                style={{ backgroundColor: colors.primary + "18" }}
+              >
+                <View className="flex-row items-end justify-between">
+                  <View>
+                    <Text className="text-xs text-muted mb-1 uppercase tracking-widest font-semibold">Asking Price</Text>
+                    <Text className="text-4xl font-bold text-primary">R{parseFloat(selectedItem.price).toLocaleString()}</Text>
+                  </View>
+                  <View className="items-end gap-1">
+                    <View className="flex-row items-center gap-1">
+                      <IconSymbol name="eye" size={13} color={colors.muted} />
+                      <Text className="text-xs text-muted">{selectedItem.views} views</Text>
+                    </View>
+                    {selectedItem.location && (
+                      <View className="flex-row items-center gap-1">
+                        <IconSymbol name="mappin.circle" size={13} color={colors.muted} />
+                        <Text className="text-xs text-muted">{selectedItem.location}</Text>
+                      </View>
+                    )}
+                    <Text className="text-xs text-muted">{postedDate}</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Description */}
+              <View className="mb-5">
+                <Text className="text-base font-bold text-foreground mb-2">About this item</Text>
+                <View className="bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-sm text-muted leading-6">{selectedItem.description || "No description provided."}</Text>
+                </View>
+              </View>
+
+              {/* Item Details Grid */}
+              <View className="mb-5">
+                <Text className="text-base font-bold text-foreground mb-3">Item Details</Text>
+                <View className="bg-surface rounded-xl border border-border overflow-hidden">
+                  {[
+                    { label: "Category", value: selectedItem.category, icon: "tag.fill" },
+                    { label: "Condition", value: selectedItem.condition.replace("-", " "), icon: "checkmark.seal" },
+                    { label: "Location", value: selectedItem.location || "Not specified", icon: "mappin" },
+                    { label: "Listed", value: postedDate, icon: "calendar" },
+                  ].map((detail, i) => (
+                    <View
+                      key={i}
+                      className="flex-row items-center px-4 py-3"
+                      style={{ borderBottomWidth: i < 3 ? 1 : 0, borderBottomColor: colors.border }}
+                    >
+                      <View
+                        className="w-8 h-8 rounded-lg items-center justify-center mr-3"
+                        style={{ backgroundColor: colors.primary + "18" }}
+                      >
+                        <IconSymbol name={detail.icon as any} size={15} color={colors.primary} />
+                      </View>
+                      <Text className="text-sm text-muted w-24">{detail.label}</Text>
+                      <Text className="text-sm font-semibold text-foreground flex-1 capitalize">{detail.value}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              {/* Seller Info */}
+              <View className="bg-surface rounded-2xl p-4 mb-5 border border-border">
+                <Text className="text-base font-bold text-foreground mb-3">Seller</Text>
+                <View className="flex-row items-center gap-3">
+                  {sellerAvatar ? (
+                    <Image source={{ uri: sellerAvatar }} style={{ width: 52, height: 52, borderRadius: 26 }} contentFit="cover" />
+                  ) : (
+                    <View
+                      style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: colors.primary }}
+                      className="items-center justify-center"
+                    >
+                      <Text className="text-xl font-bold text-white">{sellerInitial}</Text>
+                    </View>
+                  )}
+                  <View className="flex-1">
+                    <Text className="text-base font-bold text-foreground">{sellerName}</Text>
+                    <View className="flex-row items-center gap-1 mt-0.5">
+                      <IconSymbol name="checkmark.seal.fill" size={13} color="#10b981" />
+                      <Text className="text-xs text-muted">Verified Student</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Action Buttons */}
+              {!isOwnListing ? (
+                <TouchableOpacity
+                  className="py-4 rounded-2xl items-center active:opacity-80 mb-3 flex-row justify-center gap-2"
+                  style={{ backgroundColor: colors.primary }}
+                  onPress={() => handleChatWithSeller(selectedItem)}
+                  disabled={chatLoading}
+                >
+                  {chatLoading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <>
+                      <IconSymbol name="message.fill" size={20} color="#fff" />
+                      <Text className="text-white font-bold text-base">Chat with Seller</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              ) : (
+                <View className="bg-muted/20 py-4 rounded-2xl items-center mb-3 border border-border">
+                  <Text className="text-muted font-semibold text-base">This is your listing</Text>
+                </View>
+              )}
+
+              <TouchableOpacity
+                className="py-4 rounded-2xl items-center active:opacity-80 mb-8 flex-row justify-center gap-2 border border-border bg-surface"
+                onPress={async () => {
+                  try {
+                    await Share.share({ message: `Check out "${selectedItem.title}" for R${parseFloat(selectedItem.price).toLocaleString()} on StudentKonnect!` });
+                  } catch {}
+                }}
+              >
+                <IconSymbol name="square.and.arrow.up" size={18} color={colors.foreground} />
+                <Text className="text-foreground font-bold text-base">Share Listing</Text>
+              </TouchableOpacity>
+
+            </View>
           </ScrollView>
         </ScreenContainer>
       </Modal>

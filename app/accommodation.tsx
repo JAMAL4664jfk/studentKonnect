@@ -9,6 +9,8 @@ import {
   ScrollView,
   Modal,
   Dimensions,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
 } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -214,6 +216,7 @@ export default function AccommodationScreen() {
   const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [headerExpanded, setHeaderExpanded] = useState(true);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
     fetchAccommodations();
@@ -476,167 +479,288 @@ export default function AccommodationScreen() {
     if (!selectedAccommodation) return null;
 
     const amenitiesArray = parseJSON(selectedAccommodation.amenities);
-    const imagesArray = parseJSON(selectedAccommodation.images);
+    const imagesArray = parseJSON(selectedAccommodation.images).filter(
+      (img: string) => img && img.trim() !== ""
+    );
     const isFavorite = favorites.has(selectedAccommodation.id);
+    const availableFrom = new Date(selectedAccommodation.availableFrom).toLocaleDateString("en-ZA", {
+      day: "numeric", month: "long", year: "numeric",
+    });
 
     return (
       <Modal
         visible={showDetailModal}
         animationType="slide"
         presentationStyle="pageSheet"
-        onRequestClose={() => setShowDetailModal(false)}
+        onRequestClose={() => { setShowDetailModal(false); setActiveImageIndex(0); }}
       >
         <ScreenContainer>
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-            {/* Header */}
-            <View className="flex-row items-center justify-between mb-4 pt-2">
-              <TouchableOpacity
-                onPress={() => setShowDetailModal(false)}
-                className="w-10 h-10 rounded-full bg-surface items-center justify-center"
-              >
-                <IconSymbol name="chevron.left" size={20} color={colors.foreground} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => toggleFavorite(selectedAccommodation.id)}
-                className="w-10 h-10 rounded-full bg-surface items-center justify-center"
-              >
-                <IconSymbol
-                  name={isFavorite ? "heart.fill" : "heart"}
-                  size={22} color={isFavorite ? "#ef4444" : colors.foreground}
-                />
-              </TouchableOpacity>
-            </View>
 
-            {/* Images Carousel */}
+            {/* ── Full-width Image Gallery ── */}
             {imagesArray.length > 0 ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
-                {imagesArray.map((img: string, index: number) => (
-                  img && img.trim() !== "" && (
+              <View style={{ position: "relative" }}>
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+                    const idx = Math.round(e.nativeEvent.contentOffset.x / width);
+                    setActiveImageIndex(idx);
+                  }}
+                  scrollEventThrottle={16}
+                >
+                  {imagesArray.map((img: string, index: number) => (
                     <Image
                       key={index}
                       source={{ uri: img }}
-                      className="w-80 h-64 rounded-2xl mr-3"
+                      style={{ width, height: 340 }}
                       contentFit="cover"
                       cachePolicy="memory-disk"
-                      onError={() => console.log('Failed to load detail image:', img)}
                     />
-                  )
-                ))}
-              </ScrollView>
-            ) : (
-              <Image
-                source={require("@/assets/images/accommodation-bg.jpg")}
-                className="w-full h-64 rounded-2xl mb-6"
-                contentFit="cover"
-              />
-            )}
-
-            {/* Title and Price */}
-            <Text className="text-3xl font-bold text-foreground mb-2">
-              {selectedAccommodation.title}
-            </Text>
-
-            <View className="flex-row items-center gap-2 mb-6">
-              <IconSymbol name="mappin.circle.fill" size={20} color={colors.primary} />
-              <Text className="text-base text-muted-foreground flex-1">
-                {selectedAccommodation.address}, {selectedAccommodation.city}
-              </Text>
-            </View>
-
-            {/* Price Card */}
-            <View className="bg-primary/10 rounded-2xl p-5 mb-6">
-              <Text className="text-4xl font-bold text-primary mb-2">
-                R{parseFloat(selectedAccommodation.price).toLocaleString()}
-              </Text>
-              <Text className="text-sm text-muted-foreground">per month</Text>
-            </View>
-
-            {/* Stats Cards */}
-            <View className="flex-row gap-3 mb-6">
-              <View className="flex-1 bg-surface rounded-2xl p-4 items-center">
-                <IconSymbol name="bed.double.fill" size={28} color={colors.primary} />
-                <Text className="text-2xl font-bold text-foreground mt-2">
-                  {selectedAccommodation.bedrooms}
-                </Text>
-                <Text className="text-sm text-muted-foreground">Bedrooms</Text>
-              </View>
-              <View className="flex-1 bg-surface rounded-2xl p-4 items-center">
-                <IconSymbol name="shower.fill" size={28} color={colors.primary} />
-                <Text className="text-2xl font-bold text-foreground mt-2">
-                  {selectedAccommodation.bathrooms}
-                </Text>
-                <Text className="text-sm text-muted-foreground">Bathrooms</Text>
-              </View>
-              <View className="flex-1 bg-surface rounded-2xl p-4 items-center">
-                <IconSymbol name="location.fill" size={28} color={colors.primary} />
-                <Text className="text-lg font-bold text-foreground mt-2">3km</Text>
-                <Text className="text-sm text-muted-foreground">From SU</Text>
-              </View>
-            </View>
-
-            {/* About This Property */}
-            <View className="mb-6">
-              <Text className="text-xl font-bold text-foreground mb-3">About This Property</Text>
-              <Text className="text-base text-muted-foreground leading-7">
-                {selectedAccommodation.description}
-              </Text>
-            </View>
-
-            {/* Amenities */}
-            {amenitiesArray.length > 0 && (
-              <View className="mb-6">
-                <Text className="text-xl font-bold text-foreground mb-4">Amenities</Text>
-                <View className="flex-row flex-wrap gap-3">
-                  {amenitiesArray.map((amenity: string, index: number) => (
-                    <View
-                      key={index}
-                      className="bg-surface px-4 py-3 rounded-xl flex-row items-center gap-2"
-                      style={{ width: "48%" }}
-                    >
-                      <IconSymbol name={getAmenityIcon(amenity)} size={20} color={colors.primary} />
-                      <Text className="text-sm font-medium text-foreground flex-1" numberOfLines={1}>
-                        {amenity}
-                      </Text>
-                    </View>
                   ))}
-                </View>
-              </View>
-            )}
+                </ScrollView>
 
-            {/* Availability */}
-            <View className="mb-6">
-              <Text className="text-xl font-bold text-foreground mb-3">Availability</Text>
-              <View className="bg-surface rounded-2xl p-4">
-                <View className="flex-row items-center gap-2 mb-2">
-                  <IconSymbol name="calendar" size={18} color={colors.primary} />
-                  <Text className="text-sm text-muted-foreground">
-                    Available from: {new Date(selectedAccommodation.availableFrom).toLocaleDateString()}
+                {/* Overlay top bar */}
+                <View
+                  className="absolute top-0 left-0 right-0 flex-row items-center justify-between px-4 pt-4"
+                  style={{ backgroundColor: "rgba(0,0,0,0.25)" }}
+                >
+                  <TouchableOpacity
+                    onPress={() => { setShowDetailModal(false); setActiveImageIndex(0); }}
+                    className="w-10 h-10 rounded-full items-center justify-center"
+                    style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+                  >
+                    <IconSymbol name="chevron.left" size={20} color="#fff" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => toggleFavorite(selectedAccommodation.id)}
+                    className="w-10 h-10 rounded-full items-center justify-center"
+                    style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+                  >
+                    <IconSymbol
+                      name={isFavorite ? "heart.fill" : "heart"}
+                      size={20}
+                      color={isFavorite ? "#ef4444" : "#fff"}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Property type badge */}
+                <View
+                  className="absolute bottom-14 left-4 px-3 py-1.5 rounded-full"
+                  style={{ backgroundColor: "rgba(0,0,0,0.55)" }}
+                >
+                  <Text className="text-white text-xs font-semibold capitalize">
+                    {selectedAccommodation.propertyType}
                   </Text>
                 </View>
-                {selectedAccommodation.availableUntil && (
-                  <View className="flex-row items-center gap-2">
-                    <IconSymbol name="calendar" size={18} color={colors.primary} />
-                    <Text className="text-sm text-muted-foreground">
-                      Until: {new Date(selectedAccommodation.availableUntil).toLocaleDateString()}
+
+                {/* Dot indicators */}
+                {imagesArray.length > 1 && (
+                  <View className="absolute bottom-3 left-0 right-0 flex-row justify-center gap-1.5">
+                    {imagesArray.map((_: string, i: number) => (
+                      <View
+                        key={i}
+                        style={{
+                          width: i === activeImageIndex ? 20 : 6,
+                          height: 6,
+                          borderRadius: 3,
+                          backgroundColor: i === activeImageIndex ? "#fff" : "rgba(255,255,255,0.5)",
+                        }}
+                      />
+                    ))}
+                  </View>
+                )}
+
+                {/* Image count badge */}
+                {imagesArray.length > 1 && (
+                  <View
+                    className="absolute bottom-3 right-4 px-2.5 py-1 rounded-full"
+                    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+                  >
+                    <Text className="text-white text-xs font-semibold">
+                      {activeImageIndex + 1}/{imagesArray.length}
                     </Text>
                   </View>
                 )}
               </View>
-            </View>
+            ) : (
+              <View style={{ position: "relative" }}>
+                <Image
+                  source={require("@/assets/images/accommodation-bg.jpg")}
+                  style={{ width, height: 300 }}
+                  contentFit="cover"
+                />
+                <View
+                  className="absolute top-0 left-0 right-0 flex-row items-center justify-between px-4 pt-4"
+                  style={{ backgroundColor: "rgba(0,0,0,0.25)" }}
+                >
+                  <TouchableOpacity
+                    onPress={() => setShowDetailModal(false)}
+                    className="w-10 h-10 rounded-full items-center justify-center"
+                    style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+                  >
+                    <IconSymbol name="chevron.left" size={20} color="#fff" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => toggleFavorite(selectedAccommodation.id)}
+                    className="w-10 h-10 rounded-full items-center justify-center"
+                    style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+                  >
+                    <IconSymbol
+                      name={isFavorite ? "heart.fill" : "heart"}
+                      size={20}
+                      color={isFavorite ? "#ef4444" : "#fff"}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
 
-            {/* Contact Button */}
-            <TouchableOpacity
-              className="bg-primary py-4 rounded-2xl items-center active:opacity-80 mb-8"
-              onPress={() => {
-                Toast.show({
-                  type: "info",
-                  text1: "Contact Feature",
-                  text2: "Contact functionality coming soon!",
-                });
-              }}
-            >
-              <Text className="text-primary-foreground font-bold text-lg">Contact Owner</Text>
-            </TouchableOpacity>
+            {/* ── Content Body ── */}
+            <View className="px-5 pt-5">
+
+              {/* Title */}
+              <Text className="text-2xl font-bold text-foreground mb-1" style={{ lineHeight: 32 }}>
+                {selectedAccommodation.title}
+              </Text>
+
+              {/* Location */}
+              <View className="flex-row items-center gap-1.5 mb-4">
+                <IconSymbol name="mappin.circle.fill" size={16} color={colors.primary} />
+                <Text className="text-sm text-muted flex-1">
+                  {selectedAccommodation.address}, {selectedAccommodation.city}
+                </Text>
+              </View>
+
+              {/* Price Card */}
+              <View
+                className="rounded-2xl p-5 mb-5"
+                style={{ backgroundColor: colors.accommodation + "18" }}
+              >
+                <View className="flex-row items-end justify-between">
+                  <View>
+                    <Text className="text-xs text-muted mb-1 uppercase tracking-widest font-semibold">Monthly Rent</Text>
+                    <Text className="text-4xl font-bold" style={{ color: colors.accommodation }}>
+                      R{parseFloat(selectedAccommodation.price).toLocaleString()}
+                    </Text>
+                    <Text className="text-xs text-muted mt-1">per month</Text>
+                  </View>
+                  <View className="items-end gap-1">
+                    <View className="flex-row items-center gap-1">
+                      <IconSymbol name="calendar" size={13} color={colors.muted} />
+                      <Text className="text-xs text-muted">From {availableFrom}</Text>
+                    </View>
+                    {selectedAccommodation.availableUntil && (
+                      <Text className="text-xs text-muted">
+                        Until {new Date(selectedAccommodation.availableUntil).toLocaleDateString()}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              </View>
+
+              {/* Stats Row */}
+              <View className="flex-row gap-3 mb-5">
+                {[
+                  { icon: "bed.double.fill", value: String(selectedAccommodation.bedrooms), label: "Bedrooms" },
+                  { icon: "shower.fill", value: String(selectedAccommodation.bathrooms), label: "Bathrooms" },
+                  { icon: "location.fill", value: "3km", label: "From Campus" },
+                ].map((stat, i) => (
+                  <View
+                    key={i}
+                    className="flex-1 rounded-2xl p-4 items-center border border-border"
+                    style={{ backgroundColor: colors.surface }}
+                  >
+                    <IconSymbol name={stat.icon as any} size={24} color={colors.primary} />
+                    <Text className="text-xl font-bold text-foreground mt-2">{stat.value}</Text>
+                    <Text className="text-xs text-muted text-center">{stat.label}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* About */}
+              <View className="mb-5">
+                <Text className="text-base font-bold text-foreground mb-2">About This Property</Text>
+                <View className="bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-sm text-muted leading-6">
+                    {selectedAccommodation.description || "No description provided."}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Property Details Grid */}
+              <View className="mb-5">
+                <Text className="text-base font-bold text-foreground mb-3">Property Details</Text>
+                <View className="bg-surface rounded-xl border border-border overflow-hidden">
+                  {[
+                    { label: "Type", value: selectedAccommodation.propertyType, icon: "building.2" },
+                    { label: "City", value: selectedAccommodation.city, icon: "mappin" },
+                    { label: "Available", value: availableFrom, icon: "calendar" },
+                    { label: "Status", value: selectedAccommodation.isAvailable ? "Available" : "Not Available", icon: "checkmark.circle" },
+                  ].map((detail, i) => (
+                    <View
+                      key={i}
+                      className="flex-row items-center px-4 py-3"
+                      style={{ borderBottomWidth: i < 3 ? 1 : 0, borderBottomColor: colors.border }}
+                    >
+                      <View
+                        className="w-8 h-8 rounded-lg items-center justify-center mr-3"
+                        style={{ backgroundColor: colors.accommodation + "18" }}
+                      >
+                        <IconSymbol name={detail.icon as any} size={15} color={colors.accommodation} />
+                      </View>
+                      <Text className="text-sm text-muted w-24">{detail.label}</Text>
+                      <Text className="text-sm font-semibold text-foreground flex-1 capitalize">{detail.value}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              {/* Amenities */}
+              {amenitiesArray.length > 0 && (
+                <View className="mb-5">
+                  <Text className="text-base font-bold text-foreground mb-3">Amenities</Text>
+                  <View className="flex-row flex-wrap gap-2">
+                    {amenitiesArray.map((amenity: string, index: number) => (
+                      <View
+                        key={index}
+                        className="flex-row items-center gap-2 px-3 py-2.5 rounded-xl border border-border bg-surface"
+                        style={{ minWidth: "47%" }}
+                      >
+                        <View
+                          className="w-7 h-7 rounded-lg items-center justify-center"
+                          style={{ backgroundColor: colors.accommodation + "18" }}
+                        >
+                          <IconSymbol name={getAmenityIcon(amenity)} size={14} color={colors.accommodation} />
+                        </View>
+                        <Text className="text-xs font-medium text-foreground flex-1" numberOfLines={1}>
+                          {amenity}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* Contact Button */}
+              <TouchableOpacity
+                className="py-4 rounded-2xl items-center active:opacity-80 mb-8 flex-row justify-center gap-2"
+                style={{ backgroundColor: colors.accommodation }}
+                onPress={() => {
+                  Toast.show({
+                    type: "info",
+                    text1: "Contact Feature",
+                    text2: "Contact functionality coming soon!",
+                  });
+                }}
+              >
+                <IconSymbol name="phone.fill" size={20} color="#fff" />
+                <Text className="text-white font-bold text-base">Contact Owner</Text>
+              </TouchableOpacity>
+
+            </View>
           </ScrollView>
         </ScreenContainer>
       </Modal>
