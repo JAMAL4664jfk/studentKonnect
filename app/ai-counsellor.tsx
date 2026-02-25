@@ -97,63 +97,55 @@ Be supportive, practical, and understand the pressure students face. Provide act
 
 // ─── AI API Call ──────────────────────────────────────────────────────────────
 
+// Supabase project constants (same values used throughout the app)
+const SUPABASE_URL = "https://ortjjekmexmyvkkotioo.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydGpqZWttZXhteXZra290aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwOTkyODAsImV4cCI6MjA4NDY3NTI4MH0.__lyxX1wdkAkO7xUj5cBuc1x9ae_h-cggfVl_yXby6A";
+
 async function callAI(
   messages: { role: string; content: string }[],
-  counsellorType: CounsellorType
+  counsellorType: CounsellorType,
+  sessionId?: string | null
 ): Promise<string> {
-  const counsellor = COUNSELLORS[counsellorType];
-
-  // Try Supabase Edge Function first (if deployed)
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || "https://ortjjekmexmyvkkotioo.supabase.co";
-      const response = await fetch(`${supabaseUrl}/functions/v1/ai-counsellor`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ messages, counsellorType }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.reply) return data.reply;
-      }
+  // Call the Supabase Edge Function (keeps API key secure on the server)
+  // Uses the anon key — same pattern as GazooAIChat component
+  const response = await fetch(
+    `${SUPABASE_URL}/functions/v1/ai-counsellor`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        apikey: SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        messages,
+        counsellorType,
+        sessionId: sessionId ?? undefined,
+      }),
     }
-  } catch {
-    // Fall through to direct API call
-  }
-
-  // Direct OpenAI-compatible API call as fallback
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return "I'm currently unable to connect to the AI service. Please check your internet connection and try again. For urgent support, call Lifeline SA: 0800 567 567.";
-  }
-
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [
-        { role: "system", content: counsellor.systemPrompt },
-        ...messages,
-      ],
-      max_tokens: 500,
-    }),
-  });
+  );
 
   if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
+    const errorText = await response.text();
+    let errorData: any;
+    try {
+      errorData = JSON.parse(errorText);
+    } catch {
+      errorData = { error: errorText };
+    }
+    throw new Error(
+      errorData.error || `Server error: ${response.status}`
+    );
   }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content || "I'm having trouble responding right now. Please try again.";
+
+  if (!data.success || !data.reply) {
+    throw new Error("Invalid response from AI Counsellor service");
+  }
+
+  return data.reply;
 }
 
 // ─── Session Management ───────────────────────────────────────────────────────
@@ -315,7 +307,7 @@ export default function AICounsellorScreen() {
         .slice(-10)
         .map((m) => ({ role: m.role, content: m.content }));
 
-      const reply = await callAI(history, counsellorType);
+      const reply = await callAI(history, counsellorType, sessionId);
 
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
