@@ -4,10 +4,12 @@ import { supabase } from '@/lib/supabase';
 export interface Notification {
   id: string;
   user_id: string;
+  // DB column is 'notification_type', we expose it as 'type' for UI convenience
   type: string;
+  notification_type: string;
   title: string;
   body: string;
-  message?: string; // legacy alias
+  message: string; // alias for body
   data?: any;
   is_read: boolean;
   action_url?: string;
@@ -44,7 +46,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     }
   }, [currentUserId]);
 
-  // Also re-check user on auth state change
+  // Re-check user on auth state change
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
@@ -66,6 +68,19 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Normalize a raw DB row to our Notification shape
+  const normalize = (n: any): Notification => ({
+    ...n,
+    // Map notification_type → type for UI filtering
+    type: n.notification_type || n.type || 'system',
+    notification_type: n.notification_type || n.type || 'system',
+    // Map body → message alias
+    body: n.body || n.message || '',
+    message: n.body || n.message || '',
+    // action_url may not exist in DB — default to undefined
+    action_url: n.action_url || undefined,
+  });
+
   const loadNotifications = async () => {
     if (!currentUserId) return;
     try {
@@ -77,13 +92,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         .order('created_at', { ascending: false })
         .limit(100);
       if (error) throw error;
-      // Normalize: support both 'body' and 'message' field names
-      const normalized = (data || []).map((n: any) => ({
-        ...n,
-        body: n.body || n.message || '',
-        message: n.body || n.message || '',
-      }));
-      setNotifications(normalized);
+      setNotifications((data || []).map(normalize));
     } catch (error) {
       console.error('Error loading notifications:', error);
     } finally {
@@ -104,15 +113,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           filter: `user_id=eq.${currentUserId}`,
         },
         (payload) => {
-          const newNotif = payload.new as any;
-          setNotifications((prev) => [
-            {
-              ...newNotif,
-              body: newNotif.body || newNotif.message || '',
-              message: newNotif.body || newNotif.message || '',
-            },
-            ...prev,
-          ]);
+          setNotifications((prev) => [normalize(payload.new), ...prev]);
         }
       )
       .on(
@@ -124,9 +125,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           filter: `user_id=eq.${currentUserId}`,
         },
         (payload) => {
-          const updated = payload.new as any;
           setNotifications((prev) =>
-            prev.map((n) => (n.id === updated.id ? { ...n, ...updated } : n))
+            prev.map((n) => (n.id === (payload.new as any).id ? normalize(payload.new) : n))
           );
         }
       )
@@ -180,13 +180,21 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteNotification = async (notificationId: string) => {
+    // Optimistically remove from local state immediately for a snappy UI
+    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
     try {
+      // Try to delete — if no DELETE policy exists, mark as read instead
       const { error } = await supabase
         .from('notifications')
         .delete()
         .eq('id', notificationId);
-      if (error) throw error;
-      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+      if (error) {
+        // Fallback: mark as read so it disappears from unread view
+        await supabase
+          .from('notifications')
+          .update({ is_read: true })
+          .eq('id', notificationId);
+      }
     } catch (error) {
       console.error('Error deleting notification:', error);
     }
