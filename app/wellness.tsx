@@ -9,13 +9,14 @@ import { useColors } from "@/hooks/use-colors";
 import Toast from "react-native-toast-message";
 import { LinearGradient } from "expo-linear-gradient";
 
-type TabType = "wellness" | "sports" | "fitness" | "events" | "ai-counsellor";
+type TabType = "wellness" | "sports" | "fitness" | "events" | "ai-counsellor" | "sports-hub";
 
 const TABS: { key: TabType; label: string; icon: string }[] = [
   { key: "sports",        label: "Sports Events",   icon: "sportscourt.fill" },
   { key: "events",        label: "Sports Clubs",    icon: "person.3.fill" },
   { key: "fitness",       label: "Fitness Classes", icon: "figure.run" },
   { key: "wellness",      label: "Matches",         icon: "trophy.fill" },
+  { key: "sports-hub",    label: "Sports Hub",      icon: "trophy.circle.fill" },
   { key: "ai-counsellor", label: "AI Counsellor",   icon: "brain.head.profile" },
 ];
 
@@ -565,6 +566,44 @@ export default function WellnessScreen() {
           {activeTab === "events" && renderSportsClubs()}
           {activeTab === "fitness" && renderFitnessClasses()}
             {activeTab === "wellness" && renderMatches()}
+          {activeTab === "sports-hub" && (
+            <View className="gap-4">
+              <Text className="text-lg font-bold text-foreground mb-2">Sports Hub</Text>
+              <Text className="text-sm text-muted mb-4">Fixtures, leagues, fitness challenges, esports and live scores.</Text>
+              <TouchableOpacity
+                onPress={() => router.push("/sports-hub" as any)}
+                className="rounded-2xl overflow-hidden border border-border"
+                style={{ height: 180 }}
+              >
+                <ImageBackground
+                  source={require("@/assets/images/gamification-engine.jpg")}
+                  className="flex-1"
+                  resizeMode="cover"
+                >
+                  <LinearGradient
+                    colors={["rgba(0,0,0,0.2)", "rgba(0,0,0,0.75)"]}
+                    className="flex-1 p-5 justify-end"
+                  >
+                    <View className="flex-row items-center gap-3 mb-2">
+                      <View className="w-12 h-12 rounded-xl items-center justify-center bg-white/20">
+                        <IconSymbol name="trophy.circle.fill" size={28} color="#22c55e" />
+                      </View>
+                      <View>
+                        <Text className="text-xl font-bold text-white">Sports Hub</Text>
+                        <Text className="text-sm text-white/80">Fixtures, leagues & esports</Text>
+                      </View>
+                    </View>
+                    <View className="flex-row items-center gap-2">
+                      <View className="bg-green-500 px-3 py-1 rounded-full">
+                        <Text className="text-xs font-bold text-white">Live Scores</Text>
+                      </View>
+                      <IconSymbol name="chevron.right" size={20} color="white" />
+                    </View>
+                  </LinearGradient>
+                </ImageBackground>
+              </TouchableOpacity>
+            </View>
+          )}
           {activeTab === "ai-counsellor" && (
             <View className="gap-4">
               <Text className="text-lg font-bold text-foreground mb-2">AI Wellness Counsellors</Text>
