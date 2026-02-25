@@ -76,7 +76,7 @@ const CAMPUS_RADIO: RadioStation[] = [
     frequency: "104.5 FM",
     genre: "Campus Mix",
     image: require("@/assets/images/student-podcast-bg.jpg"),
-    streamUrl: "https://stream.zeno.fm/f3wvbbqmdg8uv", // Example stream
+    streamUrl: "https://stream.zeno.fm/0r0xa792kwzuv", // Jacaranda FM (campus-friendly)
   },
   {
     id: "2",
@@ -84,7 +84,7 @@ const CAMPUS_RADIO: RadioStation[] = [
     frequency: "107.9 FM",
     genre: "Student Talk",
     image: require("@/assets/images/hero-student-connect.jpg"),
-    streamUrl: "https://stream.zeno.fm/f3wvbbqmdg8uv",
+    streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/5FM.mp3",
   },
   {
     id: "3",
@@ -92,7 +92,7 @@ const CAMPUS_RADIO: RadioStation[] = [
     frequency: "95.4 FM",
     genre: "Youth Culture",
     image: require("@/assets/images/lifestyle-rewards-banner.jpg"),
-    streamUrl: "https://stream.zeno.fm/f3wvbbqmdg8uv",
+    streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/METRO_FM.mp3",
   },
 ];
 
@@ -243,19 +243,19 @@ const RADIO_STATIONS: RadioStation[] = [
   },
   {
     id: "3",
-    name: "Good Hope FM",
-    frequency: "94.0 FM",
+    name: "Jacaranda FM",
+    frequency: "94.2 FM",
     genre: "Adult Contemporary",
     image: require("@/assets/images/lifestyle-rewards-banner.jpg"),
-    streamUrl: "https://stream.zeno.fm/f3wvbbqmdg8uv",
+    streamUrl: "https://stream.zeno.fm/0r0xa792kwzuv",
   },
   {
     id: "4",
-    name: "Kaya FM",
-    frequency: "95.9 FM",
-    genre: "Urban Soul",
+    name: "947",
+    frequency: "94.7 FM",
+    genre: "Pop & Rock",
     image: require("@/assets/images/student-podcast-bg.jpg"),
-    streamUrl: "https://stream.zeno.fm/f3wvbbqmdg8uv",
+    streamUrl: "https://stream.zeno.fm/0r0xa792kwzuv",
   },
   {
     id: "5",
@@ -263,7 +263,63 @@ const RADIO_STATIONS: RadioStation[] = [
     frequency: "99.2 FM",
     genre: "Youth & Hip Hop",
     image: require("@/assets/images/hero-student-connect.jpg"),
-    streamUrl: "https://stream.zeno.fm/f3wvbbqmdg8uv",
+    streamUrl: "https://stream.zeno.fm/0r0xa792kwzuv",
+  },
+  {
+    id: "6",
+    name: "Kaya FM",
+    frequency: "95.9 FM",
+    genre: "Urban Soul",
+    image: require("@/assets/images/lifestyle-rewards-banner.jpg"),
+    streamUrl: "https://stream.zeno.fm/0r0xa792kwzuv",
+  },
+  {
+    id: "7",
+    name: "Heart FM",
+    frequency: "104.9 FM",
+    genre: "Easy Listening",
+    image: require("@/assets/images/student-podcast-bg.jpg"),
+    streamUrl: "https://stream.zeno.fm/0r0xa792kwzuv",
+  },
+  {
+    id: "8",
+    name: "KFM 94.5",
+    frequency: "94.5 FM",
+    genre: "Pop & Top 40",
+    image: require("@/assets/images/hero-student-connect.jpg"),
+    streamUrl: "https://stream.zeno.fm/0r0xa792kwzuv",
+  },
+  {
+    id: "9",
+    name: "OFM",
+    frequency: "96.2 FM",
+    genre: "Adult Contemporary",
+    image: require("@/assets/images/lifestyle-rewards-banner.jpg"),
+    streamUrl: "https://stream.zeno.fm/0r0xa792kwzuv",
+  },
+  {
+    id: "10",
+    name: "Radio 2000",
+    frequency: "97.2 FM",
+    genre: "News & Sport",
+    image: require("@/assets/images/student-podcast-bg.jpg"),
+    streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/METRO_FM.mp3",
+  },
+  {
+    id: "11",
+    name: "Smile 90.4 FM",
+    frequency: "90.4 FM",
+    genre: "Pop & Hits",
+    image: require("@/assets/images/hero-student-connect.jpg"),
+    streamUrl: "https://stream.zeno.fm/0r0xa792kwzuv",
+  },
+  {
+    id: "12",
+    name: "LM Radio",
+    frequency: "AM 702",
+    genre: "Classic Hits",
+    image: require("@/assets/images/lifestyle-rewards-banner.jpg"),
+    streamUrl: "https://stream.zeno.fm/0r0xa792kwzuv",
   },
 ];
 
@@ -670,6 +726,16 @@ export default function CampusEntertainmentScreen() {
     </View>
   );
 
+  // Resolve HTTP redirects to get the final stream URL (expo-av on Android needs the direct URL)
+  const resolveStreamUrl = async (url: string): Promise<string> => {
+    try {
+      const response = await fetch(url, { method: "HEAD", redirect: "follow" });
+      return response.url || url;
+    } catch {
+      return url;
+    }
+  };
+
   const playRadioStation = async (station: RadioStation) => {
     try {
       // If same station is playing, stop it
@@ -683,34 +749,40 @@ export default function CampusEntertainmentScreen() {
         setPlayingStationId(null);
         return;
       }
-
       // Stop any currently playing sound
       if (sound) {
         await sound.stopAsync();
         await sound.unloadAsync();
         setSound(null);
       }
-
       setIsLoading(true);
+      setPlayingStationId(station.id);
+
+      // Resolve redirect URLs (streamtheworld.com and zeno.fm redirect to actual CDN)
+      const resolvedUrl = await resolveStreamUrl(station.streamUrl);
 
       // Configure audio mode for streaming
       await Audio.setAudioModeAsync({
         playsInSilentModeIOS: true,
         staysActiveInBackground: true,
         shouldDuckAndroid: true,
+        interruptionModeAndroid: 1,
+        interruptionModeIOS: 0,
       });
-
-      // Create and play new sound
+      // Create and play new sound using resolved URL
       const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: station.streamUrl },
-        { shouldPlay: true, isLooping: false },
+        { uri: resolvedUrl, headers: { "User-Agent": "StudentKonnect/1.0" } },
+        {
+          shouldPlay: true,
+          isLooping: false,
+          progressUpdateIntervalMillis: 500,
+          shouldCorrectPitch: false,
+          volume: 1.0,
+        },
         onPlaybackStatusUpdate
       );
-
       setSound(newSound);
-      setPlayingStationId(station.id);
       setIsPlaying(true);
-
       Toast.show({
         type: "success",
         text1: "Now Playing",
@@ -721,7 +793,7 @@ export default function CampusEntertainmentScreen() {
       Toast.show({
         type: "error",
         text1: "Playback Error",
-        text2: "Unable to stream this station",
+        text2: "Unable to stream this station. Try another.",
       });
       setIsPlaying(false);
       setPlayingStationId(null);

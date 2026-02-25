@@ -24,6 +24,10 @@ CREATE TABLE IF NOT EXISTS counsellor_messages (
 ALTER TABLE counsellor_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE counsellor_messages ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies first to avoid duplicate errors
+DROP POLICY IF EXISTS "Users can manage own counsellor sessions" ON counsellor_sessions;
+DROP POLICY IF EXISTS "Users can manage messages in own sessions" ON counsellor_messages;
+
 -- Sessions: users can only see/manage their own sessions
 CREATE POLICY "Users can manage own counsellor sessions"
   ON counsellor_sessions FOR ALL
