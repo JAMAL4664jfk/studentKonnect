@@ -96,7 +96,8 @@
     "readable-stream": "^4.7.0",
     "superjson": "^1.13.3",
     "tailwind-merge": "^2.6.0",
-    "zod": "^4.2.1"
+    "zod": "^4.2.1",
+    "expo-video-thumbnails": "~8.0.5"
   },
   "devDependencies": {
     "expo-dev-client": "~6.0.20",

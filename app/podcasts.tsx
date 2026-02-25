@@ -15,6 +15,7 @@ import { Image } from "expo-image";
 import { Audio } from "expo-av";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
+import * as VideoThumbnails from "expo-video-thumbnails";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
@@ -298,6 +299,20 @@ export default function PodcastsScreen() {
           name: asset.name,
           mimeType: asset.mimeType || "video/mp4",
         });
+
+        // Auto-extract thumbnail from video at 1 second mark
+        // Only set if user hasn't already manually picked a thumbnail
+        try {
+          const { uri: thumbUri } = await VideoThumbnails.getThumbnailAsync(
+            asset.uri,
+            { time: 1000 } // 1 second into the video
+          );
+          setEpisodeThumbnail(thumbUri);
+          console.log('Auto-extracted video thumbnail:', thumbUri);
+        } catch (thumbError) {
+          // Thumbnail extraction failed — not critical, user can pick one manually
+          console.warn('Could not auto-extract video thumbnail:', thumbError);
+        }
       }
     } catch (error) {
       Toast.show({
@@ -1648,10 +1663,40 @@ export default function PodcastsScreen() {
                   </View>
                 )}
                 {mediaType === "video" && (
-                  <View className="bg-primary/10 p-4 rounded-xl border border-primary/20">
-                    <Text className="text-sm text-primary font-medium text-center">
-                      Video thumbnail will be generated automatically from the first frame.
+                  <View>
+                    <Text className="text-sm font-medium text-foreground mb-2">
+                      Thumbnail {episodeThumbnail ? "(Auto-extracted from video)" : "(Optional)"}
                     </Text>
+                    <TouchableOpacity
+                      onPress={() => pickThumbnail("episode")}
+                      className="bg-surface border border-border rounded-xl p-4 items-center justify-center"
+                      style={{ minHeight: 120 }}
+                    >
+                      {episodeThumbnail ? (
+                        <>
+                          <Image
+                            source={{ uri: episodeThumbnail }}
+                            className="w-full h-24 rounded-lg"
+                            contentFit="cover"
+                          />
+                          <Text className="text-xs text-muted mt-2">Tap to change thumbnail</Text>
+                        </>
+                      ) : (
+                        <>
+                          <IconSymbol name="video.fill" size={32} color={colors.primary} />
+                          <Text className="text-sm text-primary mt-2">Thumbnail will auto-extract from video</Text>
+                          <Text className="text-xs text-muted mt-1">Or tap to pick a custom image</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                    {episodeThumbnail && (
+                      <TouchableOpacity
+                        onPress={() => setEpisodeThumbnail(null)}
+                        className="mt-2"
+                      >
+                        <Text className="text-xs text-red-500 text-center">Remove thumbnail</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 )}
               </View>
