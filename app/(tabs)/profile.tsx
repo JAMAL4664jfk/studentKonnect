@@ -161,6 +161,13 @@ export default function ProfileScreen() {
 
   const menuItems: MenuItem[] = [
     {
+      id: "edit-profile",
+      title: "Edit Profile",
+      icon: "person.crop.circle.fill",
+      color: colors.primary,
+      action: () => router.push("/edit-profile"),
+    },
+    {
       id: "analytics",
       title: "Financial Analytics",
       icon: "chart.bar.fill",

@@ -9,7 +9,7 @@ import { useColors } from "@/hooks/use-colors";
 import Toast from "react-native-toast-message";
 import { LinearGradient } from "expo-linear-gradient";
 
-type TabType = "wellness" | "sports" | "fitness" | "events";
+type TabType = "wellness" | "sports" | "fitness" | "events" | "ai-counsellor";
 
 type SportsEvent = {
   id: string;
@@ -554,6 +554,20 @@ export default function WellnessScreen() {
                 Matches
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setActiveTab("ai-counsellor")}
+              className={`px-6 py-3 rounded-xl ${
+                activeTab === "ai-counsellor" ? "bg-primary" : "bg-surface border border-border"
+              }`}
+            >
+              <Text
+                className={`text-center font-semibold ${
+                  activeTab === "ai-counsellor" ? "text-white" : "text-foreground"
+                }`}
+              >
+                🤖 AI Counsellor
+              </Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
 
@@ -562,7 +576,46 @@ export default function WellnessScreen() {
           {activeTab === "sports" && renderSportsEvents()}
           {activeTab === "events" && renderSportsClubs()}
           {activeTab === "fitness" && renderFitnessClasses()}
-          {activeTab === "wellness" && renderMatches()}
+            {activeTab === "wellness" && renderMatches()}
+          {activeTab === "ai-counsellor" && (
+            <View className="gap-4">
+              <Text className="text-lg font-bold text-foreground mb-2">AI Wellness Counsellors</Text>
+              <Text className="text-sm text-muted mb-4">Confidential AI support available 24/7. Choose a counsellor below.</Text>
+              {[
+                { type: "mental", name: "MindMate", emoji: "🧠", color: "#8B5CF6", desc: "Mental Health & Emotional Support", detail: "Stress, anxiety, depression, and emotional wellbeing" },
+                { type: "financial", name: "FinanceGuru", emoji: "💰", color: "#10B981", desc: "Financial Coaching & Budgeting", detail: "NSFAS, budgeting, savings, and money management" },
+                { type: "academic", name: "StudyBuddy", emoji: "📚", color: "#F59E0B", desc: "Academic Support & Study Planning", detail: "Study planning, exam prep, and time management" },
+              ].map((c) => (
+                <TouchableOpacity
+                  key={c.type}
+                  onPress={() => router.push(`/ai-counsellor?type=${c.type}` as any)}
+                  className="rounded-2xl p-5 border border-border"
+                  style={{ backgroundColor: c.color + "15" }}
+                >
+                  <View className="flex-row items-center gap-4">
+                    <View className="w-14 h-14 rounded-2xl items-center justify-center" style={{ backgroundColor: c.color + "25" }}>
+                      <Text style={{ fontSize: 28 }}>{c.emoji}</Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-base font-bold text-foreground">{c.name}</Text>
+                      <Text className="text-sm font-medium mb-1" style={{ color: c.color }}>{c.desc}</Text>
+                      <Text className="text-xs text-muted">{c.detail}</Text>
+                    </View>
+                    <IconSymbol name="chevron.right" size={20} color={c.color} />
+                  </View>
+                </TouchableOpacity>
+              ))}
+              <View className="rounded-2xl p-4 border border-border bg-surface mt-2">
+                <View className="flex-row items-center gap-2 mb-2">
+                  <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#EF4444" />
+                  <Text className="text-sm font-semibold text-foreground">Emergency Support</Text>
+                </View>
+                <Text className="text-xs text-muted mb-1">Lifeline SA: 0800 567 567 (24/7)</Text>
+                <Text className="text-xs text-muted mb-1">SADAG: 0800 456 789</Text>
+                <Text className="text-xs text-muted">Campus Health Centre: Visit your nearest student health centre</Text>
+              </View>
+            </View>
+          )}
         </ScrollView>
       </View>
     </ScreenContainer>

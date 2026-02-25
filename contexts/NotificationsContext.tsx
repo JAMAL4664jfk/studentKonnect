@@ -1,18 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'marketplace' | 'accommodation' | 'hookup' | 'chat' | 'group' | 'connection' | 'wellness' | 'event';
+  type: string;
   title: string;
-  message: string;
+  body: string;
+  message?: string; // legacy alias
   data?: any;
   is_read: boolean;
   action_url?: string;
   created_at: string;
-  read_at?: string;
 }
 
 interface NotificationsContextType {
@@ -40,22 +39,35 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (currentUserId) {
       loadNotifications();
-      subscribeToNotifications();
+      const cleanup = subscribeToNotifications();
+      return cleanup;
     }
   }, [currentUserId]);
 
+  // Also re-check user on auth state change
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setCurrentUserId(session.user.id);
+      } else {
+        setCurrentUserId(null);
+        setNotifications([]);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   const loadCurrentUser = async () => {
     try {
-      const userId = await AsyncStorage.getItem('userId');
-      setCurrentUserId(userId);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setCurrentUserId(user.id);
     } catch (error) {
-      console.error('Error loading user ID:', error);
+      console.error('Error loading user:', error);
     }
   };
 
   const loadNotifications = async () => {
     if (!currentUserId) return;
-
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -64,9 +76,14 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         .eq('user_id', currentUserId)
         .order('created_at', { ascending: false })
         .limit(100);
-
       if (error) throw error;
-      setNotifications(data || []);
+      // Normalize: support both 'body' and 'message' field names
+      const normalized = (data || []).map((n: any) => ({
+        ...n,
+        body: n.body || n.message || '',
+        message: n.body || n.message || '',
+      }));
+      setNotifications(normalized);
     } catch (error) {
       console.error('Error loading notifications:', error);
     } finally {
@@ -75,20 +92,54 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   };
 
   const subscribeToNotifications = () => {
-    if (!currentUserId) return;
-
+    if (!currentUserId) return () => {};
     const channel = supabase
-      .channel('notifications_changes')
+      .channel(`notifications:${currentUserId}`)
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'notifications',
           filter: `user_id=eq.${currentUserId}`,
         },
-        () => {
-          loadNotifications();
+        (payload) => {
+          const newNotif = payload.new as any;
+          setNotifications((prev) => [
+            {
+              ...newNotif,
+              body: newNotif.body || newNotif.message || '',
+              message: newNotif.body || newNotif.message || '',
+            },
+            ...prev,
+          ]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${currentUserId}`,
+        },
+        (payload) => {
+          const updated = payload.new as any;
+          setNotifications((prev) =>
+            prev.map((n) => (n.id === updated.id ? { ...n, ...updated } : n))
+          );
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${currentUserId}`,
+        },
+        (payload) => {
+          setNotifications((prev) => prev.filter((n) => n.id !== (payload.old as any).id));
         }
       )
       .subscribe();
@@ -102,15 +153,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     try {
       const { error } = await supabase
         .from('notifications')
-        .update({ is_read: true, read_at: new Date().toISOString() })
+        .update({ is_read: true })
         .eq('id', notificationId);
-
       if (error) throw error;
-
       setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === notificationId ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
-        )
+        prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
       );
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -119,19 +166,14 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   const markAllAsRead = async () => {
     if (!currentUserId) return;
-
     try {
       const { error } = await supabase
         .from('notifications')
-        .update({ is_read: true, read_at: new Date().toISOString() })
+        .update({ is_read: true })
         .eq('user_id', currentUserId)
         .eq('is_read', false);
-
       if (error) throw error;
-
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, is_read: true, read_at: new Date().toISOString() }))
-      );
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     } catch (error) {
       console.error('Error marking all as read:', error);
     }
@@ -143,9 +185,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         .from('notifications')
         .delete()
         .eq('id', notificationId);
-
       if (error) throw error;
-
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
     } catch (error) {
       console.error('Error deleting notification:', error);

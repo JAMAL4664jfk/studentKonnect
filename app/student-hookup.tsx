@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, ScrollView, Animated, PanResponder, Dimensions, Modal, TextInput, ImageBackground, FlatList, Alert } from "react-native";
+import ConfessionsTab from "./confessions";
 import { Image } from "expo-image";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "expo-router";
@@ -109,7 +110,7 @@ const SAMPLE_PROFILES: DatingProfile[] = [
   },
 ];
 
-type TabType = "dashboard" | "profiles" | "likes" | "liked" | "passed" | "matches" | "events" | "edit";
+type TabType = "dashboard" | "profiles" | "likes" | "liked" | "passed" | "matches" | "events" | "confessions" | "edit";
 
 export default function StudentHookupScreen() {
   const colors = useColors();
@@ -912,6 +913,7 @@ export default function StudentHookupScreen() {
                   activeTab === "passed" ? "xmark.circle" :
                   activeTab === "matches" ? "sparkles" :
                   activeTab === "events" ? "calendar" :
+                  activeTab === "confessions" ? "bubble.left.and.bubble.right.fill" :
                   "pencil"
                 }
                 size={20}
@@ -926,6 +928,7 @@ export default function StudentHookupScreen() {
                   activeTab === "passed" ? "Passed" :
                   activeTab === "matches" ? "Matches" :
                   activeTab === "events" ? "Events" :
+                  activeTab === "confessions" ? "Confessions" :
                   "Edit Profile"
                 }
               </Text>
@@ -944,6 +947,7 @@ export default function StudentHookupScreen() {
                 { key: "passed", label: "Passed", icon: "xmark.circle", badge: passed.length },
                 { key: "matches", label: "Matches", icon: "sparkles", badge: matches.length },
                 { key: "events", label: "Events", icon: "calendar" },
+                { key: "confessions", label: "Confessions 🤫", icon: "bubble.left.and.bubble.right.fill" },
                 { key: "edit", label: "Edit Profile", icon: "pencil" },
               ].map((tab) => (
                 <TouchableOpacity
@@ -1335,6 +1339,11 @@ export default function StudentHookupScreen() {
               </TouchableOpacity>
             </View>
           </ScrollView>
+        )}
+        
+        {/* Confessions Tab */}
+        {activeTab === "confessions" && (
+          <ConfessionsTab />
         )}
         
         {/* Edit Profile Tab */}

@@ -21,6 +21,9 @@ export default function EditDatingProfileScreen() {
     bio: "",
     interests: [] as string[],
     images: [] as string[],
+    instagram: "",
+    tiktok: "",
+    twitter: "",
   });
 
   const interestOptions = [
@@ -97,6 +100,9 @@ export default function EditDatingProfileScreen() {
         interests: JSON.stringify(profile.interests),
         images: JSON.stringify(profile.images),
         isActive: true,
+        instagram: profile.instagram || null,
+        tiktok: profile.tiktok || null,
+        twitter: profile.twitter || null,
       });
 
       if (error) throw error;
@@ -257,6 +263,40 @@ export default function EditDatingProfileScreen() {
                   {interest}
                 </Text>
               </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Social Media Links */}
+        <View className="mb-6">
+          <Text className="text-base font-semibold text-foreground mb-1">Social Media Links</Text>
+          <Text className="text-xs text-muted mb-3">Optional — share your handles so matches can find you</Text>
+          <View className="gap-3">
+            {[
+              { key: "instagram", label: "Instagram", placeholder: "@username", emoji: "📸", color: "#E1306C" },
+              { key: "tiktok", label: "TikTok", placeholder: "@username", emoji: "🎵", color: "#010101" },
+              { key: "twitter", label: "X / Twitter", placeholder: "@handle", emoji: "𝕏", color: "#1DA1F2" },
+            ].map((social) => (
+              <View key={social.key} className="flex-row items-center gap-3">
+                <View
+                  className="w-10 h-10 rounded-xl items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: social.color + "22" }}
+                >
+                  <Text style={{ fontSize: 18 }}>{social.emoji}</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xs text-muted mb-1">{social.label}</Text>
+                  <TextInput
+                    className="bg-muted rounded-xl px-4 py-3 text-foreground"
+                    placeholder={social.placeholder}
+                    placeholderTextColor={colors.muted}
+                    value={(profile as any)[social.key]}
+                    onChangeText={(text) => setProfile({ ...profile, [social.key]: text })}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+              </View>
             ))}
           </View>
         </View>
