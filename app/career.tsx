@@ -6,8 +6,10 @@ import {
   ScrollView,
   Modal,
   TextInput,
+  ImageBackground,
 } from "react-native";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -548,83 +550,65 @@ export default function CareerScreen() {
     <ScreenContainer edges={["top", "left", "right"]}>
       <View className="flex-1">
         {/* Header with Background */}
-        <View className="overflow-hidden">
-          <Image
-            source={{ uri: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&h=300&fit=crop" }}
-            className="absolute w-full h-full opacity-20"
-            contentFit="cover"
-          />
-          <View className="flex-row items-center justify-between p-4 border-b border-border" style={{ backgroundColor: 'rgba(0,0,0,0.05)' }}>
-          <View className="flex-row items-center flex-1">
-            <TouchableOpacity onPress={() => router.back()}>
-              <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
-            </TouchableOpacity>
-            <View className="ml-4">
-              <Text className="text-2xl font-bold text-foreground">Career</Text>
-              <Text className="text-sm text-muted">Career development tools</Text>
+        <ImageBackground
+          source={require("@/assets/images/career-hero-banner.jpg")}
+          className="overflow-hidden"
+          resizeMode="cover"
+        >
+          <LinearGradient
+            colors={["rgba(0,0,0,0.65)", "rgba(0,0,0,0.40)"]}
+          >
+            <View className="flex-row items-center justify-between p-4" style={{ borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.15)' }}>
+              <View className="flex-row items-center flex-1">
+                <TouchableOpacity onPress={() => router.back()}>
+                  <IconSymbol name="chevron.left" size={24} color="#fff" />
+                </TouchableOpacity>
+                <View className="ml-4">
+                  <Text className="text-2xl font-bold" style={{ color: '#fff' }}>Career</Text>
+                  <Text className="text-sm" style={{ color: 'rgba(255,255,255,0.75)' }}>Build your future, one step at a time</Text>
+                </View>
+              </View>
             </View>
-          </View>
-          </View>
-        </View>
+          </LinearGradient>
+        </ImageBackground>
 
         <ScrollView className="flex-1">
           {!showOpportunities ? (
             <>
-              {/* Career Innovation Card */}
+              {/* Career Welcome Banner */}
               <View className="p-4">
-                <TouchableOpacity
-                  onPress={() => {
-                    Toast.show({
-                      type: "info",
-                      text1: "Career Innovation",
-                      text2: "Access expert career guidance, CV builder, and interview prep tools.",
-                    });
-                  }}
-                  className="rounded-2xl p-6 overflow-hidden active:opacity-90"
-                  style={{
-                    backgroundColor: colors.primary,
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.2,
-                    shadowRadius: 8,
-                    elevation: 4,
-                  }}
+                <ImageBackground
+                  source={require("@/assets/images/career-welcome-bg.jpg")}
+                  className="rounded-2xl overflow-hidden"
+                  resizeMode="cover"
+                  style={{ minHeight: 200 }}
                 >
-                  <View className="flex-row items-center mb-3">
-                    <View
-                      className="w-12 h-12 rounded-xl items-center justify-center mr-3"
-                      style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
-                    >
-                      <IconSymbol name="briefcase.fill" size={24} color="#fff" />
+                  <LinearGradient
+                    colors={["rgba(0,0,0,0.15)", "rgba(0,0,0,0.72)"]}
+                    className="rounded-2xl p-6"
+                    style={{ minHeight: 200, justifyContent: 'flex-end' }}
+                  >
+                    <View className="flex-row items-center mb-2">
+                      <View
+                        className="w-10 h-10 rounded-xl items-center justify-center mr-3"
+                        style={{ backgroundColor: "rgba(255,255,255,0.25)" }}
+                      >
+                        <IconSymbol name="briefcase.fill" size={22} color="#fff" />
+                      </View>
+                      <Text className="text-xl font-bold" style={{ color: '#fff' }}>Career Innovation</Text>
                     </View>
-                    <View className="flex-1">
-                      <Text className="text-xl font-bold text-white">Career Innovation</Text>
-                      <Text className="text-sm text-white/90">
-                        Build your career with expert guidance
-                      </Text>
-                    </View>
-                  </View>
-                  <View className="bg-white/10 rounded-xl p-4 mb-3">
-                    <Text className="text-white/90 text-sm leading-relaxed">
-                      Access comprehensive career development tools including CV builder, interview
-                      preparation, skills assessment, and personalized career path recommendations.
+                    <Text className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.85)', lineHeight: 20 }}>
+                      CV builder, interview prep, skills assessment, and personalised career path recommendations — all in one place.
                     </Text>
-                  </View>
-                  <View className="flex-row flex-wrap gap-2">
-                    <View className="bg-white/20 px-3 py-1 rounded-full">
-                      <Text className="text-white text-xs font-semibold">CV Builder</Text>
+                    <View className="flex-row flex-wrap" style={{ gap: 6 }}>
+                      {["CV Builder", "Interview Prep", "Skills Assessment", "Career Guidance"].map((tag) => (
+                        <View key={tag} className="px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.22)' }}>
+                          <Text className="text-xs font-semibold" style={{ color: '#fff' }}>{tag}</Text>
+                        </View>
+                      ))}
                     </View>
-                    <View className="bg-white/20 px-3 py-1 rounded-full">
-                      <Text className="text-white text-xs font-semibold">Interview Prep</Text>
-                    </View>
-                    <View className="bg-white/20 px-3 py-1 rounded-full">
-                      <Text className="text-white text-xs font-semibold">Skills Assessment</Text>
-                    </View>
-                    <View className="bg-white/20 px-3 py-1 rounded-full">
-                      <Text className="text-white text-xs font-semibold">Career Guidance</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
+                  </LinearGradient>
+                </ImageBackground>
               </View>
 
               {/* Explore Opportunities Button */}
@@ -745,23 +729,31 @@ export default function CareerScreen() {
               </View>
 
               {/* Opportunities Header */}
-              <View className="px-4 pb-4">
-                <View className="items-center mb-4">
-                  <View
-                    className="px-3 py-1 rounded-full mb-2"
-                    style={{ backgroundColor: colors.primary + "20" }}
-                  >
-                    <Text className="text-primary text-xs font-semibold">
-                      Smart Job Matching
+              <ImageBackground
+                source={require("@/assets/images/career-jobs-bg.jpg")}
+                resizeMode="cover"
+                style={{ marginBottom: 0 }}
+              >
+                <LinearGradient
+                  colors={["rgba(0,0,0,0.55)", "rgba(0,0,0,0.75)"]}
+                  className="px-4 pt-6 pb-5"
+                >
+                  <View className="items-center mb-4">
+                    <View
+                      className="px-3 py-1 rounded-full mb-2"
+                      style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
+                    >
+                      <Text className="text-xs font-semibold" style={{ color: '#fff' }}>
+                        Smart Job Matching
+                      </Text>
+                    </View>
+                    <Text className="text-2xl font-bold text-center mb-2" style={{ color: '#fff' }}>
+                      Internships & Job Board
+                    </Text>
+                    <Text className="text-sm text-center" style={{ color: 'rgba(255,255,255,0.80)' }}>
+                      AI-powered matching connects you with verified employers
                     </Text>
                   </View>
-                  <Text className="text-2xl font-bold text-foreground text-center mb-2">
-                    Internships & Job Board
-                  </Text>
-                  <Text className="text-sm text-muted text-center">
-                    AI-powered matching connects you with verified employers
-                  </Text>
-                </View>
 
                 {/* Search and Post Button */}
                 <View className="flex-row gap-3 mb-3">
@@ -813,8 +805,8 @@ export default function CareerScreen() {
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
-              </View>
-
+                </LinearGradient>
+              </ImageBackground>
               {/* Feature Cards */}
               <View className="px-4 pb-4">
                 <View className="flex-row gap-3 mb-4">
