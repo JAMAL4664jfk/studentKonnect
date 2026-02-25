@@ -567,7 +567,7 @@ export default function StudentHookupScreen() {
             />
           ) : (
             <View className="flex-1 items-center justify-center" style={{ backgroundColor: colors.muted }}>
-              <IconSymbol name="person.circle.fill" size={120} color={colors.mutedForeground} />
+              <IconSymbol name="person.circle.fill" size={120} color={colors.muted} />
             </View>
           )}
 
@@ -647,7 +647,7 @@ export default function StudentHookupScreen() {
           <Image source={{ uri: mainImage }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
         ) : (
           <View className="flex-1 items-center justify-center" style={{ backgroundColor: colors.muted }}>
-            <IconSymbol name="person.circle.fill" size={120} color={colors.mutedForeground} />
+            <IconSymbol name="person.circle.fill" size={120} color={colors.muted} />
           </View>
         )}
       </View>
@@ -660,7 +660,7 @@ export default function StudentHookupScreen() {
       <View style={{ height: CARD_HEIGHT, marginBottom: 24, alignItems: 'center', justifyContent: 'center', marginTop: 20 }}>
         {profiles.length === 0 ? (
           <View className="flex-1 items-center justify-center">
-            <IconSymbol name="heart.slash.fill" size={64} color={colors.mutedForeground} />
+            <IconSymbol name="heart.slash.fill" size={64} color={colors.muted} />
             <Text className="text-xl font-bold text-foreground mt-4">No more profiles</Text>
             <Text className="text-muted-foreground mt-2">Check back later for new matches!</Text>
           </View>
@@ -1059,7 +1059,7 @@ export default function StudentHookupScreen() {
             <Text className="text-xl font-bold text-foreground mb-4">Likes You ({likes.length})</Text>
             {likes.length === 0 ? (
               <View className="flex-1 items-center justify-center py-20">
-                <IconSymbol name="heart.fill" size={64} color={colors.mutedForeground} />
+                <IconSymbol name="heart.fill" size={64} color={colors.muted} />
                 <Text className="text-lg font-semibold text-foreground mt-4">No likes yet</Text>
                 <Text className="text-muted-foreground mt-2 text-center px-8">Keep swiping! Someone will like you soon 💕</Text>
               </View>
@@ -1128,7 +1128,7 @@ export default function StudentHookupScreen() {
             <Text className="text-xl font-bold text-foreground mb-4">You Liked ({liked.length})</Text>
             {liked.length === 0 ? (
               <View className="flex-1 items-center justify-center py-20">
-                <IconSymbol name="heart" size={64} color={colors.mutedForeground} />
+                <IconSymbol name="heart" size={64} color={colors.muted} />
                 <Text className="text-lg font-semibold text-foreground mt-4">No likes yet</Text>
                 <Text className="text-muted-foreground mt-2 text-center px-8">Start swiping right on profiles you like!</Text>
               </View>
@@ -1196,7 +1196,7 @@ export default function StudentHookupScreen() {
             <Text className="text-xl font-bold text-foreground mb-4">Passed ({passed.length})</Text>
             {passed.length === 0 ? (
               <View className="flex-1 items-center justify-center py-20">
-                <IconSymbol name="xmark.circle" size={64} color={colors.mutedForeground} />
+                <IconSymbol name="xmark.circle" size={64} color={colors.muted} />
                 <Text className="text-lg font-semibold text-foreground mt-4">No passes yet</Text>
                 <Text className="text-muted-foreground mt-2 text-center px-8">Profiles you swipe left on will appear here</Text>
               </View>
@@ -1239,7 +1239,7 @@ export default function StudentHookupScreen() {
             <Text className="text-xl font-bold text-foreground mb-4">Matches ({matches.length})</Text>
             {matches.length === 0 ? (
               <View className="flex-1 items-center justify-center py-20">
-                <IconSymbol name="sparkles" size={64} color={colors.mutedForeground} />
+                <IconSymbol name="sparkles" size={64} color={colors.muted} />
                 <Text className="text-lg font-semibold text-foreground mt-4">No matches yet</Text>
                 <Text className="text-muted-foreground mt-2 text-center px-8">When someone you like likes you back, you'll see them here! ✨</Text>
               </View>
@@ -1357,7 +1357,7 @@ export default function StudentHookupScreen() {
             <View className="flex-row items-center justify-between mb-6">
               <Text className="text-2xl font-bold text-foreground">Filters</Text>
               <TouchableOpacity onPress={() => setShowFilters(false)}>
-                <IconSymbol name="xmark.circle.fill" size={28} color={colors.mutedForeground} />
+                <IconSymbol name="xmark.circle.fill" size={28} color={colors.muted} />
               </TouchableOpacity>
             </View>
 
@@ -1367,7 +1367,7 @@ export default function StudentHookupScreen() {
                 <TextInput
                   className="flex-1 bg-muted rounded-xl px-4 py-3 text-foreground"
                   placeholder="Min Age"
-                  placeholderTextColor={colors.mutedForeground}
+                  placeholderTextColor={colors.muted}
                   keyboardType="number-pad"
                   value={filters.minAge.toString()}
                   onChangeText={(text) => setFilters({ ...filters, minAge: parseInt(text) || 18 })}
@@ -1375,7 +1375,7 @@ export default function StudentHookupScreen() {
                 <TextInput
                   className="flex-1 bg-muted rounded-xl px-4 py-3 text-foreground"
                   placeholder="Max Age"
-                  placeholderTextColor={colors.mutedForeground}
+                  placeholderTextColor={colors.muted}
                   keyboardType="number-pad"
                   value={filters.maxAge.toString()}
                   onChangeText={(text) => setFilters({ ...filters, maxAge: parseInt(text) || 30 })}
@@ -1386,7 +1386,7 @@ export default function StudentHookupScreen() {
               <TextInput
                 className="bg-muted rounded-xl px-4 py-3 text-foreground mb-6"
                 placeholder="Filter by institution"
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 value={filters.institution}
                 onChangeText={(text) => setFilters({ ...filters, institution: text })}
               />

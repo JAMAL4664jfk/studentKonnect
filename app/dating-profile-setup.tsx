@@ -217,7 +217,7 @@ export default function DatingProfileSetup() {
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
               Photos (Required) 📸
             </Text>
-            <Text style={[styles.sectionHint, { color: colors.mutedForeground }]}>
+            <Text style={[styles.sectionHint, { color: colors.muted }]}>
               Add up to 6 photos. First photo will be your main profile picture.
             </Text>
             
@@ -242,7 +242,7 @@ export default function DatingProfileSetup() {
               {photos.length < 6 && (
                 <TouchableOpacity onPress={pickImage} style={styles.addPhotoButton}>
                   <IconSymbol name="plus.circle.fill" size={48} color={colors.primary} />
-                  <Text style={[styles.addPhotoText, { color: colors.mutedForeground }]}>
+                  <Text style={[styles.addPhotoText, { color: colors.muted }]}>
                     Add Photo
                   </Text>
                 </TouchableOpacity>
@@ -262,7 +262,7 @@ export default function DatingProfileSetup() {
                 value={displayName}
                 onChangeText={setDisplayName}
                 placeholder="How should we call you?"
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 style={[styles.input, { color: colors.foreground, borderColor: colors.border }]}
                 maxLength={50}
               />
@@ -276,7 +276,7 @@ export default function DatingProfileSetup() {
                   onChangeText={setAge}
                   placeholder="18+"
                   keyboardType="number-pad"
-                  placeholderTextColor={colors.mutedForeground}
+                  placeholderTextColor={colors.muted}
                   style={[styles.input, { color: colors.foreground, borderColor: colors.border }]}
                   maxLength={2}
                 />
@@ -288,7 +288,7 @@ export default function DatingProfileSetup() {
                   value={gender}
                   onChangeText={setGender}
                   placeholder="Male/Female/Other"
-                  placeholderTextColor={colors.mutedForeground}
+                  placeholderTextColor={colors.muted}
                   style={[styles.input, { color: colors.foreground, borderColor: colors.border }]}
                 />
               </View>
@@ -304,13 +304,13 @@ export default function DatingProfileSetup() {
               value={bio}
               onChangeText={setBio}
               placeholder="Tell others about yourself... What makes you unique?"
-              placeholderTextColor={colors.mutedForeground}
+              placeholderTextColor={colors.muted}
               style={[styles.bioInput, { color: colors.foreground, borderColor: colors.border }]}
               multiline
               numberOfLines={4}
               maxLength={500}
             />
-            <Text style={[styles.charCount, { color: colors.mutedForeground }]}>
+            <Text style={[styles.charCount, { color: colors.muted }]}>
               {bio.length}/500
             </Text>
           </View>
@@ -334,7 +334,7 @@ export default function DatingProfileSetup() {
                   <IconSymbol
                     name={option.icon as any}
                     size={28}
-                    color={lookingFor === option.value ? "#ec4899" : colors.mutedForeground}
+                    color={lookingFor === option.value ? "#ec4899" : colors.muted}
                   />
                   <Text
                     style={[
@@ -397,7 +397,7 @@ export default function DatingProfileSetup() {
                 value={location}
                 onChangeText={setLocation}
                 placeholder="e.g., Stellenbosch, Cape Town"
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 style={[styles.input, { color: colors.foreground, borderColor: colors.border }]}
               />
             </View>
@@ -408,7 +408,7 @@ export default function DatingProfileSetup() {
                 value={institution}
                 onChangeText={setInstitution}
                 placeholder="e.g., University of Stellenbosch"
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 style={[styles.input, { color: colors.foreground, borderColor: colors.border }]}
               />
             </View>
@@ -420,7 +420,7 @@ export default function DatingProfileSetup() {
                   value={faculty}
                   onChangeText={setFaculty}
                   placeholder="e.g., Engineering"
-                  placeholderTextColor={colors.mutedForeground}
+                  placeholderTextColor={colors.muted}
                   style={[styles.input, { color: colors.foreground, borderColor: colors.border }]}
                 />
               </View>
@@ -432,7 +432,7 @@ export default function DatingProfileSetup() {
                   onChangeText={setYearOfStudy}
                   placeholder="1-4"
                   keyboardType="number-pad"
-                  placeholderTextColor={colors.mutedForeground}
+                  placeholderTextColor={colors.muted}
                   style={[styles.input, { color: colors.foreground, borderColor: colors.border }]}
                   maxLength={1}
                 />

@@ -776,7 +776,7 @@ export default function AccommodationScreen() {
           </View>
         ) : filteredAccommodations.length === 0 ? (
           <View className="flex-1 items-center justify-center">
-            <IconSymbol name="building.2" size={64} color={colors.mutedForeground} />
+            <IconSymbol name="building.2" size={64} color={colors.muted} />
             <Text className="text-lg text-muted-foreground mt-4">No accommodations found</Text>
             <Text className="text-sm text-muted-foreground mt-2">Try adjusting your filters</Text>
           </View>

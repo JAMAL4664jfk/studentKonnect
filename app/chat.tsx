@@ -327,7 +327,7 @@ export default function ChatScreen() {
           contentContainerStyle={{ padding: 16 }}
           ListEmptyComponent={
             <View className="items-center justify-center py-12">
-              <IconSymbol name="bubble.left.and.bubble.right" size={64} color={colors.mutedForeground} />
+              <IconSymbol name="bubble.left.and.bubble.right" size={64} color={colors.muted} />
               <Text className="text-muted-foreground mt-4">No messages yet</Text>
               <Text className="text-sm text-muted-foreground">Start the conversation!</Text>
             </View>
@@ -340,7 +340,7 @@ export default function ChatScreen() {
             value={newMessage}
             onChangeText={setNewMessage}
             placeholder="Type a message..."
-            placeholderTextColor={colors.mutedForeground}
+            placeholderTextColor={colors.muted}
             className="flex-1 bg-surface rounded-full px-4 py-3 text-foreground mr-2"
             multiline
             maxLength={1000}
@@ -353,12 +353,12 @@ export default function ChatScreen() {
             }`}
           >
             {sending ? (
-              <ActivityIndicator size="small" color={colors.primaryForeground} />
+              <ActivityIndicator size="small" color={"white"} />
             ) : (
               <IconSymbol
                 name="paperplane.fill"
                 size={20}
-                color={newMessage.trim() ? colors.primaryForeground : colors.mutedForeground}
+                color={newMessage.trim() ? "white" : colors.muted}
               />
             )}
           </TouchableOpacity>

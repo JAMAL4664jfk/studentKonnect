@@ -386,7 +386,7 @@ export default function LecturesScreen() {
                     className="w-20 h-20 rounded-full items-center justify-center"
                     style={{ backgroundColor: colors.muted }}
                   >
-                    <IconSymbol name="person.fill" size={40} color={colors.mutedForeground} />
+                    <IconSymbol name="person.fill" size={40} color={colors.muted} />
                   </View>
                 )}
                 <View className="flex-1">

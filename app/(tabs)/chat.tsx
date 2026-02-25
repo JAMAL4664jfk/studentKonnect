@@ -1140,7 +1140,7 @@ export default function ChatScreen() {
                         <Text className="text-base font-semibold text-foreground">Join Groups</Text>
                         <Text className="text-sm text-muted-foreground">Connect with communities</Text>
                       </View>
-                      <IconSymbol name="chevron.right" size={20} color={colors.mutedForeground} />
+                      <IconSymbol name="chevron.right" size={20} color={colors.muted} />
                     </TouchableOpacity>
                   </View>
                 </ScrollView>

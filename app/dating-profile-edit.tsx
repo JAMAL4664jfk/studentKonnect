@@ -164,7 +164,7 @@ export default function DatingProfileEdit() {
       <ScreenContainer>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#ec4899" />
-          <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>
+          <Text style={[styles.loadingText, { color: colors.muted }]}>
             Loading profile...
           </Text>
         </View>
@@ -221,7 +221,7 @@ export default function DatingProfileEdit() {
               {photos.length < 6 && (
                 <TouchableOpacity onPress={pickImage} style={styles.addPhotoButton}>
                   <IconSymbol name="plus.circle.fill" size={48} color={colors.primary} />
-                  <Text style={[styles.addPhotoText, { color: colors.mutedForeground }]}>
+                  <Text style={[styles.addPhotoText, { color: colors.muted }]}>
                     Add Photo
                   </Text>
                 </TouchableOpacity>
@@ -241,7 +241,7 @@ export default function DatingProfileEdit() {
                 value={displayName}
                 onChangeText={setDisplayName}
                 placeholder="Your name"
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 style={[styles.input, { color: colors.foreground, borderColor: colors.border }]}
               />
             </View>
@@ -253,7 +253,7 @@ export default function DatingProfileEdit() {
                 onChangeText={setAge}
                 placeholder="18+"
                 keyboardType="number-pad"
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 style={[styles.input, { color: colors.foreground, borderColor: colors.border }]}
               />
             </View>
@@ -264,7 +264,7 @@ export default function DatingProfileEdit() {
                 value={location}
                 onChangeText={setLocation}
                 placeholder="City, Country"
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 style={[styles.input, { color: colors.foreground, borderColor: colors.border }]}
               />
             </View>
@@ -279,13 +279,13 @@ export default function DatingProfileEdit() {
               value={bio}
               onChangeText={setBio}
               placeholder="Tell others about yourself..."
-              placeholderTextColor={colors.mutedForeground}
+              placeholderTextColor={colors.muted}
               style={[styles.bioInput, { color: colors.foreground, borderColor: colors.border }]}
               multiline
               numberOfLines={4}
               maxLength={500}
             />
-            <Text style={[styles.charCount, { color: colors.mutedForeground }]}>
+            <Text style={[styles.charCount, { color: colors.muted }]}>
               {bio.length}/500
             </Text>
           </View>

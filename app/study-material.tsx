@@ -791,17 +791,17 @@ export default function StudyMaterialScreen() {
             shadowRadius: 4,
           }}
         >
-          <IconSymbol name="magnifyingglass" size={22} color={colors.mutedForeground} />
+          <IconSymbol name="magnifyingglass" size={22} color={colors.muted} />
           <TextInput
             placeholder="Search for products..."
-            placeholderTextColor={colors.mutedForeground}
+            placeholderTextColor={colors.muted}
             value={searchQuery}
             onChangeText={setSearchQuery}
             className="flex-1 text-base text-foreground"
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <IconSymbol name="xmark.circle.fill" size={20} color={colors.mutedForeground} />
+              <IconSymbol name="xmark.circle.fill" size={20} color={colors.muted} />
             </TouchableOpacity>
           )}
         </View>
@@ -954,7 +954,7 @@ export default function StudyMaterialScreen() {
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
           <View className="flex-1 items-center justify-center px-8">
-            <IconSymbol name="tray" size={64} color={colors.mutedForeground} />
+            <IconSymbol name="tray" size={64} color={colors.muted} />
             <Text className="text-xl font-bold text-foreground mt-4 mb-2">No products found</Text>
             <Text className="text-base text-muted-foreground text-center">
               Try adjusting your filters or search query

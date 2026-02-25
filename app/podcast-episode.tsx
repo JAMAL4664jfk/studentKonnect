@@ -598,7 +598,7 @@ export default function PodcastEpisodeScreen() {
               <IconSymbol
                 name={episode.media_type === "video" ? "video.fill" : "music.note"}
                 size={64}
-                color={colors.mutedForeground}
+                color={colors.muted}
               />
             </View>
           )}
@@ -627,15 +627,15 @@ export default function PodcastEpisodeScreen() {
           {/* Stats */}
           <View className="flex-row items-center gap-4 mb-4">
             <View className="flex-row items-center gap-1">
-              <IconSymbol name="eye.fill" size={16} color={colors.mutedForeground} />
+              <IconSymbol name="eye.fill" size={16} color={colors.muted} />
               <Text className="text-sm text-muted-foreground">{episode.views_count}</Text>
             </View>
             <View className="flex-row items-center gap-1">
-              <IconSymbol name="heart.fill" size={16} color={colors.mutedForeground} />
+              <IconSymbol name="heart.fill" size={16} color={colors.muted} />
               <Text className="text-sm text-muted-foreground">{episode.likes_count}</Text>
             </View>
             <View className="flex-row items-center gap-1">
-              <IconSymbol name="bubble.left.fill" size={16} color={colors.mutedForeground} />
+              <IconSymbol name="bubble.left.fill" size={16} color={colors.muted} />
               <Text className="text-sm text-muted-foreground">{episode.comments_count}</Text>
             </View>
           </View>
@@ -648,7 +648,7 @@ export default function PodcastEpisodeScreen() {
               disabled={!mediaUrl}
             >
               <View className="flex-row items-center gap-2">
-                <IconSymbol name="play.fill" size={20} color={colors.primaryForeground} />
+                <IconSymbol name="play.fill" size={20} color={"white"} />
                 <Text className="text-primary-foreground font-semibold">Play</Text>
               </View>
             </TouchableOpacity>
@@ -662,7 +662,7 @@ export default function PodcastEpisodeScreen() {
               <IconSymbol
                 name={isLiked ? "heart.fill" : "heart"}
                 size={20}
-                color={isLiked ? colors.primaryForeground : colors.foreground}
+                color={isLiked ? "white" : colors.foreground}
               />
               <Text className={`text-sm font-semibold ${
                 isLiked ? "text-primary-foreground" : "text-foreground"
@@ -680,7 +680,7 @@ export default function PodcastEpisodeScreen() {
               <IconSymbol
                 name={isFavorited ? "bookmark.fill" : "bookmark"}
                 size={20}
-                color={isFavorited ? colors.primaryForeground : colors.foreground}
+                color={isFavorited ? "white" : colors.foreground}
               />
             </TouchableOpacity>
 
@@ -693,7 +693,7 @@ export default function PodcastEpisodeScreen() {
               <IconSymbol
                 name="square.and.arrow.up"
                 size={20}
-                color={isSharing ? colors.primaryForeground : colors.foreground}
+                color={isSharing ? "white" : colors.foreground}
               />
             </TouchableOpacity>
           </View>
@@ -711,7 +711,7 @@ export default function PodcastEpisodeScreen() {
               <View className="flex-row items-center justify-between mb-2 bg-muted p-2 rounded-lg">
                 <Text className="text-sm text-muted-foreground">Replying to comment...</Text>
                 <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                  <IconSymbol name="xmark" size={16} color={colors.mutedForeground} />
+                  <IconSymbol name="xmark" size={16} color={colors.muted} />
                 </TouchableOpacity>
               </View>
             )}
@@ -721,7 +721,7 @@ export default function PodcastEpisodeScreen() {
                   value={newComment}
                   onChangeText={setNewComment}
                   placeholder="Add a comment..."
-                  placeholderTextColor={colors.mutedForeground}
+                  placeholderTextColor={colors.muted}
                   className="flex-1 bg-surface rounded-xl px-4 py-3 text-foreground"
                   multiline
                   maxLength={500}
@@ -740,12 +740,12 @@ export default function PodcastEpisodeScreen() {
                   }`}
                 >
                   {submittingComment ? (
-                    <ActivityIndicator size="small" color={colors.primaryForeground} />
+                    <ActivityIndicator size="small" color={"white"} />
                   ) : (
                     <IconSymbol
                       name="paperplane.fill"
                       size={20}
-                      color={newComment.trim() ? colors.primaryForeground : colors.mutedForeground}
+                      color={newComment.trim() ? "white" : colors.muted}
                     />
                   )}
                 </TouchableOpacity>
@@ -774,7 +774,7 @@ export default function PodcastEpisodeScreen() {
           {/* Comments List */}
           {comments.length === 0 ? (
             <View className="items-center py-8">
-              <IconSymbol name="bubble.left" size={48} color={colors.mutedForeground} />
+              <IconSymbol name="bubble.left" size={48} color={colors.muted} />
               <Text className="text-muted-foreground mt-2">No comments yet</Text>
               <Text className="text-sm text-muted-foreground">Be the first to comment!</Text>
             </View>
@@ -806,7 +806,7 @@ export default function PodcastEpisodeScreen() {
                           <IconSymbol
                             name={comment.user_liked ? "heart.fill" : "heart"}
                             size={16}
-                            color={comment.user_liked ? colors.primary : colors.mutedForeground}
+                            color={comment.user_liked ? colors.primary : colors.muted}
                           />
                           <Text
                             className={`text-xs ${
@@ -820,7 +820,7 @@ export default function PodcastEpisodeScreen() {
                           onPress={() => setReplyingTo(comment.id)}
                           className="flex-row items-center gap-1"
                         >
-                          <IconSymbol name="arrowshape.turn.up.left" size={16} color={colors.mutedForeground} />
+                          <IconSymbol name="arrowshape.turn.up.left" size={16} color={colors.muted} />
                           <Text className="text-xs text-muted-foreground">Reply</Text>
                         </TouchableOpacity>
                         {currentUser && comment.user_id === currentUser.id && (
@@ -828,7 +828,7 @@ export default function PodcastEpisodeScreen() {
                             onPress={() => deleteComment(comment.id)}
                             className="flex-row items-center gap-1"
                           >
-                            <IconSymbol name="trash" size={16} color={colors.mutedForeground} />
+                            <IconSymbol name="trash" size={16} color={colors.muted} />
                             <Text className="text-xs text-muted-foreground">Delete</Text>
                           </TouchableOpacity>
                         )}

@@ -347,7 +347,7 @@ export default function ConnectionRequestsScreen() {
           <View className="px-4">
             {incomingRequests.length === 0 ? (
               <View className="items-center justify-center py-12">
-                <IconSymbol name="tray" size={64} color={colors.mutedForeground} />
+                <IconSymbol name="tray" size={64} color={colors.muted} />
                 <Text className="text-muted-foreground mt-4">No incoming requests</Text>
               </View>
             ) : (
@@ -358,7 +358,7 @@ export default function ConnectionRequestsScreen() {
           <View className="px-4">
             {outgoingRequests.length === 0 ? (
               <View className="items-center justify-center py-12">
-                <IconSymbol name="paperplane" size={64} color={colors.mutedForeground} />
+                <IconSymbol name="paperplane" size={64} color={colors.muted} />
                 <Text className="text-muted-foreground mt-4">No sent requests</Text>
               </View>
             ) : (

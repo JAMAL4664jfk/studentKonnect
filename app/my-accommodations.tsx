@@ -167,7 +167,7 @@ export default function MyAccommodationsScreen() {
               />
             ) : (
               <View className="w-full h-full bg-muted items-center justify-center">
-                <IconSymbol name="building.2.fill" size={32} color={colors.mutedForeground} />
+                <IconSymbol name="building.2.fill" size={32} color={colors.muted} />
               </View>
             )}
           </View>
@@ -257,7 +257,7 @@ export default function MyAccommodationsScreen() {
           </View>
         ) : listings.length === 0 ? (
           <View className="flex-1 items-center justify-center">
-            <IconSymbol name="building.2" size={64} color={colors.mutedForeground} />
+            <IconSymbol name="building.2" size={64} color={colors.muted} />
             <Text className="text-lg text-muted-foreground mt-4">No listings yet</Text>
             <TouchableOpacity
               onPress={() => router.push("/create-accommodation")}

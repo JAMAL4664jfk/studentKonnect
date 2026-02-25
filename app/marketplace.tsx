@@ -247,7 +247,7 @@ export default function MarketplaceScreen() {
               style={{ width: CARD_WIDTH, height: CARD_WIDTH * 0.85 }}
               className="bg-muted items-center justify-center"
             >
-              <IconSymbol name="photo" size={40} color={colors.mutedForeground} />
+              <IconSymbol name="photo" size={40} color={colors.muted} />
             </View>
           )}
 
@@ -292,7 +292,7 @@ export default function MarketplaceScreen() {
           {/* Location */}
           {item.location && (
             <View className="flex-row items-center gap-1 mb-2">
-              <IconSymbol name="mappin.circle" size={12} color={colors.mutedForeground} />
+              <IconSymbol name="mappin.circle" size={12} color={colors.muted} />
               <Text className="text-xs text-muted-foreground" numberOfLines={1}>
                 {item.location}
               </Text>
@@ -319,7 +319,7 @@ export default function MarketplaceScreen() {
             </Text>
             <View className="flex-row items-center gap-2">
               <View className="flex-row items-center gap-1">
-                <IconSymbol name="eye" size={12} color={colors.mutedForeground} />
+                <IconSymbol name="eye" size={12} color={colors.muted} />
                 <Text className="text-xs text-muted-foreground">{item.views}</Text>
               </View>
             </View>
@@ -443,14 +443,14 @@ export default function MarketplaceScreen() {
               </Text>
               <View className="flex-row items-center gap-4 mt-2">
                 <View className="flex-row items-center gap-1">
-                  <IconSymbol name="eye" size={16} color={colors.mutedForeground} />
+                  <IconSymbol name="eye" size={16} color={colors.muted} />
                   <Text className="text-sm text-muted-foreground">{selectedItem.views} views</Text>
                 </View>
                 {selectedItem.location && (
                   <>
                     <Text className="text-muted-foreground">•</Text>
                     <View className="flex-row items-center gap-1">
-                      <IconSymbol name="mappin.circle" size={16} color={colors.mutedForeground} />
+                      <IconSymbol name="mappin.circle" size={16} color={colors.muted} />
                       <Text className="text-sm text-muted-foreground">{selectedItem.location}</Text>
                     </View>
                   </>
@@ -637,7 +637,7 @@ export default function MarketplaceScreen() {
           </View>
         ) : filteredItems.length === 0 ? (
           <View className="flex-1 items-center justify-center px-8">
-            <IconSymbol name="tray" size={64} color={colors.mutedForeground} />
+            <IconSymbol name="tray" size={64} color={colors.muted} />
             <Text className="text-xl font-bold text-foreground mt-4 mb-2">No items found</Text>
             <Text className="text-base text-muted-foreground text-center">
               Try adjusting your filters or search query

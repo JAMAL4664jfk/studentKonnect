@@ -158,7 +158,7 @@ export default function MyMarketplaceScreen() {
               />
             ) : (
               <View className="w-full h-full bg-muted items-center justify-center">
-                <IconSymbol name="photo" size={32} color={colors.mutedForeground} />
+                <IconSymbol name="photo" size={32} color={colors.muted} />
               </View>
             )}
           </View>
@@ -194,7 +194,7 @@ export default function MyMarketplaceScreen() {
                 R{parseFloat(item.price).toLocaleString()}
               </Text>
               <View className="flex-row items-center gap-1">
-                <IconSymbol name="eye.fill" size={12} color={colors.mutedForeground} />
+                <IconSymbol name="eye.fill" size={12} color={colors.muted} />
                 <Text className="text-xs text-muted-foreground">{item.views}</Text>
               </View>
             </View>
@@ -254,7 +254,7 @@ export default function MyMarketplaceScreen() {
           </View>
         ) : listings.length === 0 ? (
           <View className="flex-1 items-center justify-center">
-            <IconSymbol name="bag" size={64} color={colors.mutedForeground} />
+            <IconSymbol name="bag" size={64} color={colors.muted} />
             <Text className="text-lg text-muted-foreground mt-4">No items listed yet</Text>
             <TouchableOpacity
               onPress={() => router.push("/create-marketplace")}

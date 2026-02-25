@@ -135,7 +135,7 @@ export default function StudentHealthCoverScreen() {
                 <Text style={[styles.benefitTitle, { color: colors.foreground }]}>
                   {benefit.title}
                 </Text>
-                <Text style={[styles.benefitDesc, { color: colors.mutedForeground }]}>
+                <Text style={[styles.benefitDesc, { color: colors.muted }]}>
                   {benefit.desc}
                 </Text>
               </View>

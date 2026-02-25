@@ -295,10 +295,10 @@ export default function FullRegistrationScreen() {
                     errors.fullName ? "border-red-500" : "border-border"
                   }`}
                 >
-                  <IconSymbol name="person.fill" size={20} color={colors.mutedForeground} />
+                  <IconSymbol name="person.fill" size={20} color={colors.muted} />
                   <TextInput
                     placeholder="John Doe"
-                    placeholderTextColor={colors.mutedForeground}
+                    placeholderTextColor={colors.muted}
                     value={fullName}
                     onChangeText={(text) => {
                       setFullName(text);
@@ -323,10 +323,10 @@ export default function FullRegistrationScreen() {
                       errors.studentNumber ? "border-red-500" : "border-border"
                     }`}
                   >
-                    <IconSymbol name="number" size={20} color={colors.mutedForeground} />
+                    <IconSymbol name="number" size={20} color={colors.muted} />
                     <TextInput
                       placeholder="202412345"
-                      placeholderTextColor={colors.mutedForeground}
+                      placeholderTextColor={colors.muted}
                       value={studentNumber}
                       onChangeText={(text) => {
                         setStudentNumber(text);
@@ -394,10 +394,10 @@ export default function FullRegistrationScreen() {
                       errors.courseProgram ? "border-red-500" : "border-border"
                     }`}
                   >
-                    <IconSymbol name="book.fill" size={20} color={colors.mutedForeground} />
+                    <IconSymbol name="book.fill" size={20} color={colors.muted} />
                     <TextInput
                       placeholder="Computer Science, Business Administration, etc."
-                      placeholderTextColor={colors.mutedForeground}
+                      placeholderTextColor={colors.muted}
                       value={courseProgram}
                       onChangeText={(text) => {
                         setCourseProgram(text);
@@ -454,10 +454,10 @@ export default function FullRegistrationScreen() {
                     errors.email ? "border-red-500" : "border-border"
                   }`}
                 >
-                  <IconSymbol name="envelope.fill" size={20} color={colors.mutedForeground} />
+                  <IconSymbol name="envelope.fill" size={20} color={colors.muted} />
                   <TextInput
                     placeholder="morakef.mathibe@gmail.com"
-                    placeholderTextColor={colors.mutedForeground}
+                    placeholderTextColor={colors.muted}
                     value={email}
                     onChangeText={(text) => {
                       setEmail(text);
@@ -481,10 +481,10 @@ export default function FullRegistrationScreen() {
                     errors.phoneNumber ? "border-red-500" : "border-border"
                   }`}
                 >
-                  <IconSymbol name="phone.fill" size={20} color={colors.mutedForeground} />
+                  <IconSymbol name="phone.fill" size={20} color={colors.muted} />
                   <TextInput
                     placeholder="+27 82 123 4567"
-                    placeholderTextColor={colors.mutedForeground}
+                    placeholderTextColor={colors.muted}
                     value={phoneNumber}
                     onChangeText={(text) => {
                       setPhoneNumber(text);
@@ -507,10 +507,10 @@ export default function FullRegistrationScreen() {
                     errors.password ? "border-red-500" : "border-border"
                   }`}
                 >
-                  <IconSymbol name="lock.fill" size={20} color={colors.mutedForeground} />
+                  <IconSymbol name="lock.fill" size={20} color={colors.muted} />
                   <TextInput
                     placeholder="••••••••"
-                    placeholderTextColor={colors.mutedForeground}
+                    placeholderTextColor={colors.muted}
                     value={password}
                     onChangeText={(text) => {
                       setPassword(text);
@@ -523,7 +523,7 @@ export default function FullRegistrationScreen() {
                     <IconSymbol
                       name={showPassword ? "eye.slash.fill" : "eye.fill"}
                       size={20}
-                      color={colors.mutedForeground}
+                      color={colors.muted}
                     />
                   </TouchableOpacity>
                 </View>
@@ -543,10 +543,10 @@ export default function FullRegistrationScreen() {
                     errors.confirmPassword ? "border-red-500" : "border-border"
                   }`}
                 >
-                  <IconSymbol name="lock.fill" size={20} color={colors.mutedForeground} />
+                  <IconSymbol name="lock.fill" size={20} color={colors.muted} />
                   <TextInput
                     placeholder="••••••••"
-                    placeholderTextColor={colors.mutedForeground}
+                    placeholderTextColor={colors.muted}
                     value={confirmPassword}
                     onChangeText={(text) => {
                       setConfirmPassword(text);
@@ -559,7 +559,7 @@ export default function FullRegistrationScreen() {
                     <IconSymbol
                       name={showConfirmPassword ? "eye.slash.fill" : "eye.fill"}
                       size={20}
-                      color={colors.mutedForeground}
+                      color={colors.muted}
                     />
                   </TouchableOpacity>
                 </View>

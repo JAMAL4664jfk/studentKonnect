@@ -501,10 +501,30 @@ export default function PodcastsScreen() {
         console.log('Video uploaded successfully:', videoUrl);
       }
 
-      // Use video URL as thumbnail for videos (player will show first frame)
+      // Upload episode thumbnail if user picked one
       let thumbnailUrl = null;
-      if (mediaType === "video" && videoUrl) {
-        thumbnailUrl = videoUrl;
+      if (episodeThumbnail) {
+        try {
+          const thumbFileName = `thumbnails/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+          const thumbFormData = new FormData();
+          thumbFormData.append('file', {
+            uri: episodeThumbnail,
+            type: 'image/jpeg',
+            name: thumbFileName.split('/').pop(),
+          } as any);
+          const { error: thumbUploadError } = await supabase.storage
+            .from('podcasts')
+            .upload(thumbFileName, thumbFormData, { contentType: 'image/jpeg' });
+          if (!thumbUploadError) {
+            const { data: { publicUrl } } = supabase.storage.from('podcasts').getPublicUrl(thumbFileName);
+            thumbnailUrl = publicUrl;
+            console.log('Thumbnail uploaded successfully:', thumbnailUrl);
+          } else {
+            console.warn('Thumbnail upload failed (non-blocking):', thumbUploadError);
+          }
+        } catch (thumbErr) {
+          console.warn('Thumbnail upload error (non-blocking):', thumbErr);
+        }
       }
 
       // Create podcast episode
@@ -1593,7 +1613,37 @@ export default function PodcastsScreen() {
                   </TouchableOpacity>
                 </View>
 
-                {/* Thumbnail removed - video thumbnail will be used automatically */}
+                {/* Episode Thumbnail Picker */}
+                <View>
+                  <Text className="text-sm font-medium text-foreground mb-2">Cover Image (optional)</Text>
+                  <TouchableOpacity
+                    onPress={() => pickThumbnail("episode")}
+                    className="bg-surface border border-border rounded-xl p-4 items-center justify-center"
+                    style={{ minHeight: 100 }}
+                  >
+                    {episodeThumbnail ? (
+                      <Image
+                        source={{ uri: episodeThumbnail }}
+                        className="w-full h-32 rounded-xl"
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <>
+                        <IconSymbol name="photo.fill" size={32} color={colors.primary} />
+                        <Text className="text-sm text-primary mt-2">Tap to add a cover image</Text>
+                        <Text className="text-xs text-muted mt-1">Recommended: square image (1:1)</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                  {episodeThumbnail && (
+                    <TouchableOpacity
+                      onPress={() => setEpisodeThumbnail(null)}
+                      className="mt-2 items-center"
+                    >
+                      <Text style={{ color: '#ef4444', fontSize: 12 }}>Remove thumbnail</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             </ScrollView>
 
@@ -1715,7 +1765,14 @@ export default function PodcastsScreen() {
                     />
                   ) : (
                     <View className="w-full h-48 rounded-2xl mb-4 bg-primary/20 items-center justify-center">
-                      <IconSymbol name="mic.fill" size={64} color={colors.primary} />
+                      <IconSymbol
+                        name={selectedEpisode.media_type === "video" ? "video.fill" : "mic.fill"}
+                        size={64}
+                        color={colors.primary}
+                      />
+                      <Text className="text-xs text-muted mt-2">
+                        {selectedEpisode.media_type === "video" ? "Video Episode" : "Audio Episode"}
+                      </Text>
                     </View>
                   )}
                   <Text className="text-2xl font-bold text-foreground mb-2">

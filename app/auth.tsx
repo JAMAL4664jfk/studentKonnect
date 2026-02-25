@@ -329,17 +329,17 @@ export default function AuthScreen() {
                 Select Institution
               </Text>
               <TouchableOpacity onPress={() => setShowInstitutionPicker(false)}>
-                <IconSymbol name="xmark.circle.fill" size={28} color={colors.mutedForeground} />
+                <IconSymbol name="xmark.circle.fill" size={28} color={colors.muted} />
               </TouchableOpacity>
             </View>
             
             <View className="flex-row items-center bg-surface rounded-xl px-4 py-3">
-              <IconSymbol name="magnifyingglass" size={20} color={colors.mutedForeground} />
+              <IconSymbol name="magnifyingglass" size={20} color={colors.muted} />
               <TextInput
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 placeholder="Search institutions..."
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 className="flex-1 ml-2 text-foreground"
               />
             </View>

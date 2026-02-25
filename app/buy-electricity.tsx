@@ -181,12 +181,12 @@ export default function BuyElectricityScreen() {
               Meter Number *
             </Text>
             <View className="bg-surface rounded-xl px-4 py-3 flex-row items-center border border-border">
-              <IconSymbol name="bolt.fill" size={20} color={colors.mutedForeground} />
+              <IconSymbol name="bolt.fill" size={20} color={colors.muted} />
               <TextInput
                 value={meterNumber}
                 onChangeText={setMeterNumber}
                 placeholder="Enter your meter number"
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 className="flex-1 ml-3 text-foreground"
                 keyboardType="numeric"
                 maxLength={20}
@@ -245,7 +245,7 @@ export default function BuyElectricityScreen() {
                   setAmount(null);
                 }}
                 placeholder="0.00"
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 className="flex-1 ml-2 text-foreground"
                 keyboardType="numeric"
               />

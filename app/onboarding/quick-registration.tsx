@@ -209,10 +209,10 @@ export default function QuickRegistrationScreen() {
                   Student Number
                 </Text>
                 <View className="bg-surface border-2 border-border rounded-xl px-4 py-3 flex-row items-center">
-                  <IconSymbol name="number" size={20} color={colors.mutedForeground} />
+                  <IconSymbol name="number" size={20} color={colors.muted} />
                   <TextInput
                     placeholder="202412345"
-                    placeholderTextColor={colors.mutedForeground}
+                    placeholderTextColor={colors.muted}
                     value={studentNumber}
                     onChangeText={setStudentNumber}
                     keyboardType="numeric"

@@ -232,7 +232,7 @@ export default function MyMarketplaceListingsScreen() {
               style={{ width: CARD_WIDTH, height: CARD_WIDTH * 0.85 }}
               className="bg-muted items-center justify-center"
             >
-              <IconSymbol name="photo" size={40} color={colors.mutedForeground} />
+              <IconSymbol name="photo" size={40} color={colors.muted} />
             </View>
           )}
 
@@ -274,7 +274,7 @@ export default function MyMarketplaceListingsScreen() {
               R{parseFloat(item.price).toLocaleString()}
             </Text>
             <View className="flex-row items-center gap-1">
-              <IconSymbol name="eye" size={12} color={colors.mutedForeground} />
+              <IconSymbol name="eye" size={12} color={colors.muted} />
               <Text className="text-xs text-muted-foreground">{item.views}</Text>
             </View>
           </View>
@@ -340,7 +340,7 @@ export default function MyMarketplaceListingsScreen() {
           </View>
         ) : listings.length === 0 ? (
           <View className="flex-1 items-center justify-center px-8">
-            <IconSymbol name="tray" size={64} color={colors.mutedForeground} />
+            <IconSymbol name="tray" size={64} color={colors.muted} />
             <Text className="text-xl font-bold text-foreground mt-4 mb-2">No listings yet</Text>
             <Text className="text-base text-muted-foreground text-center mb-6">
               Start selling by posting your first item

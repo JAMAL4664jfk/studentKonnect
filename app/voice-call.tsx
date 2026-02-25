@@ -228,7 +228,7 @@ export default function VoiceCallScreen() {
                 <IconSymbol
                   name="speaker.wave.3.fill"
                   size={24}
-                  color={isSpeaker ? colors.primaryForeground : colors.foreground}
+                  color={isSpeaker ? "white" : colors.foreground}
                 />
               </TouchableOpacity>
             </View>

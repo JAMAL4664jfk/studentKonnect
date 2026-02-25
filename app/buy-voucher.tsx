@@ -229,12 +229,12 @@ export default function BuyVoucherScreen() {
               Email Address *
             </Text>
             <View className="bg-surface rounded-xl px-4 py-3 flex-row items-center border border-border">
-              <IconSymbol name="envelope.fill" size={20} color={colors.mutedForeground} />
+              <IconSymbol name="envelope.fill" size={20} color={colors.muted} />
               <TextInput
                 value={email}
                 onChangeText={setEmail}
                 placeholder="your@email.com"
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 className="flex-1 ml-3 text-foreground"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -293,7 +293,7 @@ export default function BuyVoucherScreen() {
                   setAmount(null);
                 }}
                 placeholder="0.00"
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 className="flex-1 ml-2 text-foreground"
                 keyboardType="numeric"
               />

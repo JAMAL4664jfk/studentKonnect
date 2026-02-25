@@ -192,12 +192,12 @@ export default function DiscoverUsersScreen() {
         {/* Search */}
         <View className="px-4 mb-4">
           <View className="flex-row items-center bg-surface rounded-xl px-4 py-3">
-            <IconSymbol name="magnifyingglass" size={20} color={colors.mutedForeground} />
+            <IconSymbol name="magnifyingglass" size={20} color={colors.muted} />
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholder="Search by name, institution, or program..."
-              placeholderTextColor={colors.mutedForeground}
+              placeholderTextColor={colors.muted}
               className="flex-1 ml-2 text-foreground"
             />
           </View>
@@ -210,7 +210,7 @@ export default function DiscoverUsersScreen() {
           </View>
         ) : users.length === 0 ? (
           <View className="items-center justify-center py-12">
-            <IconSymbol name="person.2" size={64} color={colors.mutedForeground} />
+            <IconSymbol name="person.2" size={64} color={colors.muted} />
             <Text className="text-muted-foreground mt-4">No users found</Text>
           </View>
         ) : (

@@ -174,7 +174,7 @@ export default function EditDatingProfileScreen() {
             <TextInput
               className="bg-muted rounded-xl px-4 py-3 text-foreground"
               placeholder="Your name"
-              placeholderTextColor={colors.mutedForeground}
+              placeholderTextColor={colors.muted}
               value={profile.name}
               onChangeText={(text) => setProfile({ ...profile, name: text })}
             />
@@ -185,7 +185,7 @@ export default function EditDatingProfileScreen() {
             <TextInput
               className="bg-muted rounded-xl px-4 py-3 text-foreground"
               placeholder="Your age"
-              placeholderTextColor={colors.mutedForeground}
+              placeholderTextColor={colors.muted}
               keyboardType="number-pad"
               value={profile.age}
               onChangeText={(text) => setProfile({ ...profile, age: text })}
@@ -197,7 +197,7 @@ export default function EditDatingProfileScreen() {
             <TextInput
               className="bg-muted rounded-xl px-4 py-3 text-foreground"
               placeholder="Your university/college"
-              placeholderTextColor={colors.mutedForeground}
+              placeholderTextColor={colors.muted}
               value={profile.institution}
               onChangeText={(text) => setProfile({ ...profile, institution: text })}
             />
@@ -208,7 +208,7 @@ export default function EditDatingProfileScreen() {
             <TextInput
               className="bg-muted rounded-xl px-4 py-3 text-foreground"
               placeholder="What are you studying?"
-              placeholderTextColor={colors.mutedForeground}
+              placeholderTextColor={colors.muted}
               value={profile.course}
               onChangeText={(text) => setProfile({ ...profile, course: text })}
             />
@@ -219,7 +219,7 @@ export default function EditDatingProfileScreen() {
             <TextInput
               className="bg-muted rounded-xl px-4 py-3 text-foreground"
               placeholder="Tell us about yourself..."
-              placeholderTextColor={colors.mutedForeground}
+              placeholderTextColor={colors.muted}
               multiline
               numberOfLines={4}
               textAlignVertical="top"

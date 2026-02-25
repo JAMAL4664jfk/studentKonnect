@@ -239,18 +239,18 @@ export default function AuthScreen() {
                 Select Institution
               </Text>
               <TouchableOpacity onPress={() => setShowInstitutionPicker(false)}>
-                <IconSymbol name="xmark.circle.fill" size={28} color={colors.mutedForeground} />
+                <IconSymbol name="xmark.circle.fill" size={28} color={colors.muted} />
               </TouchableOpacity>
             </View>
             
             {/* Search */}
             <View className="flex-row items-center bg-surface rounded-xl px-4 py-3">
-              <IconSymbol name="magnifyingglass" size={20} color={colors.mutedForeground} />
+              <IconSymbol name="magnifyingglass" size={20} color={colors.muted} />
               <TextInput
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 placeholder="Search institutions..."
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 className="flex-1 ml-2 text-foreground"
               />
             </View>
@@ -334,12 +334,12 @@ export default function AuthScreen() {
                       Email
                     </Text>
                     <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="envelope.fill" size={20} color={colors.mutedForeground} />
+                      <IconSymbol name="envelope.fill" size={20} color={colors.muted} />
                       <TextInput
                         value={email}
                         onChangeText={setEmail}
                         placeholder="your.email@example.com"
-                        placeholderTextColor={colors.mutedForeground}
+                        placeholderTextColor={colors.muted}
                         keyboardType="email-address"
                         autoCapitalize="none"
                         className="flex-1 ml-3 text-foreground"
@@ -356,12 +356,12 @@ export default function AuthScreen() {
                       Password
                     </Text>
                     <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="lock.fill" size={20} color={colors.mutedForeground} />
+                      <IconSymbol name="lock.fill" size={20} color={colors.muted} />
                       <TextInput
                         value={password}
                         onChangeText={setPassword}
                         placeholder="Enter your password"
-                        placeholderTextColor={colors.mutedForeground}
+                        placeholderTextColor={colors.muted}
                         secureTextEntry={!showPassword}
                         className="flex-1 ml-3 text-foreground"
                       />
@@ -369,7 +369,7 @@ export default function AuthScreen() {
                         <IconSymbol
                           name={showPassword ? "eye.slash.fill" : "eye.fill"}
                           size={20}
-                          color={colors.mutedForeground}
+                          color={colors.muted}
                         />
                       </TouchableOpacity>
                     </View>
@@ -410,12 +410,12 @@ export default function AuthScreen() {
                       Full Name
                     </Text>
                     <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="person.fill" size={20} color={colors.mutedForeground} />
+                      <IconSymbol name="person.fill" size={20} color={colors.muted} />
                       <TextInput
                         value={fullName}
                         onChangeText={setFullName}
                         placeholder="John Doe"
-                        placeholderTextColor={colors.mutedForeground}
+                        placeholderTextColor={colors.muted}
                         className="flex-1 ml-3 text-foreground"
                       />
                     </View>
@@ -430,12 +430,12 @@ export default function AuthScreen() {
                       Email
                     </Text>
                     <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="envelope.fill" size={20} color={colors.mutedForeground} />
+                      <IconSymbol name="envelope.fill" size={20} color={colors.muted} />
                       <TextInput
                         value={email}
                         onChangeText={setEmail}
                         placeholder="your.email@example.com"
-                        placeholderTextColor={colors.mutedForeground}
+                        placeholderTextColor={colors.muted}
                         keyboardType="email-address"
                         autoCapitalize="none"
                         className="flex-1 ml-3 text-foreground"
@@ -452,13 +452,13 @@ export default function AuthScreen() {
                       Phone Number
                     </Text>
                     <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="phone.fill" size={20} color={colors.mutedForeground} />
+                      <IconSymbol name="phone.fill" size={20} color={colors.muted} />
                       <Text className="text-foreground font-medium ml-3 mr-2">+27</Text>
                       <TextInput
                         value={phoneNumber}
                         onChangeText={setPhoneNumber}
                         placeholder="812345678"
-                        placeholderTextColor={colors.mutedForeground}
+                        placeholderTextColor={colors.muted}
                         keyboardType="phone-pad"
                         maxLength={10}
                         className="flex-1 text-foreground"
@@ -475,12 +475,12 @@ export default function AuthScreen() {
                       Student Number
                     </Text>
                     <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="number" size={20} color={colors.mutedForeground} />
+                      <IconSymbol name="number" size={20} color={colors.muted} />
                       <TextInput
                         value={studentNumber}
                         onChangeText={setStudentNumber}
                         placeholder="202312345"
-                        placeholderTextColor={colors.mutedForeground}
+                        placeholderTextColor={colors.muted}
                         className="flex-1 ml-3 text-foreground"
                       />
                     </View>
@@ -511,13 +511,13 @@ export default function AuthScreen() {
                         </>
                       ) : (
                         <>
-                          <IconSymbol name="building.2.fill" size={20} color={colors.mutedForeground} />
+                          <IconSymbol name="building.2.fill" size={20} color={colors.muted} />
                           <Text className="flex-1 ml-3 text-muted-foreground">
                             Select your institution
                           </Text>
                         </>
                       )}
-                      <IconSymbol name="chevron.down" size={20} color={colors.mutedForeground} />
+                      <IconSymbol name="chevron.down" size={20} color={colors.muted} />
                     </TouchableOpacity>
                     {errors.institution && (
                       <Text className="text-destructive text-xs mt-1">{errors.institution}</Text>
@@ -530,12 +530,12 @@ export default function AuthScreen() {
                       Course/Program
                     </Text>
                     <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="book.fill" size={20} color={colors.mutedForeground} />
+                      <IconSymbol name="book.fill" size={20} color={colors.muted} />
                       <TextInput
                         value={courseProgram}
                         onChangeText={setCourseProgram}
                         placeholder="e.g., Computer Science"
-                        placeholderTextColor={colors.mutedForeground}
+                        placeholderTextColor={colors.muted}
                         className="flex-1 ml-3 text-foreground"
                       />
                     </View>
@@ -581,12 +581,12 @@ export default function AuthScreen() {
                       Password
                     </Text>
                     <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="lock.fill" size={20} color={colors.mutedForeground} />
+                      <IconSymbol name="lock.fill" size={20} color={colors.muted} />
                       <TextInput
                         value={password}
                         onChangeText={setPassword}
                         placeholder="Min 8 chars, 1 number, 1 special"
-                        placeholderTextColor={colors.mutedForeground}
+                        placeholderTextColor={colors.muted}
                         secureTextEntry={!showPassword}
                         className="flex-1 ml-3 text-foreground"
                       />
@@ -594,7 +594,7 @@ export default function AuthScreen() {
                         <IconSymbol
                           name={showPassword ? "eye.slash.fill" : "eye.fill"}
                           size={20}
-                          color={colors.mutedForeground}
+                          color={colors.muted}
                         />
                       </TouchableOpacity>
                     </View>
@@ -609,12 +609,12 @@ export default function AuthScreen() {
                       Confirm Password
                     </Text>
                     <View className="flex-row items-center bg-surface rounded-xl px-4 py-3 border border-border">
-                      <IconSymbol name="lock.fill" size={20} color={colors.mutedForeground} />
+                      <IconSymbol name="lock.fill" size={20} color={colors.muted} />
                       <TextInput
                         value={confirmPassword}
                         onChangeText={setConfirmPassword}
                         placeholder="Re-enter your password"
-                        placeholderTextColor={colors.mutedForeground}
+                        placeholderTextColor={colors.muted}
                         secureTextEntry={!showConfirmPassword}
                         className="flex-1 ml-3 text-foreground"
                       />
@@ -622,7 +622,7 @@ export default function AuthScreen() {
                         <IconSymbol
                           name={showConfirmPassword ? "eye.slash.fill" : "eye.fill"}
                           size={20}
-                          color={colors.mutedForeground}
+                          color={colors.muted}
                         />
                       </TouchableOpacity>
                     </View>

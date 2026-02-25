@@ -123,17 +123,17 @@ export default function ConnectLecturerScreen() {
         <View style={styles.content}>
           {/* Search */}
           <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
-            <IconSymbol name="magnifyingglass" size={20} color={colors.mutedForeground} />
+            <IconSymbol name="magnifyingglass" size={20} color={colors.muted} />
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholder="Search by name, department, or subject..."
-              placeholderTextColor={colors.mutedForeground}
+              placeholderTextColor={colors.muted}
               style={[styles.searchInput, { color: colors.foreground }]}
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery("")}>
-                <IconSymbol name="xmark.circle.fill" size={20} color={colors.mutedForeground} />
+                <IconSymbol name="xmark.circle.fill" size={20} color={colors.muted} />
               </TouchableOpacity>
             )}
           </View>
@@ -201,7 +201,7 @@ export default function ConnectLecturerScreen() {
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
               Available Lecturers
             </Text>
-            <Text style={[styles.countBadge, { color: colors.mutedForeground }]}>
+            <Text style={[styles.countBadge, { color: colors.muted }]}>
               {filteredLecturers.length} found
             </Text>
           </View>
@@ -212,8 +212,8 @@ export default function ConnectLecturerScreen() {
             </View>
           ) : filteredLecturers.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <IconSymbol name="person.crop.circle.badge.xmark" size={64} color={colors.mutedForeground} />
-              <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
+              <IconSymbol name="person.crop.circle.badge.xmark" size={64} color={colors.muted} />
+              <Text style={[styles.emptyText, { color: colors.muted }]}>
                 No lecturers found
               </Text>
             </View>
@@ -229,7 +229,7 @@ export default function ConnectLecturerScreen() {
                     <Text style={[styles.lecturerName, { color: colors.foreground }]}>
                       {lecturer.name}
                     </Text>
-                    <Text style={[styles.lecturerDept, { color: colors.mutedForeground }]}>
+                    <Text style={[styles.lecturerDept, { color: colors.muted }]}>
                       {lecturer.department}
                     </Text>
                     <View style={styles.ratingContainer}>

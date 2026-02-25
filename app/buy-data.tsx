@@ -199,12 +199,12 @@ export default function BuyDataScreen() {
               Phone Number *
             </Text>
             <View className="bg-surface rounded-xl px-4 py-3 flex-row items-center border border-border">
-              <IconSymbol name="phone.fill" size={20} color={colors.mutedForeground} />
+              <IconSymbol name="phone.fill" size={20} color={colors.muted} />
               <TextInput
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
                 placeholder="0821234567"
-                placeholderTextColor={colors.mutedForeground}
+                placeholderTextColor={colors.muted}
                 className="flex-1 ml-3 text-foreground"
                 keyboardType="phone-pad"
                 maxLength={10}
