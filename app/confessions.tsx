@@ -97,6 +97,7 @@ export default function ConfessionsScreen() {
   const [flagReason, setFlagReason] = useState("");
   const [flagDetails, setFlagDetails] = useState("");
   const [submittingFlag, setSubmittingFlag] = useState(false);
+  const [showComposer, setShowComposer] = useState(false);
 
   // ─── Init ─────────────────────────────────────────────────────────────────
 
@@ -297,6 +298,7 @@ export default function ConfessionsScreen() {
       setMediaUri(null);
       setMediaType(null);
       setSelectedEmoji("🤫");
+      setShowComposer(false);
       await loadConfessions();
       Alert.alert("Posted! 🤫", "Your confession has been posted anonymously.");
     } catch (err: any) {
@@ -784,8 +786,12 @@ export default function ConfessionsScreen() {
             elevation: 2,
           }}
         >
-          {/* Title row */}
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          {/* Title row — always visible, tapping toggles composer */}
+          <TouchableOpacity
+            onPress={() => setShowComposer(!showComposer)}
+            style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: showComposer ? 12 : 0 }}
+            activeOpacity={0.7}
+          >
             <View
               style={{
                 width: 36,
@@ -798,141 +804,151 @@ export default function ConfessionsScreen() {
             >
               <Text style={{ fontSize: 18 }}>🤫</Text>
             </View>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={{ color: colors.foreground, fontWeight: "700", fontSize: 15 }}>
                 Confess Anonymously
               </Text>
               <Text style={{ color: colors.muted, fontSize: 12 }}>
-                Your identity is always hidden
+                {showComposer ? "Tap to collapse" : "Tap to write a confession..."}
               </Text>
             </View>
-          </View>
+            <IconSymbol
+              name={showComposer ? "chevron.up" : "chevron.down"}
+              size={18}
+              color={colors.muted}
+            />
+          </TouchableOpacity>
 
-          {/* Emoji picker row */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{ marginBottom: 10 }}
-          >
-            {EMOJIS.map((emoji) => (
-              <TouchableOpacity
-                key={emoji}
-                onPress={() => setSelectedEmoji(emoji)}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  marginRight: 6,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor:
-                    selectedEmoji === emoji ? colors.primary + "25" : colors.background,
-                  borderWidth: selectedEmoji === emoji ? 2 : 1,
-                  borderColor: selectedEmoji === emoji ? colors.primary : colors.border,
-                }}
+          {showComposer && (
+            <View>
+              {/* Emoji picker row */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={{ marginBottom: 10 }}
               >
-                <Text style={{ fontSize: 18 }}>{emoji}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                {EMOJIS.map((emoji) => (
+                  <TouchableOpacity
+                    key={emoji}
+                    onPress={() => setSelectedEmoji(emoji)}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      marginRight: 6,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor:
+                        selectedEmoji === emoji ? colors.primary + "25" : colors.background,
+                      borderWidth: selectedEmoji === emoji ? 2 : 1,
+                      borderColor: selectedEmoji === emoji ? colors.primary : colors.border,
+                    }}
+                  >
+                    <Text style={{ fontSize: 18 }}>{emoji}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
 
-          {/* Text input */}
-          <TextInput
-            style={{
-              backgroundColor: colors.background,
-              borderRadius: 12,
-              padding: 12,
-              color: colors.foreground,
-              fontSize: 14,
-              minHeight: 80,
-              textAlignVertical: "top",
-              borderWidth: 1,
-              borderColor: colors.border,
-              marginBottom: 10,
-            }}
-            placeholder="What's your confession? 🤫 No one will know it's you..."
-            placeholderTextColor={colors.muted}
-            value={newConfession}
-            onChangeText={setNewConfession}
-            multiline
-            maxLength={500}
-          />
-
-          {/* Character count */}
-          <Text style={{ color: colors.muted, fontSize: 11, textAlign: "right", marginBottom: 8 }}>
-            {newConfession.length}/500
-          </Text>
-
-          {/* Media preview */}
-          {mediaUri && (
-            <View style={{ marginBottom: 10, position: "relative" }}>
-              <Image
-                source={{ uri: mediaUri }}
-                style={{ width: "100%", height: 160, borderRadius: 12 }}
-                resizeMode="cover"
-              />
-              <TouchableOpacity
-                onPress={() => { setMediaUri(null); setMediaType(null); }}
+              {/* Text input */}
+              <TextInput
                 style={{
-                  position: "absolute",
-                  top: 8,
-                  right: 8,
-                  backgroundColor: "rgba(0,0,0,0.6)",
+                  backgroundColor: colors.background,
                   borderRadius: 12,
-                  padding: 4,
+                  padding: 12,
+                  color: colors.foreground,
+                  fontSize: 14,
+                  minHeight: 80,
+                  textAlignVertical: "top",
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  marginBottom: 10,
                 }}
-              >
-                <IconSymbol name="xmark" size={16} color="white" />
-              </TouchableOpacity>
+                placeholder="What's your confession? 🤫 No one will know it's you..."
+                placeholderTextColor={colors.muted}
+                value={newConfession}
+                onChangeText={setNewConfession}
+                multiline
+                maxLength={500}
+                autoFocus
+              />
+
+              {/* Character count */}
+              <Text style={{ color: colors.muted, fontSize: 11, textAlign: "right", marginBottom: 8 }}>
+                {newConfession.length}/500
+              </Text>
+
+              {/* Media preview */}
+              {mediaUri && (
+                <View style={{ marginBottom: 10, position: "relative" }}>
+                  <Image
+                    source={{ uri: mediaUri }}
+                    style={{ width: "100%", height: 160, borderRadius: 12 }}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    onPress={() => { setMediaUri(null); setMediaType(null); }}
+                    style={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      backgroundColor: "rgba(0,0,0,0.6)",
+                      borderRadius: 12,
+                      padding: 4,
+                    }}
+                  >
+                    <IconSymbol name="xmark" size={16} color="white" />
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Action row */}
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                <TouchableOpacity
+                  onPress={pickMedia}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 6,
+                    backgroundColor: colors.background,
+                    borderRadius: 12,
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    flex: 1,
+                  }}
+                >
+                  <IconSymbol name="photo" size={18} color={colors.muted} />
+                  <Text style={{ color: colors.muted, fontSize: 13 }}>Add Photo</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={postConfession}
+                  disabled={posting || uploading || (!newConfession.trim() && !mediaUri)}
+                  style={{
+                    backgroundColor:
+                      posting || uploading || (!newConfession.trim() && !mediaUri)
+                        ? colors.muted + "40"
+                        : colors.love,
+                    borderRadius: 12,
+                    paddingHorizontal: 20,
+                    paddingVertical: 10,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flex: 1,
+                  }}
+                >
+                  {posting || uploading ? (
+                    <ActivityIndicator color="white" size="small" />
+                  ) : (
+                    <Text style={{ color: "white", fontWeight: "700", fontSize: 14 }}>
+                      Confess 🤫
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           )}
-
-          {/* Action row */}
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <TouchableOpacity
-              onPress={pickMedia}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
-                backgroundColor: colors.background,
-                borderRadius: 12,
-                paddingHorizontal: 12,
-                paddingVertical: 10,
-                borderWidth: 1,
-                borderColor: colors.border,
-                flex: 1,
-              }}
-            >
-              <IconSymbol name="photo" size={18} color={colors.muted} />
-              <Text style={{ color: colors.muted, fontSize: 13 }}>Add Photo</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={postConfession}
-              disabled={posting || uploading || (!newConfession.trim() && !mediaUri)}
-              style={{
-                backgroundColor:
-                  posting || uploading || (!newConfession.trim() && !mediaUri)
-                    ? colors.muted + "40"
-                    : colors.love,
-                borderRadius: 12,
-                paddingHorizontal: 20,
-                paddingVertical: 10,
-                alignItems: "center",
-                justifyContent: "center",
-                flex: 1,
-              }}
-            >
-              {posting || uploading ? (
-                <ActivityIndicator color="white" size="small" />
-              ) : (
-                <Text style={{ color: "white", fontWeight: "700", fontSize: 14 }}>
-                  Confess 🤫
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* Feed */}
