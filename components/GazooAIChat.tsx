@@ -10,11 +10,15 @@ import {
   Platform,
   ActivityIndicator,
   FlatList,
+  ImageBackground,
+  Image,
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColors } from '@/hooks/use-colors';
 import { supabase, safeGetUser } from '@/lib/supabase';
 import Toast from 'react-native-toast-message';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 
 interface Message {
   id: string;
@@ -29,6 +33,14 @@ interface Conversation {
   last_message: string;
   created_at: Date;
   updated_at: Date;
+}
+
+interface AttachedDocument {
+  name: string;
+  uri: string;
+  mimeType: string;
+  content: string; // extracted text content
+  size: number;
 }
 
 interface GazooAIChatProps {
@@ -56,6 +68,8 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [askedTopics, setAskedTopics] = useState<Set<string>>(new Set());
+  const [attachedDoc, setAttachedDoc] = useState<AttachedDocument | null>(null);
+  const [isPickingDoc, setIsPickingDoc] = useState(false);
 
   // Using OpenAI API with provided key
   const USE_MOCK_RESPONSES = false;
@@ -184,6 +198,99 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
     }
   };
 
+  const pickDocument = async () => {
+    if (isPickingDoc) return;
+    setIsPickingDoc(true);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          'application/pdf',
+          'text/plain',
+          'text/markdown',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'text/csv',
+        ],
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        return;
+      }
+
+      const asset = result.assets[0];
+      const fileSizeMB = (asset.size || 0) / (1024 * 1024);
+
+      if (fileSizeMB > 5) {
+        Toast.show({ type: 'error', text1: 'File too large', text2: 'Please upload a file smaller than 5 MB' });
+        return;
+      }
+
+      // Read file content as text
+      let textContent = '';
+      const mimeType = asset.mimeType || '';
+
+      try {
+        if (mimeType === 'text/plain' || mimeType === 'text/markdown' || mimeType === 'text/csv' || asset.name.endsWith('.txt') || asset.name.endsWith('.md') || asset.name.endsWith('.csv')) {
+          // Read plain text files directly
+          textContent = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
+        } else if (mimeType === 'application/pdf' || asset.name.endsWith('.pdf')) {
+          // For PDFs: read as base64 and send to Gazoo for extraction hint
+          const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 });
+          // Extract readable text from PDF by looking for text streams
+          // This is a lightweight extraction - works for most text-based PDFs
+          const binaryStr = atob(base64.substring(0, 50000)); // limit to first 50k chars
+          const textMatches = binaryStr.match(/BT[\s\S]*?ET/g) || [];
+          const rawText = textMatches
+            .join(' ')
+            .replace(/\/[A-Za-z]+\s+\d+\s+Tf/g, '')
+            .replace(/Td|Tm|Tj|TJ|TD|T\*|Tf|Tc|Tw|Tz|TL|Ts/g, ' ')
+            .replace(/[\x00-\x1F\x7F-\xFF]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          textContent = rawText.length > 100
+            ? rawText.substring(0, 8000)
+            : `[PDF: ${asset.name} — text extraction limited. The AI will analyse based on the filename and your questions.]`;
+        } else {
+          // For Word docs and others: try reading as text
+          try {
+            textContent = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
+            // Strip XML/binary noise from Word docs
+            textContent = textContent.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 8000);
+          } catch {
+            textContent = `[Document: ${asset.name} — uploaded successfully. Ask me questions about this document.]`;
+          }
+        }
+      } catch (readError) {
+        console.warn('Could not read file content:', readError);
+        textContent = `[Document: ${asset.name} — uploaded. Ask me questions and I will help based on the filename and context.]`;
+      }
+
+      const doc: AttachedDocument = {
+        name: asset.name,
+        uri: asset.uri,
+        mimeType,
+        content: textContent,
+        size: asset.size || 0,
+      };
+
+      setAttachedDoc(doc);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Document attached',
+        text2: asset.name,
+      });
+    } catch (error: any) {
+      console.error('Document picker error:', error);
+      Toast.show({ type: 'error', text1: 'Could not open document', text2: error.message });
+    } finally {
+      setIsPickingDoc(false);
+    }
+  };
+
+  const removeAttachedDoc = () => setAttachedDoc(null);
+
   const getContextAwareResponse = (userContent: string, previousMessages: Message[]): string => {
     const lowerContent = userContent.toLowerCase();
     
@@ -275,17 +382,33 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
   };
 
   const sendMessage = async () => {
-    if (!inputText.trim() || isLoading) return;
+    if (!inputText.trim() && !attachedDoc || isLoading) return;
+
+    // Build the user message content — include document content if attached
+    let userContent = inputText.trim();
+    if (attachedDoc) {
+      const docContext = `\n\n---\n📄 **Attached document: ${attachedDoc.name}**\n\nDocument content:\n${attachedDoc.content}`;
+      userContent = userContent
+        ? `${userContent}${docContext}`
+        : `Please analyse this document and provide a summary or answer any questions I have about it.${docContext}`;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputText.trim(),
+      // Show a clean version in the chat bubble (without the full doc dump)
+      content: attachedDoc
+        ? (inputText.trim() ? `${inputText.trim()} 📄 ${attachedDoc.name}` : `📄 ${attachedDoc.name} — please analyse this document`)
+        : inputText.trim(),
       timestamp: new Date(),
     };
 
+    // The actual content sent to AI includes the full document text
+    const aiContent = userContent;
+
     setMessages((prev) => [...prev, userMessage]);
     setInputText('');
+    setAttachedDoc(null); // clear attachment after sending
     setIsLoading(true);
 
     try {
@@ -293,7 +416,7 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
 
       if (USE_MOCK_RESPONSES) {
         // Context-aware mock responses
-        assistantContent = getContextAwareResponse(userMessage.content, messages);
+        assistantContent = getContextAwareResponse(aiContent, messages);
       } else {
         // Call Supabase Edge Function (secure server-side OpenAI API call)
         const { data: { session } } = await supabase.auth.getSession();
@@ -324,7 +447,7 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
                 })),
                 {
                   role: 'user',
-                  content: userMessage.content,
+                  content: aiContent, // includes full document text if attached
                 },
               ],
               conversationId: currentConversationId,
@@ -433,6 +556,7 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
       },
     ]);
     setInputText('');
+    setAttachedDoc(null);
     setCurrentConversationId(null);
     setAskedTopics(new Set());
     setShowHistory(false);
@@ -565,17 +689,23 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, backgroundColor: '#1a0b2e' }}
+      <ImageBackground
+        source={require('@/assets/images/gazoo-bg.png')}
+        style={{ flex: 1 }}
+        resizeMode="cover"
       >
+        {/* Dark overlay to keep text readable */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1, backgroundColor: 'rgba(10, 4, 30, 0.82)' }}
+        >
         {/* Header */}
         <View
           style={{
             paddingTop: Platform.OS === 'ios' ? 50 : 20,
             paddingHorizontal: 16,
             paddingBottom: 16,
-            backgroundColor: '#1a0b2e',
+            backgroundColor: 'transparent',
             borderBottomWidth: 1,
             borderBottomColor: '#ffffff20',
           }}
@@ -736,25 +866,76 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
             paddingHorizontal: 16,
             paddingVertical: 12,
             paddingBottom: Platform.OS === 'ios' ? 34 : 12,
-            backgroundColor: '#1a0b2e',
+            backgroundColor: 'rgba(10, 4, 30, 0.9)',
             borderTopWidth: 1,
             borderTopColor: '#ffffff20',
           }}
         >
+          {/* Attached document preview */}
+          {attachedDoc && (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: '#7c3aed30',
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                marginBottom: 8,
+                borderWidth: 1,
+                borderColor: '#7c3aed60',
+              }}
+            >
+              <IconSymbol name="doc.fill" size={16} color="#a78bfa" />
+              <Text
+                style={{ flex: 1, color: '#a78bfa', fontSize: 13, marginLeft: 8 }}
+                numberOfLines={1}
+              >
+                {attachedDoc.name}
+              </Text>
+              <Text style={{ color: '#ffffff60', fontSize: 11, marginRight: 8 }}>
+                {(attachedDoc.size / 1024).toFixed(0)} KB
+              </Text>
+              <TouchableOpacity onPress={removeAttachedDoc}>
+                <IconSymbol name="xmark.circle.fill" size={18} color="#ffffff60" />
+              </TouchableOpacity>
+            </View>
+          )}
+
           <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
               backgroundColor: '#ffffff15',
               borderRadius: 24,
-              paddingHorizontal: 16,
+              paddingHorizontal: 12,
               paddingVertical: 8,
             }}
           >
+            {/* Document upload button */}
+            <TouchableOpacity
+              onPress={pickDocument}
+              disabled={isPickingDoc || isLoading}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: attachedDoc ? '#7c3aed40' : '#ffffff10',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 8,
+              }}
+            >
+              {isPickingDoc
+                ? <ActivityIndicator size="small" color="#a78bfa" />
+                : <IconSymbol name="paperclip" size={18} color={attachedDoc ? '#a78bfa' : '#ffffff80'} />
+              }
+            </TouchableOpacity>
+
             <TextInput
               value={inputText}
               onChangeText={setInputText}
-              placeholder="Ask Gazoo anything..."
+              placeholder={attachedDoc ? "Ask about the document..." : "Ask Gazoo anything..."}
               placeholderTextColor="#ffffff60"
               style={{
                 flex: 1,
@@ -769,12 +950,12 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
             />
             <TouchableOpacity
               onPress={sendMessage}
-              disabled={!inputText.trim() || isLoading}
+              disabled={(!inputText.trim() && !attachedDoc) || isLoading}
               style={{
                 width: 36,
                 height: 36,
                 borderRadius: 18,
-                backgroundColor: inputText.trim() && !isLoading ? '#7c3aed' : '#ffffff20',
+                backgroundColor: (inputText.trim() || attachedDoc) && !isLoading ? '#7c3aed' : '#ffffff20',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginLeft: 8,
@@ -783,12 +964,13 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
               <IconSymbol
                 name="arrow.up"
                 size={20}
-                color={inputText.trim() && !isLoading ? '#fff' : '#ffffff60'}
+                color={(inputText.trim() || attachedDoc) && !isLoading ? '#fff' : '#ffffff60'}
               />
             </TouchableOpacity>
           </View>
         </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </ImageBackground>
     </Modal>
   );
 }
