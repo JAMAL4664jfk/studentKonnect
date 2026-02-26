@@ -350,10 +350,28 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
         const data = await response.json();
         console.log('Success response:', data);
         
-        if (!data.success || !data.message) {
+        // Handle multiple response shapes:
+        // Shape 1 (current deployed): { message: string, success: true }
+        // Shape 2 (older deployed):   { body: { messages: [{role, content},...] } }
+        // Shape 3 (fallback):         { messages: [{role, content},...] }
+        if (data.message && typeof data.message === 'string') {
+          // Shape 1 — standard
+          assistantContent = data.message;
+        } else if (data.body?.messages && Array.isArray(data.body.messages)) {
+          // Shape 2 — wrapped body
+          const lastMsg = data.body.messages[data.body.messages.length - 1];
+          assistantContent = lastMsg?.content || '';
+        } else if (data.messages && Array.isArray(data.messages)) {
+          // Shape 3 — flat messages array
+          const lastMsg = data.messages[data.messages.length - 1];
+          assistantContent = lastMsg?.content || '';
+        } else {
           throw new Error('Invalid response from Gazoo AI');
         }
-        assistantContent = data.message;
+        
+        if (!assistantContent) {
+          throw new Error('Empty response from Gazoo AI');
+        }
       }
 
       const assistantMessage: Message = {
