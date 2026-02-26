@@ -5,6 +5,10 @@ import * as Device from "expo-device";
 import Constants from "expo-constants";
 import { supabase } from "@/lib/supabase";
 
+// Expo Go does not support remote push notifications from SDK 53+
+// Only register for push tokens in standalone/development builds
+const IS_EXPO_GO = Constants.appOwnership === "expo";
+
 // Configure how notifications are displayed when the app is in the foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -69,6 +73,12 @@ export function usePushNotifications(): PushNotificationState {
 }
 
 async function registerForPushNotificationsAsync(): Promise<string | null> {
+  // Push notifications are not supported in Expo Go (SDK 53+)
+  if (IS_EXPO_GO) {
+    console.log("[PushNotifications] Skipping push registration in Expo Go — use a development build");
+    return null;
+  }
+
   // Push notifications only work on physical devices
   if (!Device.isDevice) {
     console.log("[PushNotifications] Must use physical device for push notifications");
