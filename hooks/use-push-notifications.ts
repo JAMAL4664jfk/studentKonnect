@@ -133,7 +133,11 @@ async function savePushTokenToSupabase(token: string): Promise<void> {
       );
 
     if (error) {
-      console.warn("[PushNotifications] Failed to save token:", error.message);
+      // Silently skip if the push_tokens table doesn't exist yet (migration pending)
+      const isMissingTable = error.message?.includes("push_tokens") || error.code === "42P01" || error.code === "PGRST200";
+      if (!isMissingTable) {
+        console.warn("[PushNotifications] Failed to save token:", error.message);
+      }
     } else {
       console.log("[PushNotifications] Token saved successfully");
     }

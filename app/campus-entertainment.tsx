@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { View, Text, ScrollView, TouchableOpacity, ImageBackground, ActivityIndicator, TextInput, Modal, Linking, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -326,7 +326,8 @@ const RADIO_STATIONS: RadioStation[] = [
 export default function CampusEntertainmentScreen() {
   const colors = useColors();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabType>("podcasts");
+  const [activeTab, setActiveTab] = useState<TabType>("campus-radio");
+  const isMounted = useRef(false);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playingStationId, setPlayingStationId] = useState<string | null>(null);
@@ -361,8 +362,14 @@ export default function CampusEntertainmentScreen() {
   }, [sound]);
 
   useEffect(() => {
+    // Mark as mounted after first render so navigation is safe
+    isMounted.current = true;
+  }, []);
+
+  useEffect(() => {
     // Auto-navigate to full podcasts screen when podcasts tab is active
-    if (activeTab === "podcasts") {
+    // Guard: only navigate after the component is fully mounted
+    if (isMounted.current && activeTab === "podcasts") {
       router.push("/podcasts");
     }
   }, [activeTab, router]);
