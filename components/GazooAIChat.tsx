@@ -393,11 +393,20 @@ export function GazooAIChat({ visible, onClose }: GazooAIChatProps) {
         name: error.name,
       });
       
-      // Show actual error to user for debugging
+      // Show a friendly error message — fall back to mock response if AI is unavailable
+      const isQuotaError = error.message?.toLowerCase().includes('quota') || error.message?.toLowerCase().includes('billing') || error.message?.toLowerCase().includes('exceeded');
+      const isServerError = error.message?.toLowerCase().includes('server error') || error.message?.toLowerCase().includes('unavailable') || error.message?.toLowerCase().includes('503');
+      let friendlyContent: string;
+      if (isQuotaError || isServerError) {
+        // Fall back to a helpful mock response
+        friendlyContent = getContextAwareResponse(messages[messages.length - 1]?.content || '', messages);
+      } else {
+        friendlyContent = `I'm having trouble connecting right now. Please check your internet connection and try again in a moment. 🙏`;
+      }
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `Error: ${error.message}\n\nPlease check:\n1. Edge Function is deployed\n2. OPENAI_API_KEY secret is set\n3. You're logged in\n4. Internet connection is working`,
+        content: friendlyContent,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
