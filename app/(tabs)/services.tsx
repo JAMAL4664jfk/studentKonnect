@@ -130,6 +130,15 @@ const SERVICES: ServiceItem[] = [
     badgeText: "Connect Now",
     badgeColor: "#6366f1",
   },
+  {
+    id: "councillors",
+    name: "Elected Councillors",
+    icon: "building.columns.fill",
+    description: "Browse all 9 473 elected municipal councillors",
+    backgroundImage: require("@/assets/images/hero-student-connect.jpg"),
+    badgeText: "2021 Elections",
+    badgeColor: "#0ea5e9",
+  },
 ];
 
 export default function ServicesScreen() {
@@ -187,6 +196,7 @@ export default function ServicesScreen() {
       nsfas: "/nsfas",
       "health-cover": "/student-health-cover",
       lecturer: "/connect-lecturer",
+      councillors: "/councillors",
     };
     
     const route = routes[serviceId];
